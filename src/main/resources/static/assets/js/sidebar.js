@@ -2,6 +2,30 @@ document.addEventListener("DOMContentLoaded", function () {
     const layoutMenu = document.getElementById("layout-menu");
     if (!layoutMenu) return;
 
+    // 사이드바 스크롤 허용 및 프리미엄 스크롤바 디자인을 위한 동적 스타일 주입
+    const sidebarStyle = document.createElement("style");
+    sidebarStyle.innerHTML = `
+        .layout-menu .menu-inner {
+            height: calc(100vh - 85px) !important;
+            overflow-y: auto !important;
+        }
+        /* 유려한 프리미엄 스크롤바 디자인 */
+        .layout-menu .menu-inner::-webkit-scrollbar {
+            width: 5px !important;
+        }
+        .layout-menu .menu-inner::-webkit-scrollbar-track {
+            background: transparent !important;
+        }
+        .layout-menu .menu-inner::-webkit-scrollbar-thumb {
+            background: rgba(105, 108, 255, 0.3) !important;
+            border-radius: 10px !important;
+        }
+        .layout-menu .menu-inner::-webkit-scrollbar-thumb:hover {
+            background: rgba(105, 108, 255, 0.55) !important;
+        }
+    `;
+    document.head.appendChild(sidebarStyle);
+
     // 현재 URL 경로 분석
     const path = window.location.pathname;
 
@@ -197,4 +221,47 @@ document.addEventListener("DOMContentLoaded", function () {
 
     html += `</ul>`;
     layoutMenu.innerHTML = html;
+
+    // 템플릿의 Menu 및 스크롤 시스템 재초기화 (비동기 DOM 빌드로 인해 깨진 인스턴스 복구)
+    if (typeof Menu !== 'undefined') {
+        try {
+            if (window.Helpers && window.Helpers.mainMenu && typeof window.Helpers.mainMenu.destroy === 'function') {
+                window.Helpers.mainMenu.destroy();
+            }
+            
+            const menuInstance = new Menu(layoutMenu, {
+                orientation: 'vertical',
+                closeChildren: false
+            });
+            
+            if (window.Helpers) {
+                window.Helpers.scrollToActive(false);
+                window.Helpers.mainMenu = menuInstance;
+            }
+        } catch (e) {
+            console.error("Menu re-initialization failed, falling back to manual scroll:", e);
+            fallbackScroll(layoutMenu);
+        }
+    } else {
+        fallbackScroll(layoutMenu);
+    }
 });
+
+// 폴백 수동 스크롤 적용 함수
+function fallbackScroll(layoutMenu) {
+    const menuInner = layoutMenu.querySelector('.menu-inner');
+    if (menuInner) {
+        if (typeof PerfectScrollbar !== 'undefined') {
+            try {
+                new PerfectScrollbar(menuInner, {
+                    wheelPropagation: false,
+                    wheelSpeed: 0.8
+                });
+            } catch (e) {
+                menuInner.style.overflowY = 'auto';
+            }
+        } else {
+            menuInner.style.overflowY = 'auto';
+        }
+    }
+}

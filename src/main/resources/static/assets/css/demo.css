@@ -111,3 +111,29 @@
   text-align: center;
   margin-top: 1rem;
 }
+
+/* 사이드바 메뉴 전체 세로 스크롤 허용 및 유려한 5px 프리미엄 스크롤바 디자인 */
+.layout-menu .menu-inner {
+  height: calc(100vh - 85px) !important;
+  overflow-y: auto !important;
+}
+
+/* 스크롤바 디자인 커스텀 */
+.layout-menu .menu-inner::-webkit-scrollbar {
+  width: 5px;
+}
+
+.layout-menu .menu-inner::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.layout-menu .menu-inner::-webkit-scrollbar-thumb {
+  background: rgba(105, 108, 255, 0.25);
+  border-radius: 10px;
+  transition: background 0.2s ease-in-out;
+}
+
+.layout-menu .menu-inner::-webkit-scrollbar-thumb:hover {
+  background: rgba(105, 108, 255, 0.5);
+}
+
