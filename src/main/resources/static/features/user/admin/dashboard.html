@@ -33,6 +33,11 @@
     .stat-card:hover {
       transform: translateY(-5px);
     }
+    
+    /* 탭 변경 애니메이션 및 스타일 */
+    .fade-tab-content {
+      transition: opacity 0.15s linear;
+    }
   </style>
 </head>
 
@@ -56,7 +61,7 @@
             </a>
           </div>
           <div class="navbar-nav-right d-flex align-items-center" id="navbar-collapse">
-            <h5 class="mb-0 fw-bold"><i class="bx bx-home-smile me-2 text-primary"></i>통합 관제 대시보드</h5>
+            <h5 class="mb-0 fw-bold" id="navbar-title-text"><i class="bx bx-home-smile me-2 text-primary"></i>통합 관제 대시보드</h5>
             <ul class="navbar-nav flex-row align-items-center ms-auto">
               <li class="nav-item dropdown-user dropdown">
                 <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown">
@@ -90,166 +95,274 @@
         <div class="content-wrapper">
           <div class="container-xxl flex-grow-1 container-p-y">
 
-            <!-- 웰컴 카드 & 실시간 통계 -->
-            <div class="row">
-              <div class="col-xxl-8 col-lg-12 mb-6">
-                <div class="card premium-gradient">
-                  <div class="d-flex align-items-start row">
-                    <div class="col-sm-7">
-                      <div class="card-body">
-                        <h4 class="card-title text-white mb-3">페스티벌 통합 관제 시스템 🎉</h4>
-                        <p class="mb-6 text-white-50">
-                          오늘의 누적 입장 관객 수, 실시간 F&B 매출 및 구역별 혼잡도를 실시간으로 모니터링하고 제어할 수 있는 통합 마스터 관제 보드입니다.
-                        </p>
-                        <span class="badge bg-white text-primary">시스템 무결성 등급: 최고 안전(A+)</span>
+            <!-- ================= [TAB 1: 대시보드 컨텐츠 영역] ================= -->
+            <div id="tab-content-dashboard" class="fade-tab-content">
+              <!-- 웰컴 카드 & 실시간 통계 -->
+              <div class="row">
+                <div class="col-xxl-8 col-lg-12 mb-6">
+                  <div class="card premium-gradient">
+                    <div class="d-flex align-items-start row">
+                      <div class="col-sm-7">
+                        <div class="card-body">
+                          <h4 class="card-title text-white mb-3">페스티벌 통합 관제 시스템 🎉</h4>
+                          <p class="mb-6 text-white-50">
+                            오늘의 누적 입장 관객 수, 실시간 F&B 매출 및 구역별 혼잡도를 실시간으로 모니터링하고 제어할 수 있는 통합 마스터 관제 보드입니다.
+                          </p>
+                          <span class="badge bg-white text-primary">시스템 무결성 등급: 최고 안전(A+)</span>
+                        </div>
+                      </div>
+                      <div class="col-sm-5 text-center text-sm-left">
+                        <div class="card-body pb-0 px-0 px-md-6">
+                          <img src="/assets/img/illustrations/man-with-laptop.png" height="175"
+                            alt="Dashboard illustration" />
+                        </div>
                       </div>
                     </div>
-                    <div class="col-sm-5 text-center text-sm-left">
-                      <div class="card-body pb-0 px-0 px-md-6">
-                        <img src="/assets/img/illustrations/man-with-laptop.png" height="175"
-                          alt="Dashboard illustration" />
+                  </div>
+                </div>
+
+                <!-- 실시간 누적 매출 카드 -->
+                <div class="col-xxl-4 col-md-12 mb-6">
+                  <div class="card h-100 stat-card">
+                    <div class="card-body">
+                      <div class="d-flex align-items-start justify-content-between mb-4">
+                        <div class="avatar flex-shrink-0 bg-label-success p-2 rounded">
+                          <i class="bx bx-dollar-circle text-success fs-3"></i>
+                        </div>
+                        <span class="badge bg-label-success">+18.2% 증가</span>
+                      </div>
+                      <p class="mb-1 text-muted">금일 누적 매출 총액 (O2O + 예매)</p>
+                      <h3 class="card-title mb-3 fw-bold">₩ 2,845,950,000</h3>
+                      <div class="d-flex align-items-center text-muted fs-7">
+                        <i class="bx bx-time me-1"></i> 실시간 갱신 중 (10초 전 업데이트)
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <!-- 실시간 누적 매출 카드 -->
-              <div class="col-xxl-4 col-md-12 mb-6">
-                <div class="card h-100 stat-card">
-                  <div class="card-body">
-                    <div class="d-flex align-items-start justify-content-between mb-4">
-                      <div class="avatar flex-shrink-0 bg-label-success p-2 rounded">
-                        <i class="bx bx-dollar-circle text-success fs-3"></i>
+              <!-- 요약 지표 카드 3종 -->
+              <div class="row mb-6">
+                <!-- 전체 인파 현황 -->
+                <div class="col-lg-4 col-md-12 mb-6 mb-lg-0">
+                  <div class="card stat-card h-100">
+                    <div class="card-body">
+                      <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="card-title mb-0 fw-semibold">전체 체류 인파</h5>
+                        <i class="bx bx-group text-primary fs-3"></i>
                       </div>
-                      <span class="badge bg-label-success">+18.2% 증가</span>
+                      <h3 class="fw-bold text-primary mb-2">42,850 명</h3>
+                      <p class="mb-3 text-muted fs-7">최대 수용 인원(50,000명) 대비 <b>85.7%</b> 체류 중</p>
+                      <div class="progress" style="height: 8px;">
+                        <div class="progress-bar bg-warning" role="progressbar" style="width: 85.7%" aria-valuenow="85.7"
+                          aria-valuemin="0" aria-valuemax="100"></div>
+                      </div>
                     </div>
-                    <p class="mb-1 text-muted">금일 누적 매출 총액 (O2O + 예매)</p>
-                    <h3 class="card-title mb-3 fw-bold">₩ 2,845,950,000</h3>
-                    <div class="d-flex align-items-center text-muted fs-7">
-                      <i class="bx bx-time me-1"></i> 실시간 갱신 중 (10초 전 업데이트)
+                  </div>
+                </div>
+
+                <!-- 누적 정산 현황 -->
+                <div class="col-lg-4 col-md-12 mb-6 mb-lg-0">
+                  <div class="card stat-card h-100">
+                    <div class="card-body">
+                      <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="card-title mb-0 fw-semibold">입점사 누적 정산액</h5>
+                        <i class="bx bx-spreadsheet text-info fs-3"></i>
+                      </div>
+                      <h3 class="fw-bold text-info mb-2">₩ 1,482,900,000</h3>
+                      <p class="mb-3 text-muted fs-7">총 128개 F&B 및 굿즈 가맹점 정산 보류액 없음</p>
+                      <div class="progress" style="height: 8px;">
+                        <div class="progress-bar bg-info" role="progressbar" style="width: 100%" aria-valuenow="100"
+                          aria-valuemin="0" aria-valuemax="100"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 재난 발생 로그 -->
+                <div class="col-lg-4 col-md-12">
+                  <div class="card stat-card h-100 bg-label-danger border-0">
+                    <div class="card-body">
+                      <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="card-title mb-0 fw-bold text-danger">긴급 공지/경보 상태</h5>
+                        <i class="bx bx-error-alt text-danger fs-3"></i>
+                      </div>
+                      <h4 class="fw-semibold text-danger mb-2">정상 운영 중</h4>
+                      <p class="mb-3 text-muted fs-7">최근 24시간 내 긴급 재난 원격 송출 내역 없음</p>
+                      <span class="badge bg-danger">시스템 정상 대기</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 가상 매출 추이 차트 및 테이블 -->
+              <div class="row">
+                <div class="col-12 col-lg-8 mb-6">
+                  <div class="card h-100">
+                    <div class="card-header d-flex align-items-center justify-content-between">
+                      <h5 class="card-title m-0 fw-semibold">시간대별 매출 & 예매율 추이</h5>
+                    </div>
+                    <div class="card-body">
+                      <div id="analyticsChart"></div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 실시간 현장 긴급 이벤트 스트림 -->
+                <div class="col-12 col-lg-4 mb-6">
+                  <div class="card h-100">
+                    <div class="card-header d-flex align-items-center justify-content-between">
+                      <h5 class="card-title m-0 fw-semibold">현장 실시간 로그 모니터</h5>
+                    </div>
+                    <div class="card-body">
+                      <ul class="p-0 m-0">
+                        <li class="d-flex mb-4 pb-1">
+                          <div class="avatar flex-shrink-0 me-3">
+                            <span class="avatar-initial rounded bg-label-primary"><i
+                                class="bx bx-check-shield"></i></span>
+                          </div>
+                          <div class="d-flex w-100 flex-wrap align-items-center justify-content-between gap-2">
+                            <div class="me-2">
+                              <h6 class="mb-0">QR 게이트 4번 열림</h6>
+                              <small class="text-muted">스태프: 하율 / 정상 입장</small>
+                            </div>
+                            <div class="user-progress-sm text-muted">16:22:15</div>
+                          </div>
+                        </li>
+                        <li class="d-flex mb-4 pb-1">
+                          <div class="avatar flex-shrink-0 me-3">
+                            <span class="avatar-initial rounded bg-label-success"><i class="bx bx-cart"></i></span>
+                          </div>
+                          <div class="d-flex w-100 flex-wrap align-items-center justify-content-between gap-2">
+                            <div class="me-2">
+                              <h6 class="mb-0">푸드트럭 B-3 주문 접수</h6>
+                              <small class="text-muted">O2O 픽업 타임슬롯 매칭 완료</small>
+                            </div>
+                            <div class="user-progress-sm text-muted">16:21:40</div>
+                          </div>
+                        </li>
+                        <li class="d-flex mb-4 pb-1">
+                          <div class="avatar flex-shrink-0 me-3">
+                            <span class="avatar-initial rounded bg-label-warning"><i class="bx bx-refresh"></i></span>
+                          </div>
+                          <div class="d-flex w-100 flex-wrap align-items-center justify-content-between gap-2">
+                            <div class="me-2">
+                              <h6 class="mb-0">예매 취소 접수 (A구역 2매)</h6>
+                              <small class="text-muted">온라인 예매 데스크 환불 승인</small>
+                            </div>
+                            <div class="user-progress-sm text-muted">16:19:10</div>
+                          </div>
+                        </li>
+                      </ul>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            <!-- 요약 지표 카드 3종 -->
-            <div class="row mb-6">
-              <!-- 전체 인파 현황 -->
-              <div class="col-lg-4 col-md-12 mb-6 mb-lg-0">
-                <div class="card stat-card h-100">
-                  <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                      <h5 class="card-title mb-0 fw-semibold">전체 체류 인파</h5>
-                      <i class="bx bx-group text-primary fs-3"></i>
+            <!-- ================= [TAB 2: 축제 마스터 데이터 등록 및 관리] ================= -->
+            <div id="tab-content-festivals" class="fade-tab-content d-none">
+              
+              <!-- 축제 등록 폼 카드 -->
+              <div class="card mb-6">
+                <div class="card-header border-bottom d-flex align-items-center justify-content-between py-4">
+                  <h5 class="card-title mb-0 fw-bold"><i class="bx bx-map-pin me-2 text-primary"></i>새로운 페스티벌 등록 (Create Festival)</h5>
+                  <small class="text-muted font-mono">Supabase PostgreSQL DB 연동</small>
+                </div>
+                <div class="card-body pt-6 mt-4">
+                  <form id="createFestivalForm" onsubmit="event.preventDefault(); addFestival();">
+                    <div class="row g-4">
+                      
+                      <!-- 축제 명칭 -->
+                      <div class="col-md-6 col-12 mb-3">
+                        <label class="form-label fw-bold text-secondary">축제 명칭 *</label>
+                        <input 
+                          type="text" 
+                          id="festName" 
+                          required 
+                          class="form-control" 
+                          placeholder="ex: 2026 워터밤 서울 (Waterbomb)"
+                        />
+                      </div>
+                      
+                      <!-- 썸네일 이미지 -->
+                      <div class="col-md-6 col-12 mb-3">
+                        <label class="form-label fw-bold text-secondary">축제 홍보 이미지 / 지도 도면 URL</label>
+                        <input 
+                          type="url" 
+                          id="festMapImage" 
+                          class="form-control" 
+                          placeholder="https://images.unsplash.com/... (선택 입력)"
+                        />
+                      </div>
+
+                      <!-- 시작 일자 -->
+                      <div class="col-md-6 col-12 mb-3">
+                        <label class="form-label fw-bold text-secondary">축제 시작 일자 *</label>
+                        <input 
+                          type="date" 
+                          id="festStartDate" 
+                          required 
+                          class="form-control"
+                        />
+                      </div>
+
+                      <!-- 종료 일자 -->
+                      <div class="col-md-6 col-12 mb-3">
+                        <label class="form-label fw-bold text-secondary">축제 종료 일자 *</label>
+                        <input 
+                          type="date" 
+                          id="festEndDate" 
+                          required 
+                          class="form-control"
+                        />
+                      </div>
+
+                      <!-- 활성화 즉시 연동 스위치 -->
+                      <div class="col-12 mb-3">
+                        <div class="form-check form-switch">
+                          <input class="form-check-input" type="checkbox" id="festIsActive" checked>
+                          <label class="form-check-label fw-semibold" for="festIsActive">즉시 소비자 예매 사이트에 공개 및 활성화 (`is_active = TRUE` 상태)</label>
+                        </div>
+                      </div>
+
+                      <!-- 등록 제출 버튼 -->
+                      <div class="col-12 d-flex justify-content-end">
+                        <button type="submit" class="btn btn-primary px-6 py-2.5 fw-bold shadow-sm">
+                          <i class="bx bx-check-circle me-1"></i> 신규 페스티벌 등록 완료
+                        </button>
+                      </div>
+
                     </div>
-                    <h3 class="fw-bold text-primary mb-2">42,850 명</h3>
-                    <p class="mb-3 text-muted fs-7">최대 수용 인원(50,000명) 대비 <b>85.7%</b> 체류 중</p>
-                    <div class="progress" style="height: 8px;">
-                      <div class="progress-bar bg-warning" role="progressbar" style="width: 85.7%" aria-valuenow="85.7"
-                        aria-valuemin="0" aria-valuemax="100"></div>
-                    </div>
-                  </div>
+                  </form>
                 </div>
               </div>
 
-              <!-- 누적 정산 현황 -->
-              <div class="col-lg-4 col-md-12 mb-6 mb-lg-0">
-                <div class="card stat-card h-100">
-                  <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                      <h5 class="card-title mb-0 fw-semibold">입점사 누적 정산액</h5>
-                      <i class="bx bx-spreadsheet text-info fs-3"></i>
-                    </div>
-                    <h3 class="fw-bold text-info mb-2">₩ 1,482,900,000</h3>
-                    <p class="mb-3 text-muted fs-7">총 128개 F&B 및 굿즈 가맹점 정산 보류액 없음</p>
-                    <div class="progress" style="height: 8px;">
-                      <div class="progress-bar bg-info" role="progressbar" style="style: 100%" aria-valuenow="100"
-                        aria-valuemin="0" aria-valuemax="100"></div>
-                    </div>
-                  </div>
+              <!-- 축제 마스터 목록 테이블 카드 -->
+              <div class="card">
+                <div class="card-header border-bottom d-flex align-items-center justify-content-between py-4">
+                  <h5 class="card-title mb-0 fw-bold"><i class="bx bx-list-ul me-2 text-primary"></i>플랫폼 등록된 축제 마스터 목록</h5>
+                  <span class="badge bg-label-primary font-mono" id="festivalCountBadge">Total: 0</span>
+                </div>
+                <div class="table-responsive text-nowrap">
+                  <table class="table table-hover">
+                    <thead>
+                      <tr class="table-light text-secondary">
+                        <th>ID</th>
+                        <th>축제 레이블 / 도면</th>
+                        <th>축제 명칭</th>
+                        <th>개최 기간 (start_date ~ end_date)</th>
+                        <th class="text-center">활성 상태 (is_active)</th>
+                        <th class="text-end">관리 제어</th>
+                      </tr>
+                    </thead>
+                    <tbody id="festivalTableBody" class="table-border-bottom-0">
+                      <!-- 동적 자바스크립트 바인딩 -->
+                    </tbody>
+                  </table>
                 </div>
               </div>
 
-              <!-- 재난 발생 로그 -->
-              <div class="col-lg-4 col-md-12">
-                <div class="card stat-card h-100 bg-label-danger border-0">
-                  <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                      <h5 class="card-title mb-0 fw-bold text-danger">긴급 공지/경보 상태</h5>
-                      <i class="bx bx-error-alt text-danger fs-3"></i>
-                    </div>
-                    <h4 class="fw-semibold text-danger mb-2">정상 운영 중</h4>
-                    <p class="mb-3 text-muted fs-7">최근 24시간 내 긴급 재난 원격 송출 내역 없음</p>
-                    <span class="badge bg-danger">시스템 정상 대기</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- 가상 매출 추이 차트 및 테이블 -->
-            <div class="row">
-              <div class="col-12 col-lg-8 mb-6">
-                <div class="card h-100">
-                  <div class="card-header d-flex align-items-center justify-content-between">
-                    <h5 class="card-title m-0 fw-semibold">시간대별 매출 & 예매율 추이</h5>
-                  </div>
-                  <div class="card-body">
-                    <div id="analyticsChart"></div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- 실시간 현장 긴급 이벤트 스트림 -->
-              <div class="col-12 col-lg-4 mb-6">
-                <div class="card h-100">
-                  <div class="card-header d-flex align-items-center justify-content-between">
-                    <h5 class="card-title m-0 fw-semibold">현장 실시간 로그 모니터</h5>
-                  </div>
-                  <div class="card-body">
-                    <ul class="p-0 m-0">
-                      <li class="d-flex mb-4 pb-1">
-                        <div class="avatar flex-shrink-0 me-3">
-                          <span class="avatar-initial rounded bg-label-primary"><i
-                              class="bx bx-check-shield"></i></span>
-                        </div>
-                        <div class="d-flex w-100 flex-wrap align-items-center justify-content-between gap-2">
-                          <div class="me-2">
-                            <h6 class="mb-0">QR 게이트 4번 열림</h6>
-                            <small class="text-muted">스태프: 하율 / 정상 입장</small>
-                          </div>
-                          <div class="user-progress-sm text-muted">16:22:15</div>
-                        </div>
-                      </li>
-                      <li class="d-flex mb-4 pb-1">
-                        <div class="avatar flex-shrink-0 me-3">
-                          <span class="avatar-initial rounded bg-label-success"><i class="bx bx-cart"></i></span>
-                        </div>
-                        <div class="d-flex w-100 flex-wrap align-items-center justify-content-between gap-2">
-                          <div class="me-2">
-                            <h6 class="mb-0">푸드트럭 B-3 주문 접수</h6>
-                            <small class="text-muted">O2O 픽업 타임슬롯 매칭 완료</small>
-                          </div>
-                          <div class="user-progress-sm text-muted">16:21:40</div>
-                        </div>
-                      </li>
-                      <li class="d-flex mb-4 pb-1">
-                        <div class="avatar flex-shrink-0 me-3">
-                          <span class="avatar-initial rounded bg-label-warning"><i class="bx bx-refresh"></i></span>
-                        </div>
-                        <div class="d-flex w-100 flex-wrap align-items-center justify-content-between gap-2">
-                          <div class="me-2">
-                            <h6 class="mb-0">예매 취소 접수 (A구역 2매)</h6>
-                            <small class="text-muted">온라인 예매 데스크 환불 승인</small>
-                          </div>
-                          <div class="user-progress-sm text-muted">16:19:10</div>
-                        </div>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
             </div>
 
           </div>
@@ -282,7 +395,7 @@
   <script src="/assets/js/sidebar.js"></script>
 
   <script>
-    // 가상 매출 차트 렌더링
+    // 1. 가상 매출 차트 렌더링
     const options = {
       series: [{
         name: 'F&B 매출액 (백만원)',
@@ -306,6 +419,201 @@
 
     const chart = new ApexCharts(document.querySelector("#analyticsChart"), options);
     chart.render();
+
+    // 2. [축제 마스터 등록 및 관리 핵심 REST API CRUD 연동 로직]
+    let festivals = [];
+
+    // DB로부터 모든 페스티벌 데이터 목록을 로드하는 함수
+    function loadFestivals() {
+      fetch("/api/festival")
+        .then(response => {
+          if (!response.ok) {
+            throw new Error("네트워크 응답 에러");
+          }
+          return response.json();
+        })
+        .then(data => {
+          festivals = data;
+          renderFestivalTable();
+        })
+        .catch(error => {
+          console.error("페스티벌 로드 중 오류 발생:", error);
+        });
+    }
+
+    // 축제 목록 렌더링 함수
+    function renderFestivalTable() {
+      const tbody = document.getElementById("festivalTableBody");
+      const badgeCount = document.getElementById("festivalCountBadge");
+      if (!tbody) return;
+
+      badgeCount.innerText = `Total: ${festivals.length}`;
+      tbody.innerHTML = "";
+
+      if (festivals.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" class="text-center py-5 text-muted">등록된 페스티벌 마스터 데이터가 존재하지 않습니다.</td>
+          </tr>
+        `;
+        return;
+      }
+
+      festivals.forEach((fest) => {
+        const imageUrl = fest.mapImageUrl || 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?q=80&w=800&auto=format&fit=crop';
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td><strong class="font-mono text-primary">#${fest.id}</strong></td>
+          <td>
+            <div class="avatar avatar-md rounded bg-light overflow-hidden" style="width: 55px; height: 35px;">
+              <img src="${imageUrl}" class="w-100 h-100 object-fit-cover" style="object-fit: cover;" alt="Banner">
+            </div>
+          </td>
+          <td><span class="fw-bold fs-6">${fest.name}</span></td>
+          <td><span class="font-mono text-secondary">${fest.startDate} ~ ${fest.endDate}</span></td>
+          <td class="text-center">
+            <span class="badge ${fest.isActive ? 'bg-label-success' : 'bg-label-secondary'} cursor-pointer" onclick="toggleActive(${fest.id})">
+              ${fest.isActive ? 'ACTIVE' : 'INACTIVE'}
+            </span>
+          </td>
+          <td class="text-end">
+            <button class="btn btn-xs btn-outline-primary me-1" onclick="toggleActive(${fest.id})">상태 토글</button>
+            <button class="btn btn-xs btn-outline-danger" onclick="deleteFestival(${fest.id})">삭제</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // 축제 추가 함수 (POST /api/festival)
+    function addFestival() {
+      const name = document.getElementById("festName").value;
+      let mapImage = document.getElementById("festMapImage").value;
+      const startDate = document.getElementById("festStartDate").value;
+      const endDate = document.getElementById("festEndDate").value;
+      const isActive = document.getElementById("festIsActive").checked;
+
+      if (!name || !startDate || !endDate) {
+        alert("모든 필수 값을 입력해 주세요.");
+        return;
+      }
+
+      if (!mapImage) {
+        mapImage = "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?q=80&w=800&auto=format&fit=crop";
+      }
+
+      const payload = {
+        name: name,
+        startDate: startDate,
+        endDate: endDate,
+        isActive: isActive,
+        mapImageUrl: mapImage
+      };
+
+      fetch("/api/festival", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error("저장 실패");
+        }
+        return response.json();
+      })
+      .then(savedFest => {
+        alert(`🎉 [${savedFest.name}] 페스티벌이 실제 Supabase PostgreSQL DB에 성공적으로 등록되었습니다!`);
+        document.getElementById("createFestivalForm").reset();
+        document.getElementById("festIsActive").checked = true;
+        loadFestivals(); // 목록 새로고침
+      })
+      .catch(error => {
+        alert("등록 중 오류가 발생했습니다. 백엔드 세션을 확인하십시오.");
+        console.error("축제 저장 오류:", error);
+      });
+    }
+
+    // 축제 활성화 토글 함수 (PUT /api/festival/{id}/toggle)
+    function toggleActive(id) {
+      fetch(`/api/festival/${id}/toggle`, {
+        method: "PUT"
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error("토글 실패");
+        }
+        return response.json();
+      })
+      .then(updatedFest => {
+        loadFestivals(); // 목록 새로고침
+      })
+      .catch(error => {
+        alert("상태 변경 오류가 발생했습니다.");
+        console.error("토글 오류:", error);
+      });
+    }
+
+    // 축제 삭제 함수 (DELETE /api/festival/{id})
+    function deleteFestival(id) {
+      if (confirm("정말로 해당 축제 마스터 데이터를 실제 DB에서 영구 삭제하시겠습니까? 관련 데이터가 함께 삭제됩니다.")) {
+        fetch(`/api/festival/${id}`, {
+          method: "DELETE"
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error("삭제 실패");
+          }
+          alert("데이터베이스에서 성공적으로 영구 삭제되었습니다.");
+          loadFestivals(); // 목록 새로고침
+        })
+        .catch(error => {
+          alert("삭제 오류가 발생했습니다.");
+          console.error("삭제 오류:", error);
+        });
+      }
+    }
+
+    // 3. [동적 탭 스위칭 감지 및 라우팅 로직]
+    function checkTabRouting() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const tab = urlParams.get('tab');
+      
+      const dashboardEl = document.getElementById("tab-content-dashboard");
+      const festivalsEl = document.getElementById("tab-content-festivals");
+      const titleText = document.getElementById("navbar-title-text");
+
+      if (tab === 'festivals') {
+        dashboardEl.classList.add("d-none");
+        festivalsEl.classList.remove("d-none");
+        titleText.innerHTML = `<i class="bx bx-map-pin me-2 text-primary"></i>축제 마스터 관리`;
+      } else {
+        dashboardEl.classList.remove("d-none");
+        festivalsEl.classList.add("d-none");
+        titleText.innerHTML = `<i class="bx bx-home-smile me-2 text-primary"></i>통합 관제 대시보드`;
+      }
+    }
+
+    // 윈도우 로드 및 히스토리 변경 시 라우팅 트리거
+    window.addEventListener("load", () => {
+      loadFestivals(); // 실시간 데이터 로드
+      checkTabRouting();
+    });
+
+    // 쿼리 파라미터 링크 런타임 클릭 시 스위칭을 위한 인터벌 훅 (Perfect for SPA)
+    let lastQuery = window.location.search;
+    setInterval(() => {
+      if (window.location.search !== lastQuery) {
+        lastQuery = window.location.search;
+        checkTabRouting();
+        
+        // 사이드바 active 상태 복구를 위한 임시 갱신
+        if (typeof document.dispatchEvent === 'function') {
+          document.dispatchEvent(new Event('DOMContentLoaded'));
+        }
+      }
+    }, 150);
   </script>
 </body>
 

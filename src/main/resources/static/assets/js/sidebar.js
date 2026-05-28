@@ -43,6 +43,12 @@ document.addEventListener("DOMContentLoaded", function () {
         },
         {
             type: "item",
+            text: "축제 마스터 관리",
+            icon: "bx bx-map-alt",
+            url: "/features/user/admin/dashboard.html?tab=festivals"
+        },
+        {
+            type: "item",
             text: "입점 신청 승인",
             icon: "bx bx-list-check",
             url: "/features/user/admin/store-applications.html"
@@ -52,12 +58,6 @@ document.addEventListener("DOMContentLoaded", function () {
             text: "입점 가맹점 목록",
             icon: "bx bx-store",
             url: "/features/user/admin/store-list.html"
-        },
-        {
-            type: "item",
-            text: "페스티벌 / 구역 셋업",
-            icon: "bx bx-map-alt",
-            url: "/features/festival/admin/festival-setup.html"
         },
         {
             type: "item",
@@ -207,7 +207,20 @@ document.addEventListener("DOMContentLoaded", function () {
             </li>
             `;
         } else if (node.type === "item") {
-            const isActive = path === node.url || (node.url === "/features/user/admin/dashboard.html" && (path === "/" || path === "/html/index.html" || path === "/index.html"));
+            const hasTabParam = node.url.includes("?tab=festivals");
+            const isCurrentTabFestivals = window.location.search.includes("tab=festivals");
+            
+            let isActive = false;
+            if (path === "/features/user/admin/dashboard.html") {
+                if (hasTabParam && isCurrentTabFestivals) {
+                    isActive = true;
+                } else if (!hasTabParam && !isCurrentTabFestivals && node.url === "/features/user/admin/dashboard.html") {
+                    isActive = true;
+                }
+            } else {
+                isActive = path === node.url || (node.url === "/features/user/admin/dashboard.html" && (path === "/" || path === "/html/index.html" || path === "/index.html"));
+            }
+            
             html += `
             <li class="menu-item ${isActive ? 'active' : ''}">
                 <a href="${node.url}" class="menu-link">
