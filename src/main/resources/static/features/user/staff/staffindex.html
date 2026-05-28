@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
   <link rel="stylesheet" href="/assets/css/custom.css">
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 </head>
+
 <body>
 
   <div id="app-shell">
@@ -18,72 +20,7 @@
         <button id="toggle-sidebar-btn">≪</button>
       </div>
       <ul class="sidebar-menu">
-        <li class="menu-item">
-          <a href="index.html" class="menu-link active" data-page="dashboard">
-            <span class="menu-icon">📊</span>
-            <span class="menu-text">종합 대시보드</span>
-          </a>
-        </li>
-        <li class="menu-item">
-          <a href="scanner.html" class="menu-link" data-page="scanner">
-            <span class="menu-icon">📷</span>
-            <span class="menu-text">티켓 QR 스캔</span>
-          </a>
-        </li>
-        <li class="menu-item">
-          <a href="scan-status.html" class="menu-link" data-page="scan-status">
-            <span class="menu-icon">📈</span>
-            <span class="menu-text">스캔 현황</span>
-          </a>
-        </li>
-        <li class="menu-item">
-          <a href="seats.html" class="menu-link" data-page="seats">
-            <span class="menu-icon">💺</span>
-            <span class="menu-text">예매/좌석 현황</span>
-          </a>
-        </li>
-        <li class="menu-item">
-          <a href="ticket-desk.html" class="menu-link" data-page="ticketing">
-            <span class="menu-icon">🎟️</span>
-            <span class="menu-text">현장 예매하기</span>
-          </a>
-        </li>
-        <li class="menu-item">
-          <a href="refund.html" class="menu-link" data-page="refund">
-            <span class="menu-icon">💸</span>
-            <span class="menu-text">예매취소 및 환불</span>
-          </a>
-        </li>
-
-        <li class="menu-item" style="border-top: 1px dashed #30363d; margin: 15px 10px 5px 10px;"></li>
-
-        <li class="menu-item">
-          <a href="orders.html" class="menu-link" data-page="orders">
-            <span class="menu-icon">☕</span>
-            <span class="menu-text">F&amp;B 주문접수/수령</span>
-          </a>
-        </li>
-        <li class="menu-item">
-          <a href="goods.html" class="menu-link" data-page="goods">
-            <span class="menu-icon">🧸</span>
-            <span class="menu-text">굿즈 주문수령/배부</span>
-          </a>
-        </li>
-
-        <li class="menu-item" style="border-top: 1px dashed #30363d; margin: 15px 10px 5px 10px;"></li>
-
-        <li class="menu-item">
-          <a href="inventory-goods.html" class="menu-link" data-page="inventory-goods">
-            <span class="menu-icon">📦</span>
-            <span class="menu-text">굿즈 재고 관리</span>
-          </a>
-        </li>
-        <li class="menu-item">
-          <a href="inventory-fnb.html" class="menu-link" data-page="inventory-fnb">
-            <span class="menu-icon">🍵</span>
-            <span class="menu-text">F&amp;B 식음료 관리</span>
-          </a>
-        </li>
+        <!-- Loaded dynamically from /features/user/staff/menu_aside.html -->
       </ul>
     </aside>
 
@@ -116,7 +53,141 @@
 
         <!-- Dashboard view -->
         <section id="view-dashboard" class="content-view">
-          <!-- Rendered by js/ui.js -->
+          <!-- Top KPI Dashboard Cards -->
+          <div class="dashboard-metrics" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 25px;">
+            <div class="metric-card metric-green">
+              <div class="metric-title" style="display: flex; justify-content: space-between; align-items: center;">
+                <span>🚶 당일 실시간 입장객 현황</span>
+                <span class="badge badge-green" id="dash-entered-percent-badge">0% 완료</span>
+              </div>
+              <div class="metric-value" id="dash-total-entered" style="font-size: 28px;">0명 <span style="font-size: 14px; color: var(--text-muted); font-weight: normal;">/ 0석</span></div>
+              <div style="width: 100%; background: #0d1117; border: 1px solid var(--border-color); height: 6px; border-radius: 3px; overflow: hidden; margin-bottom: 8px;">
+                <div id="dash-entered-progress" style="width: 0%; background: var(--color-green); height: 100%; box-shadow: 0 0 8px var(--color-green); transition: width 0.5s ease;"></div>
+              </div>
+              <div class="metric-footer">QR 코드 리더 검증 통과 게이트 실시간 통계</div>
+            </div>
+
+            <div class="metric-card metric-blue">
+              <div class="metric-title" style="display: flex; justify-content: space-between; align-items: center;">
+                <span>🎟️ 좌석 예매 및 발권 완료</span>
+                <span class="badge badge-blue" id="dash-reserved-percent-badge">0% 예약</span>
+              </div>
+              <div class="metric-value" id="dash-total-reserved" style="font-size: 28px;">0석 <span style="font-size: 14px; color: var(--text-muted); font-weight: normal;">/ 0석</span></div>
+              <div style="width: 100%; background: #0d1117; border: 1px solid var(--border-color); height: 6px; border-radius: 3px; overflow: hidden; margin-bottom: 8px;">
+                <div id="dash-reserved-progress" style="width: 0%; background: var(--color-blue); height: 100%; box-shadow: 0 0 8px var(--color-blue); transition: width 0.5s ease;"></div>
+              </div>
+              <div class="metric-footer">예매 완료 및 입장권 발매 전체 세그먼트</div>
+            </div>
+
+            <div class="metric-card metric-amber">
+              <div class="metric-title" style="display: flex; justify-content: space-between; align-items: center;">
+                <span>🍔 식음료(F&B) 주문 관리</span>
+                <span class="badge badge-amber" id="dash-fnb-wait-badge">0건 대기</span>
+              </div>
+              <div class="metric-value" id="dash-total-fnb" style="font-size: 28px;">총 0건 <span style="font-size: 14px; color: var(--text-muted); font-weight: normal;">/ 활성: 0건</span></div>
+              <div style="width: 100%; background: #0d1117; border: 1px solid var(--border-color); height: 6px; border-radius: 3px; overflow: hidden; margin-bottom: 8px;">
+                <div id="dash-fnb-progress" style="width: 0%; background: var(--color-amber); height: 100%; box-shadow: 0 0 8px var(--color-amber); transition: width 0.5s ease;"></div>
+              </div>
+              <div class="metric-footer">식음료 매장 대기 및 완료 실시간 주문 흐름</div>
+            </div>
+          </div>
+
+          <!-- Main Live Queue Section (Full Width Stacked) -->
+          <!-- Goods Panel: Full Width -->
+          <div class="panel-rigid" style="margin-bottom: 25px; width: 100%;">
+            <div class="panel-header-rigid">
+              <span style="display: flex; align-items: center; gap: 8px;">
+                <span>🎁 굿즈 예약/수령 관리 목록</span>
+                <span class="badge badge-blue" id="dash-goods-wait-badge">0건 대기 중</span>
+              </span>
+              <span class="telemetry-pulse" style="font-family: var(--font-mono); color: var(--color-blue);">GOODS SYSTEM</span>
+            </div>
+            <div class="panel-body-rigid" style="padding: 10px; max-height: 380px; overflow-y: auto;">
+              <table class="table-rigid" style="font-size: 12px;">
+                <thead>
+                  <tr>
+                    <th>주문번호</th>
+                    <th>고객명</th>
+                    <th>굿즈 상품 내역</th>
+                    <th>상태</th>
+                    <th class="text-right">스태프 액션</th>
+                  </tr>
+                </thead>
+                <tbody id="dash-goods-list">
+                  <!-- Dynamically rendered goods -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- F&B Panel: Full Width -->
+          <div class="panel-rigid" style="margin-bottom: 25px; width: 100%;">
+            <div class="panel-header-rigid">
+              <span style="display: flex; align-items: center; gap: 8px;">
+                <span>🍔 실시간 F&B 주문 접수 대기열</span>
+                <span class="badge badge-amber" id="dash-fnb-cook-badge">0건 조리 중</span>
+              </span>
+              <span class="telemetry-pulse" style="font-family: var(--font-mono); color: var(--color-amber);">F&B KITCHEN</span>
+            </div>
+            <div class="panel-body-rigid" style="padding: 10px; max-height: 380px; overflow-y: auto;">
+              <table class="table-rigid" style="font-size: 12px;">
+                <thead>
+                  <tr>
+                    <th>주문번호</th>
+                    <th>고객명</th>
+                    <th>주문 품목</th>
+                    <th class="text-right">상태 업데이트</th>
+                  </tr>
+                </thead>
+                <tbody id="dash-fnb-list">
+                  <!-- Dynamically rendered active F&B -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Scan Logs Panel: Full Width -->
+          <div class="panel-rigid" style="margin-bottom: 25px; width: 100%;">
+            <div class="panel-header-rigid" style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="display: flex; align-items: center; gap: 8px;">
+                <span style="display: inline-block; width: 8px; height: 8px; background-color: var(--color-green); border-radius: 50%; box-shadow: 0 0 6px var(--color-green);" class="animate-pulse"></span>
+                <span>📸 최근 티켓 스캔 및 게이트 입장 현황</span>
+              </span>
+              <span style="font-family: var(--font-mono); color: var(--color-green); font-size: 11px;">GATE SYNC: ON</span>
+            </div>
+            <div class="panel-body-rigid" style="padding: 10px; max-height: 180px; overflow-y: auto;">
+              <table class="table-rigid" style="font-size: 11px;">
+                <thead>
+                  <tr>
+                    <th>스캔시간</th>
+                    <th>티켓번호</th>
+                    <th>매핑좌석</th>
+                    <th>고객명</th>
+                    <th class="text-right">검증결과</th>
+                  </tr>
+                </thead>
+                <tbody id="dash-scan-logs-tbody">
+                  <!-- Scan logs rendered here -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Telemetry Logs Panel: Full Width -->
+          <div class="panel-rigid" style="margin-bottom: 25px; width: 100%;">
+            <div class="panel-header-rigid" style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="display: flex; align-items: center; gap: 8px;">
+                <span style="display: inline-block; width: 8px; height: 8px; background-color: var(--color-blue); border-radius: 50%; box-shadow: 0 0 6px var(--color-blue);" class="animate-pulse"></span>
+                <span>🔌 실시간 통합 관제 시스템 텔레메트리 피드</span>
+              </span>
+              <span style="font-family: var(--font-mono); color: var(--text-muted); font-size: 11px;">WEBSOCKET LIVE</span>
+            </div>
+            <div class="panel-body-rigid" style="padding: 0;">
+              <div class="telemetry-terminal" id="dash-telemetry-logs" style="height: 180px; max-height: 180px; overflow-y: auto;">
+                <!-- Telemetry logs are rendered here -->
+              </div>
+            </div>
+          </div>
         </section>
       </div>
     </main>
@@ -124,9 +195,10 @@
   </div>
 
   <script type="module">
-    import { initUI } from '/assets/js/staff/ui.js';
+    import { initUI } from '/assets/js/ui.js';
     document.addEventListener("DOMContentLoaded", () => { initUI(); });
   </script>
 
 </body>
+
 </html>

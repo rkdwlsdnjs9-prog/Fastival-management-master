@@ -18,72 +18,7 @@
         <button id="toggle-sidebar-btn">≪</button>
       </div>
       <ul class="sidebar-menu">
-        <li class="menu-item">
-          <a href="index.html" class="menu-link" data-page="dashboard">
-            <span class="menu-icon">📊</span>
-            <span class="menu-text">종합 대시보드</span>
-          </a>
-        </li>
-        <li class="menu-item">
-          <a href="scanner.html" class="menu-link" data-page="scanner">
-            <span class="menu-icon">📷</span>
-            <span class="menu-text">티켓 QR 스캔</span>
-          </a>
-        </li>
-        <li class="menu-item">
-          <a href="scan-status.html" class="menu-link" data-page="scan-status">
-            <span class="menu-icon">📈</span>
-            <span class="menu-text">스캔 현황</span>
-          </a>
-        </li>
-        <li class="menu-item">
-          <a href="seats.html" class="menu-link" data-page="seats">
-            <span class="menu-icon">💺</span>
-            <span class="menu-text">예매/좌석 현황</span>
-          </a>
-        </li>
-        <li class="menu-item">
-          <a href="ticketing.html" class="menu-link" data-page="ticketing">
-            <span class="menu-icon">🎟️</span>
-            <span class="menu-text">현장 예매하기</span>
-          </a>
-        </li>
-        <li class="menu-item">
-          <a href="refund.html" class="menu-link" data-page="refund">
-            <span class="menu-icon">💸</span>
-            <span class="menu-text">예매취소 및 환불</span>
-          </a>
-        </li>
-
-        <li class="menu-item" style="border-top: 1px dashed #30363d; margin: 15px 10px 5px 10px;"></li>
-
-        <li class="menu-item">
-          <a href="orders.html" class="menu-link" data-page="orders">
-            <span class="menu-icon">☕</span>
-            <span class="menu-text">F&amp;B 주문접수/수령</span>
-          </a>
-        </li>
-        <li class="menu-item">
-          <a href="goods.html" class="menu-link" data-page="goods">
-            <span class="menu-icon">🧸</span>
-            <span class="menu-text">굿즈 주문수령/배부</span>
-          </a>
-        </li>
-
-        <li class="menu-item" style="border-top: 1px dashed #30363d; margin: 15px 10px 5px 10px;"></li>
-
-        <li class="menu-item">
-          <a href="inventory-goods.html" class="menu-link" data-page="inventory-goods">
-            <span class="menu-icon">📦</span>
-            <span class="menu-text">굿즈 재고 관리</span>
-          </a>
-        </li>
-        <li class="menu-item">
-          <a href="inventory-fnb.html" class="menu-link" data-page="inventory-fnb">
-            <span class="menu-icon">🍵</span>
-            <span class="menu-text">F&amp;B 식음료 관리</span>
-          </a>
-        </li>
+        <!-- Loaded dynamically from /features/user/staff/menu_aside.html -->
       </ul>
     </aside>
 
@@ -118,7 +53,7 @@
   </div>
 
   <script type="module">
-    import { initPage } from '/assets/js/staff/ui.js';
+    import { initPage } from '/assets/js/ui.js';
     document.addEventListener("DOMContentLoaded", () => { initPage('refund'); });
   </script>
 

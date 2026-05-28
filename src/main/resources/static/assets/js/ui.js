@@ -25,11 +25,33 @@ const notifList = document.getElementById("notif-list");
 // Init App UI
 let selectedSeats = [];
 
+export async function loadSidebarMenu(viewId) {
+  const sidebarMenu = document.querySelector(".sidebar-menu");
+  if (sidebarMenu) {
+    try {
+      const response = await fetch("/features/user/staff/menu_aside.html");
+      if (response.ok) {
+        const menuHtml = await response.text();
+        sidebarMenu.innerHTML = menuHtml;
+        
+        // Highlight current page in sidebar
+        const menuLinks = sidebarMenu.querySelectorAll(".menu-link");
+        menuLinks.forEach(link => link.classList.remove("active"));
+        const currentLink = sidebarMenu.querySelector(`.menu-link[data-page="${viewId}"]`);
+        if (currentLink) currentLink.classList.add("active");
+      }
+    } catch (e) {
+      console.error("Failed to load sidebar menu:", e);
+    }
+  }
+}
+
 export function initUI() {
   checkAuthSession("dashboard");
   _setupSharedUI();
   setupGlobalSubscriptions();
   renderCurrentView();
+  loadSidebarMenu("dashboard");
 }
 
 // Per-page init — called by each standalone HTML page
@@ -37,7 +59,7 @@ export function initPage(viewId) {
   const user = getCurrentUser();
   if (!user) {
     // Redirect unauthenticated users back to login
-    window.location.href = "index.html";
+    window.location.href = "/features/user/staff/staffindex.html";
     return;
   }
 
@@ -47,16 +69,12 @@ export function initPage(viewId) {
     headerCheckpoint.innerText = `[ ${DB.activeCheckpoint.event} / ${DB.activeCheckpoint.tenant} ]`;
   }
 
-  // Highlight current page in sidebar
-  menuLinks.forEach(link => link.classList.remove("active"));
-  const currentLink = document.querySelector(`.menu-link[data-page="${viewId}"]`);
-  if (currentLink) currentLink.classList.add("active");
-
   _setupSharedUI();
   setupGlobalSubscriptions();
 
   // Render this page's content
   renderViewData(viewId);
+  loadSidebarMenu(viewId);
 }
 
 function _setupSharedUI() {
@@ -72,7 +90,7 @@ function _setupSharedUI() {
   if (logoutBtn) {
     logoutBtn.onclick = () => {
       logout();
-      window.location.href = "index.html";
+      window.location.href = "/features/user/staff/staffindex.html";
     };
   }
 
@@ -274,87 +292,310 @@ function renderDashboard() {
   if (!view) return;
 
   const stats = getSeatStats();
-  // Filter RECEIVED orders
-  const receivedOrders = DB.orders.filter(o => o.status === "RECEIVED" || o.status === "ORDERED");
   
+  // Stats calculations
+  const enteredPercent = stats.total > 0 ? Math.round((stats.entered / stats.total) * 100) : 0;
+  const reservedTotal = stats.reserved + stats.entered;
+  const reservedPercent = stats.total > 0 ? Math.round((reservedTotal / stats.total) * 100) : 0;
+  
+  const fnbOrders = DB.orders.filter(o => o.type === "FOOD" && o.status !== "REFUNDED");
+  const activeFnbCount = fnbOrders.filter(o => o.status === "RECEIVED" || o.status === "COOKING" || o.status === "READY").length;
+  
+  const goodsOrders = DB.orders.filter(o => o.type === "GOODS");
+  const activeGoodsCount = goodsOrders.filter(o => o.status === "ORDERED" || o.status === "READY").length;
+
   view.innerHTML = `
-    <div class="dashboard-metrics">
+    <!-- Top KPI Dashboard Cards -->
+    <div class="dashboard-metrics" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 25px;">
       <div class="metric-card metric-green">
-        <div class="metric-title">당일 총 입장객 수</div>
-        <div class="metric-value" id="dash-total-entered">${stats.entered}명 / ${stats.total}석</div>
-        <div class="metric-footer">QR 스캔 완료 게이트 입장 완료 인원</div>
+        <div class="metric-title" style="display: flex; justify-content: space-between; align-items: center;">
+          <span>🚶 당일 실시간 입장객 현황</span>
+          <span class="badge badge-green">${enteredPercent}% 완료</span>
+        </div>
+        <div class="metric-value" id="dash-total-entered" style="font-size: 28px;">${stats.entered}명 <span style="font-size: 14px; color: var(--text-muted); font-weight: normal;">/ ${stats.total}석</span></div>
+        <div style="width: 100%; background: #0d1117; border: 1px solid var(--border-color); height: 6px; border-radius: 3px; overflow: hidden; margin-bottom: 8px;">
+          <div style="width: ${enteredPercent}%; background: var(--color-green); height: 100%; box-shadow: 0 0 8px var(--color-green); transition: width 0.5s ease;"></div>
+        </div>
+        <div class="metric-footer">QR 코드 리더 검증 통과 게이트 실시간 통계</div>
       </div>
+
       <div class="metric-card metric-blue">
-        <div class="metric-title">총 예약건수 (좌석만)</div>
-        <div class="metric-value">${stats.reserved + stats.entered}명 / ${stats.total}석</div>
-        <div class="metric-footer">결제 승인 완료 및 입장 완료 전체 좌석</div>
+        <div class="metric-title" style="display: flex; justify-content: space-between; align-items: center;">
+          <span>🎟️ 좌석 예매 및 발권 완료</span>
+          <span class="badge badge-blue">${reservedPercent}% 예약</span>
+        </div>
+        <div class="metric-value" style="font-size: 28px;">${reservedTotal}석 <span style="font-size: 14px; color: var(--text-muted); font-weight: normal;">/ ${stats.total}석</span></div>
+        <div style="width: 100%; background: #0d1117; border: 1px solid var(--border-color); height: 6px; border-radius: 3px; overflow: hidden; margin-bottom: 8px;">
+          <div style="width: ${reservedPercent}%; background: var(--color-blue); height: 100%; box-shadow: 0 0 8px var(--color-blue); transition: width 0.5s ease;"></div>
+        </div>
+        <div class="metric-footer">예매 완료 및 입장권 발매 전체 세그먼트</div>
+      </div>
+
+      <div class="metric-card metric-amber">
+        <div class="metric-title" style="display: flex; justify-content: space-between; align-items: center;">
+          <span>🍔 식음료(F&B) 주문 관리</span>
+          <span class="badge badge-amber">${activeFnbCount}건 대기</span>
+        </div>
+        <div class="metric-value" style="font-size: 28px;">총 ${fnbOrders.length}건 <span style="font-size: 14px; color: var(--text-muted); font-weight: normal;">/ 활성: ${activeFnbCount}건</span></div>
+        <div style="width: 100%; background: #0d1117; border: 1px solid var(--border-color); height: 6px; border-radius: 3px; overflow: hidden; margin-bottom: 8px;">
+          <div style="width: ${fnbOrders.length > 0 ? Math.min(100, Math.round((activeFnbCount / fnbOrders.length) * 100)) : 0}%; background: var(--color-amber); height: 100%; box-shadow: 0 0 8px var(--color-amber); transition: width 0.5s ease;"></div>
+        </div>
+        <div class="metric-footer">식음료 매장 대기 및 완료 실시간 주문 흐름</div>
       </div>
     </div>
 
-    <div class="dashboard-grid-sections">
+    <!-- Main Live Queue Section (Two Column Grid) -->
+    <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 20px; margin-bottom: 25px;">
+      <!-- Left Panel: Goods Reservation List -->
       <div class="panel-rigid">
         <div class="panel-header-rigid">
-          <span>실시간 주문 대기 목록 (접수 상태)</span>
-          <span class="telemetry-pulse">REALTIME BUS</span>
+          <span style="display: flex; align-items: center; gap: 8px;">
+            <span>🎁 굿즈 예약/수령 관리 목록</span>
+            <span class="badge badge-blue">${activeGoodsCount}건 대기 중</span>
+          </span>
+          <span class="telemetry-pulse" style="font-family: var(--font-mono); color: var(--color-blue);">GOODS SYSTEM</span>
         </div>
-        <div class="panel-body-rigid">
-          <table class="table-rigid">
+        <div class="panel-body-rigid" style="padding: 10px; max-height: 380px; overflow-y: auto;">
+          <table class="table-rigid" style="font-size: 12px;">
             <thead>
               <tr>
                 <th>주문번호</th>
-                <th>구분</th>
-                <th>주문 내역</th>
-                <th>시간</th>
+                <th>고객명</th>
+                <th>굿즈 상품 내역</th>
                 <th>상태</th>
+                <th class="text-right">스태프 액션</th>
               </tr>
             </thead>
-            <tbody id="dash-wait-list">
-              <!-- Render wait queue -->
+            <tbody id="dash-goods-list">
+              <!-- Dynamically rendered goods -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Right Panel: F&B Cook & Pickup Queue -->
+      <div class="panel-rigid">
+        <div class="panel-header-rigid">
+          <span style="display: flex; align-items: center; gap: 8px;">
+            <span>🍔 실시간 F&B 주문 접수 대기열</span>
+            <span class="badge badge-amber">${activeFnbCount}건 조리 중</span>
+          </span>
+          <span class="telemetry-pulse" style="font-family: var(--font-mono); color: var(--color-amber);">F&B KITCHEN</span>
+        </div>
+        <div class="panel-body-rigid" style="padding: 10px; max-height: 380px; overflow-y: auto;">
+          <table class="table-rigid" style="font-size: 12px;">
+            <thead>
+              <tr>
+                <th>주문번호</th>
+                <th>고객명</th>
+                <th>주문 품목</th>
+                <th class="text-right">상태 업데이트</th>
+              </tr>
+            </thead>
+            <tbody id="dash-fnb-list">
+              <!-- Dynamically rendered active F&B -->
             </tbody>
           </table>
         </div>
       </div>
     </div>
+
+    <!-- Bottom Panel: Scan logs & Telemetry console -->
+    <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 20px;">
+      <!-- Scan Logs Panel -->
+      <div class="panel-rigid">
+        <div class="panel-header-rigid" style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="display: flex; align-items: center; gap: 8px;">
+            <span style="display: inline-block; width: 8px; height: 8px; background-color: var(--color-green); border-radius: 50%; box-shadow: 0 0 6px var(--color-green);" class="animate-pulse"></span>
+            <span>📸 최근 티켓 스캔 및 게이트 입장 현황</span>
+          </span>
+          <span style="font-family: var(--font-mono); color: var(--color-green); font-size: 11px;">GATE SYNC: ON</span>
+        </div>
+        <div class="panel-body-rigid" style="padding: 10px; max-height: 180px; overflow-y: auto;">
+          <table class="table-rigid" style="font-size: 11px;">
+            <thead>
+              <tr>
+                <th>스캔시간</th>
+                <th>티켓번호</th>
+                <th>매핑좌석</th>
+                <th>고객명</th>
+                <th class="text-right">검증결과</th>
+              </tr>
+            </thead>
+            <tbody id="dash-scan-logs-tbody">
+              <!-- Scan logs rendered here -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Telemetry Logs Panel -->
+      <div class="panel-rigid">
+        <div class="panel-header-rigid" style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="display: flex; align-items: center; gap: 8px;">
+            <span style="display: inline-block; width: 8px; height: 8px; background-color: var(--color-blue); border-radius: 50%; box-shadow: 0 0 6px var(--color-blue);" class="animate-pulse"></span>
+            <span>🔌 실시간 통합 관제 시스템 텔레메트리 피드</span>
+          </span>
+          <span style="font-family: var(--font-mono); color: var(--text-muted); font-size: 11px;">WEBSOCKET LIVE</span>
+        </div>
+        <div class="panel-body-rigid" style="padding: 0;">
+          <div class="telemetry-terminal" id="dash-telemetry-logs" style="height: 180px; max-height: 180px; overflow-y: auto;">
+            <!-- Telemetry logs are rendered here -->
+          </div>
+        </div>
+      </div>
+    </div>
   `;
 
-  // Render Wait Queue
-  const waitBody = document.getElementById("dash-wait-list");
-  if (receivedOrders.length === 0) {
-    waitBody.innerHTML = `<tr><td colspan="5" class="text-center" style="color:#a0aec0;">대기 중인 신규 접수 주문이 없습니다.</td></tr>`;
+  // Render Goods List
+  const goodsListBody = document.getElementById("dash-goods-list");
+  if (goodsOrders.length === 0) {
+    goodsListBody.innerHTML = `<tr><td colspan="5" class="text-center" style="color:var(--text-muted); padding: 20px 0;">등록된 굿즈 예약 내역이 없습니다.</td></tr>`;
   } else {
-    receivedOrders.forEach(o => {
+    goodsOrders.forEach(o => {
       const itemsText = o.items.map(item => `${item.name} (${item.quantity}개)`).join(", ");
+      
+      let statusBadge = "";
+      let actionBtn = "";
+
+      if (o.status === "ORDERED") {
+        statusBadge = `<span class="badge badge-gray animate-pulse">결제완료</span>`;
+        actionBtn = `<button class="btn btn-rigid btn-small btn-blue btn-goods-action" data-id="${o.id}" data-next="READY">수령대기 처리</button>`;
+      } else if (o.status === "READY") {
+        statusBadge = `<span class="badge badge-amber animate-pulse">수령가능</span>`;
+        actionBtn = `<button class="btn btn-rigid btn-small btn-green btn-goods-action" data-id="${o.id}" data-next="PICKED_UP">수령완료 처리</button>`;
+      } else if (o.status === "PICKED_UP") {
+        statusBadge = `<span class="badge badge-blue">픽업완료</span>`;
+        actionBtn = `<span style="color:var(--text-muted); font-size:11px;">전달 완료</span>`;
+      } else if (o.status === "REFUNDED") {
+        statusBadge = `<span class="badge badge-red">환불완료</span>`;
+        actionBtn = `<span style="color:var(--color-red); font-size:11px;">취소됨</span>`;
+      }
+
       const row = document.createElement("tr");
       row.innerHTML = `
         <td><strong>${o.id}</strong></td>
-        <td><span class="badge ${o.type === 'GOODS' ? 'badge-blue' : 'badge-amber'}">${o.type}</span></td>
-        <td>${itemsText}</td>
-        <td>${o.timestamp}</td>
-        <td class="text-right">
-          <span class="badge badge-purple animate-pulse" style="margin-right:8px;">NEW</span>
-          <button class="btn btn-rigid btn-small btn-green btn-quick-accept" data-id="${o.id}">
-            접수 수락
-          </button>
-        </td>
+        <td>${o.customer}</td>
+        <td title="${itemsText}">${itemsText.length > 25 ? itemsText.substring(0, 25) + "..." : itemsText}</td>
+        <td>${statusBadge}</td>
+        <td class="text-right">${actionBtn}</td>
       `;
-      waitBody.appendChild(row);
+      goodsListBody.appendChild(row);
     });
   }
 
-  // Quick Accept Event
-  document.querySelectorAll(".btn-quick-accept").forEach(btn => {
+  // Render F&B List (Only show incomplete orders to save space on dashboard)
+  const activeFnbOrders = fnbOrders.filter(o => o.status !== "PICKED_UP" && o.status !== "REFUNDED");
+  const fnbListBody = document.getElementById("dash-fnb-list");
+  if (activeFnbOrders.length === 0) {
+    fnbListBody.innerHTML = `<tr><td colspan="4" class="text-center" style="color:var(--text-muted); padding: 20px 0;">대기 중인 활성 식음료 주문이 없습니다.</td></tr>`;
+  } else {
+    activeFnbOrders.forEach(o => {
+      const itemsText = o.items.map(item => `${item.name} (${item.quantity}개)`).join(", ");
+      
+      let statusBtn = "";
+      if (o.status === "RECEIVED") {
+        statusBtn = `<button class="btn btn-rigid btn-small btn-amber btn-fnb-action" data-id="${o.id}" data-next="COOKING" style="width: 90px;">조리 시작</button>`;
+      } else if (o.status === "COOKING") {
+        statusBtn = `<button class="btn btn-rigid btn-small btn-green btn-fnb-action" data-id="${o.id}" data-next="READY" style="width: 90px;">조리 완료</button>`;
+      } else if (o.status === "READY") {
+        statusBtn = `<button class="btn btn-rigid btn-small btn-blue btn-fnb-action" data-id="${o.id}" data-next="PICKED_UP" style="width: 90px;">픽업 완료</button>`;
+      }
+
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td><strong>${o.id}</strong></td>
+        <td>${o.customer}</td>
+        <td title="${itemsText}">${itemsText.length > 20 ? itemsText.substring(0, 20) + "..." : itemsText}</td>
+        <td class="text-right">${statusBtn}</td>
+      `;
+      fnbListBody.appendChild(row);
+    });
+  }
+
+  // Render Scan Logs
+  const scanLogs = DB.notifications.filter(n => n.message.includes("[QR 스캔]")).slice(0, 5);
+  const scanLogsTbody = document.getElementById("dash-scan-logs-tbody");
+  if (scanLogsTbody) {
+    if (scanLogs.length === 0) {
+      scanLogsTbody.innerHTML = `<tr><td colspan="5" class="text-center" style="color:var(--text-muted); padding: 15px 0;">최근 스캔 기록이 없습니다.</td></tr>`;
+    } else {
+      scanLogs.forEach(log => {
+        const parts = log.message.match(/티켓\s([A-Za-z0-9\-]+):\s결과\s\[([A-Z_]+)\]/);
+        if (!parts) return;
+        const ticketId = parts[1];
+        const status = parts[2];
+
+        const ticket = DB.tickets.find(t => t.id === ticketId);
+        const seatId = ticket ? ticket.seat : "-";
+        const holder = ticket ? ticket.holder : "알 수 없는 고객";
+
+        let badgeClass = "badge-red";
+        let statusText = "검증오류";
+        if (status === "VALID") {
+          badgeClass = "badge-green";
+          statusText = "입장 승인";
+        } else if (status === "ALREADY_ENTERED") {
+          badgeClass = "badge-purple";
+          statusText = "중복 입장";
+        }
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${log.timestamp}</td>
+          <td><strong>${ticketId}</strong></td>
+          <td><span class="badge badge-gray">${seatId}</span></td>
+          <td>${holder}</td>
+          <td class="text-right"><span class="badge ${badgeClass}">${statusText}</span></td>
+        `;
+        scanLogsTbody.appendChild(tr);
+      });
+    }
+  }
+
+  // Render Telemetry logs at the bottom
+  const logsContainer = document.getElementById("dash-telemetry-logs");
+  if (logsContainer) {
+    logsContainer.innerHTML = DB.notifications.map(n => `
+      <div class="log-line log-${n.type.toLowerCase()}">
+        <span class="log-time">[${n.timestamp}]</span>
+        <span class="log-badge" style="margin: 0 6px;">${n.type}</span>
+        <span class="log-message">${n.message}</span>
+      </div>
+    `).join("");
+    // Auto-scroll to bottom of logs
+    setTimeout(() => {
+      logsContainer.scrollTop = logsContainer.scrollHeight;
+    }, 50);
+  }
+
+  // Bind Goods Actions
+  document.querySelectorAll(".btn-goods-action").forEach(btn => {
     btn.onclick = () => {
       const ordId = btn.getAttribute("data-id");
+      const nextStatus = btn.getAttribute("data-next");
       const order = DB.orders.find(o => o.id === ordId);
       if (order) {
-        if (order.type === "FOOD") {
-          order.status = "COOKING";
-          publish("order-change", { orderId: ordId, status: "COOKING" });
-        } else {
-          order.status = "PICKED_UP";
-          publish("order-change", { orderId: ordId, status: "PICKED_UP" });
-        }
-        addNotification("ORDER", `주문 ${ordId}이 스태프 퀵패스로 승인되었습니다.`);
+        order.status = nextStatus;
+        saveDB();
+        publish("order-change", { orderId: ordId, status: nextStatus });
+        addNotification("ORDER", `굿즈 주문 ${ordId} 상태 변경 -> ${nextStatus}`);
+        renderDashboard();
+      }
+    };
+  });
+
+  // Bind F&B Actions
+  document.querySelectorAll(".btn-fnb-action").forEach(btn => {
+    btn.onclick = () => {
+      const ordId = btn.getAttribute("data-id");
+      const nextStatus = btn.getAttribute("data-next");
+      const order = DB.orders.find(o => o.id === ordId);
+      if (order) {
+        order.status = nextStatus;
+        saveDB();
+        publish("order-change", { orderId: ordId, status: nextStatus });
+        addNotification("ORDER", `식음료 주문 ${ordId} 상태 변경 -> ${nextStatus}`);
         renderDashboard();
       }
     };
