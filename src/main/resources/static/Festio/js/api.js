@@ -51,7 +51,7 @@ const KOPIS_KEY = '6156a605351f4790954ec109178034b7';   // TODO: 실제 키로 �
 const TOUR_BASE = 'http://apis.data.go.kr/B551011/KorService1';
 const TOUR_KEY = '8507fc92e13f94fe27aa4b31d96e6544d2c607909b221d682b02508f105de532';    // TODO: 실제 키로 교체
 
-const USE_MOCK = true;  // Supabase 연동 전까지 true 유지
+const USE_MOCK = false;  // Supabase 연동 활성화
 
 /* ── Mock 데이터 (festival 테이블 컬럼명 기준) ─────────────── */
 const MOCK = {

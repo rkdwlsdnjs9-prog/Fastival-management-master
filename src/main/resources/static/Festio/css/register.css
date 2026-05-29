@@ -1,0 +1,14 @@
+/* ============================================================
+   Festival O2O — register.css
+   ============================================================ */
+@import url('login.css');
+
+/* 회원가입 페이지 특화 스타일이 필요한 경우 추가 */
+.register-page-body {
+  min-height: calc(100vh - var(--header-h) - var(--bottom-nav-h));
+  padding: var(--sp-6) var(--sp-4);
+}
+
+.login-card {
+  padding: var(--sp-8) var(--sp-6);
+}

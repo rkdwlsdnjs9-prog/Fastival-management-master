@@ -1,11 +1,12 @@
 package festival.user.repository;
 
+import festival.user.domain.UserVo;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+import java.util.Optional;
 
-/**
- * User 도메인의 데이터베이스 접근 레포지토리 인터페이스/클래스입니다.
- */
 @Repository
-public class UserRepository {
-    
+public interface UserRepository extends JpaRepository<UserVo, Long> {
+    Optional<UserVo> findByEmail(String email);
+    boolean existsByEmail(String email);
 }

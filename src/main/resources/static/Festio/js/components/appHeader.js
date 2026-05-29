@@ -46,7 +46,11 @@
 
   let headerHtml = '';
 
-  // 4. 페이지 유형에 따른 헤더 분기 렌더링
+  // 4. 로그인 및 권한 상태 확인
+  const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true' || !!localStorage.getItem('userToken');
+  const userRole = localStorage.getItem('userRole') || 'CLIENT';
+
+  // 5. 페이지 유형에 따른 헤더 분기 렌더링
   if (isDetail) {
     // 4-1. 상세 페이지 헤더 (뒤로가기, 찜, 공유 버튼 레이아웃)
     headerHtml = `
@@ -55,6 +59,15 @@
         <button class="header-back-btn" aria-label="뒤로가기">${backSvg}<span class="header-title">행사 상세</span></button>
         <div class="header-spacer"></div>
         <div class="header-actions">
+          ${isLoggedIn && userRole === 'ADMIN' ? `
+            <a href="/features/user/admin/dashboard.html" class="header-text-btn admin-mode-btn" style="background: rgba(255, 42, 122, 0.15); color: #FF2A7A; border: 1px solid rgba(255, 42, 122, 0.3); margin-right: 8px; border-radius: 6px; padding: 6px 12px; display: inline-flex; align-items: center; gap: 4px; font-weight: 500; font-size: 13px;">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px;">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                <line x1="9" y1="3" x2="9" y2="21" />
+              </svg>
+              관리자모드
+            </a>
+          ` : ''}
           <button class="header-icon-btn" id="btn-wish-detail" data-wished="false" aria-label="찜">${wishSvg}</button>
           <button class="header-icon-btn" aria-label="공유">${shareSvg}</button>
         </div>
@@ -69,20 +82,38 @@
         ${catNavHtml}
         <div class="header-spacer"></div>
         <div class="header-actions">
+          ${isLoggedIn && userRole === 'ADMIN' ? `
+            <a href="/features/user/admin/dashboard.html" class="header-text-btn admin-mode-btn" style="background: rgba(255, 42, 122, 0.15); color: #FF2A7A; border: 1px solid rgba(255, 42, 122, 0.3); margin-right: 8px; border-radius: 6px; padding: 6px 12px; display: inline-flex; align-items: center; gap: 4px; font-weight: 500; font-size: 13px;">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px;">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                <line x1="9" y1="3" x2="9" y2="21" />
+              </svg>
+              관리자모드
+            </a>
+          ` : ''}
           <a href="mypage.html" class="header-text-btn" aria-label="MY티켓">${ticketSvg}MY티켓</a>
           <div class="header-search-bar" role="search">${searchSvg}<input type="search" class="header-search-input" id="headerSearch" placeholder="행사명, 아티스트 검색" autocomplete="off" aria-label="검색"></div>
           <button class="header-icon-btn mobile-search-btn" aria-label="검색">${searchSvg}</button>
           <button class="header-icon-btn" aria-label="알림">${alarmSvg}</button>
-          <a href="mypage.html" class="header-icon-btn" aria-label="마이페이지">${mypageSvg}</a>
+          ${isLoggedIn ? `
+            <a href="mypage.html" class="header-icon-btn" aria-label="마이페이지">${mypageSvg}</a>
+          ` : `
+            <a href="login.html" class="header-text-btn aria-label="로그인">로그인</a>
+          `}
         </div>
       </header>
     `;
   } else {
     // 4-3. 일반 서브 페이지 헤더 (목록, 이용안내, 마이페이지 등 기본 레이아웃)
     // 마이페이지의 경우 우측 액션이 '로그아웃' 버튼이 되며, 그 외에는 '마이페이지' 이동 아이콘이 렌더링됩니다.
-    const rightAction = isMypage ?
-      `<button class="header-icon-btn" id="btn-logout" aria-label="로그아웃">${logoutSvg}</button>` :
-      `<a href="mypage.html" class="header-icon-btn" aria-label="마이페이지">${mypageSvg}</a>`;
+    let rightAction = '';
+    if (isMypage) {
+      rightAction = `<button class="header-icon-btn" id="btn-logout" aria-label="로그아웃">${logoutSvg}</button>`;
+    } else {
+      rightAction = isLoggedIn
+        ? `<a href="mypage.html" class="header-icon-btn" aria-label="마이페이지">${mypageSvg}</a>`
+        : `<a href="login.html" class="header-text-btn aria-label="로그인">로그인</a>`;
+    }
 
     headerHtml = `
       <header class="app-header" role="banner" id="appHeader">
@@ -91,6 +122,15 @@
         ${catNavHtml}
         <div class="header-spacer"></div>
         <div class="header-actions">
+          ${isLoggedIn && userRole === 'ADMIN' ? `
+            <a href="/features/user/admin/dashboard.html" class="header-text-btn admin-mode-btn" style="background: rgba(255, 42, 122, 0.15); color: #FF2A7A; border: 1px solid rgba(255, 42, 122, 0.3); margin-right: 8px; border-radius: 6px; padding: 6px 12px; display: inline-flex; align-items: center; gap: 4px; font-weight: 500; font-size: 13px;">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px;">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                <line x1="9" y1="3" x2="9" y2="21" />
+              </svg>
+              관리자모드
+            </a>
+          ` : ''}
           <div class="header-search-bar">${searchSvg}<input type="search" class="header-search-input" placeholder="행사명, 아티스트 검색" aria-label="검색"></div>
           <button class="header-icon-btn" aria-label="알림">${alarmSvg}</button>
           ${rightAction}
@@ -99,6 +139,6 @@
     `;
   }
 
-  // 5. 생성된 헤더 마크업을 현재 페이지의 DOM에 직접 삽입
+  // 6. 생성된 헤더 마크업을 현재 페이지의 DOM에 직접 삽입
   document.write(headerHtml);
 })();

@@ -3,6 +3,18 @@
   data-template="vertical-menu-template-free">
 
 <head>
+  <!-- Admin Security Guard (관리자 권한 검증 및 차단) -->
+  <script>
+    (function() {
+      const userEmail = localStorage.getItem('userEmail') || localStorage.getItem('email');
+      const userRole = localStorage.getItem('userRole');
+      
+      if (userEmail !== 'admin@gmail.com' || userRole !== 'ADMIN') {
+        alert('관리자만 접근할 수 있는 페이지입니다.');
+        window.location.href = '../../../Festio/login.html';
+      }
+    })();
+  </script>
   <meta charset="utf-8" />
   <meta name="viewport"
     content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
@@ -285,9 +297,57 @@
                         />
                       </div>
                       
-                      <!-- 썸네일 이미지 -->
+                      <!-- 카테고리 -->
                       <div class="col-md-6 col-12 mb-3">
-                        <label class="form-label fw-bold text-secondary">축제 홍보 이미지 / 지도 도면 URL</label>
+                        <label class="form-label fw-bold text-secondary">카테고리 *</label>
+                        <select id="festCategory" class="form-select" required>
+                          <option value="콘서트/뮤지컬">콘서트/뮤지컬</option>
+                          <option value="지역축제">지역축제</option>
+                          <option value="대학축제">대학축제</option>
+                          <option value="박람회">박람회</option>
+                          <option value="스포츠">스포츠</option>
+                        </select>
+                      </div>
+
+                      <!-- 개최 장소 -->
+                      <div class="col-md-6 col-12 mb-3">
+                        <label class="form-label fw-bold text-secondary">개최 장소 *</label>
+                        <input 
+                          type="text" 
+                          id="festVenue" 
+                          required 
+                          class="form-control" 
+                          placeholder="ex: DCC 대전컨벤션센터"
+                        />
+                      </div>
+
+                      <!-- 최소 티켓 가격 -->
+                      <div class="col-md-6 col-12 mb-3">
+                        <label class="form-label fw-bold text-secondary">최소 티켓 가격 (원) *</label>
+                        <input 
+                          type="number" 
+                          id="festMinPrice" 
+                          required 
+                          class="form-control" 
+                          placeholder="ex: 55000"
+                        />
+                      </div>
+
+                      <!-- 썸네일 이미지 URL -->
+                      <div class="col-md-6 col-12 mb-3">
+                        <label class="form-label fw-bold text-secondary">포스터 썸네일 이미지 URL *</label>
+                        <input 
+                          type="url" 
+                          id="festThumbnailUrl" 
+                          required 
+                          class="form-control" 
+                          placeholder="https://images.unsplash.com/... (대표 썸네일)"
+                        />
+                      </div>
+
+                      <!-- 지도 도면 URL -->
+                      <div class="col-md-6 col-12 mb-3">
+                        <label class="form-label fw-bold text-secondary">구역 좌석 지도 도면 URL</label>
                         <input 
                           type="url" 
                           id="festMapImage" 
@@ -297,8 +357,8 @@
                       </div>
 
                       <!-- 시작 일자 -->
-                      <div class="col-md-6 col-12 mb-3">
-                        <label class="form-label fw-bold text-secondary">축제 시작 일자 *</label>
+                      <div class="col-md-3 col-6 mb-3">
+                        <label class="form-label fw-bold text-secondary">시작 일자 *</label>
                         <input 
                           type="date" 
                           id="festStartDate" 
@@ -308,8 +368,8 @@
                       </div>
 
                       <!-- 종료 일자 -->
-                      <div class="col-md-6 col-12 mb-3">
-                        <label class="form-label fw-bold text-secondary">축제 종료 일자 *</label>
+                      <div class="col-md-3 col-6 mb-3">
+                        <label class="form-label fw-bold text-secondary">종료 일자 *</label>
                         <input 
                           type="date" 
                           id="festEndDate" 
@@ -318,11 +378,50 @@
                         />
                       </div>
 
-                      <!-- 활성화 즉시 연동 스위치 -->
-                      <div class="col-12 mb-3">
-                        <div class="form-check form-switch">
+                      <!-- 시작 시간 -->
+                      <div class="col-md-3 col-6 mb-3">
+                        <label class="form-label fw-bold text-secondary">시작 시간 *</label>
+                        <input 
+                          type="time" 
+                          id="festStartTime" 
+                          required 
+                          class="form-control"
+                          value="18:00"
+                        />
+                      </div>
+
+                      <!-- 종료 시간 -->
+                      <div class="col-md-3 col-6 mb-3">
+                        <label class="form-label fw-bold text-secondary">종료 시간 *</label>
+                        <input 
+                          type="time" 
+                          id="festEndTime" 
+                          required 
+                          class="form-control"
+                          value="22:00"
+                        />
+                      </div>
+
+                      <!-- 배지 라벨 -->
+                      <div class="col-md-6 col-12 mb-3">
+                        <label class="form-label fw-bold text-secondary">배지 라벨</label>
+                        <select id="festBadgeLabel" class="form-select">
+                          <option value="">(없음)</option>
+                          <option value="HOT">HOT</option>
+                          <option value="신규">신규</option>
+                          <option value="타임세일">타임세일</option>
+                        </select>
+                      </div>
+
+                      <!-- 인기/활성화 체크박스 라인 -->
+                      <div class="col-md-6 col-12 mb-3 d-flex flex-column justify-content-center">
+                        <div class="form-check form-switch mb-2">
                           <input class="form-check-input" type="checkbox" id="festIsActive" checked>
                           <label class="form-check-label fw-semibold" for="festIsActive">즉시 소비자 예매 사이트에 공개 및 활성화 (`is_active = TRUE` 상태)</label>
+                        </div>
+                        <div class="form-check form-switch">
+                          <input class="form-check-input" type="checkbox" id="festIsHot">
+                          <label class="form-check-label fw-semibold" for="festIsHot">인기 행사 지정 (`is_hot = TRUE` 상태)</label>
                         </div>
                       </div>
 
@@ -349,10 +448,12 @@
                     <thead>
                       <tr class="table-light text-secondary">
                         <th>ID</th>
-                        <th>축제 레이블 / 도면</th>
+                        <th>포스터 / 도면</th>
                         <th>축제 명칭</th>
-                        <th>개최 기간 (start_date ~ end_date)</th>
-                        <th class="text-center">활성 상태 (is_active)</th>
+                        <th>카테고리</th>
+                        <th>개최 장소 / 가격</th>
+                        <th>개최 기간</th>
+                        <th class="text-center">활성 상태</th>
                         <th class="text-end">관리 제어</th>
                       </tr>
                     </thead>
@@ -453,24 +554,43 @@
       if (festivals.length === 0) {
         tbody.innerHTML = `
           <tr>
-            <td colspan="6" class="text-center py-5 text-muted">등록된 페스티벌 마스터 데이터가 존재하지 않습니다.</td>
+            <td colspan="8" class="text-center py-5 text-muted">등록된 페스티벌 마스터 데이터가 존재하지 않습니다.</td>
           </tr>
         `;
         return;
       }
 
       festivals.forEach((fest) => {
-        const imageUrl = fest.mapImageUrl || 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?q=80&w=800&auto=format&fit=crop';
+        const imageUrl = fest.thumbnailUrl || fest.mapImageUrl || 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?q=80&w=800&auto=format&fit=crop';
         const tr = document.createElement("tr");
         tr.innerHTML = `
           <td><strong class="font-mono text-primary">#${fest.id}</strong></td>
           <td>
-            <div class="avatar avatar-md rounded bg-light overflow-hidden" style="width: 55px; height: 35px;">
-              <img src="${imageUrl}" class="w-100 h-100 object-fit-cover" style="object-fit: cover;" alt="Banner">
+            <div class="d-flex align-items-center gap-1">
+              <div class="avatar avatar-md rounded bg-light overflow-hidden" style="width: 40px; height: 50px;" title="포스터 썸네일">
+                <img src="${fest.thumbnailUrl || 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?q=80&w=800&auto=format&fit=crop'}" class="w-100 h-100" style="object-fit: cover;" alt="Poster">
+              </div>
+              ${fest.mapImageUrl ? `
+              <div class="avatar avatar-md rounded bg-light overflow-hidden" style="width: 40px; height: 50px;" title="배치 도면">
+                <img src="${fest.mapImageUrl}" class="w-100 h-100" style="object-fit: cover;" alt="Map">
+              </div>
+              ` : ''}
             </div>
           </td>
-          <td><span class="fw-bold fs-6">${fest.name}</span></td>
-          <td><span class="font-mono text-secondary">${fest.startDate} ~ ${fest.endDate}</span></td>
+          <td>
+            <div class="d-flex flex-column">
+              <span class="fw-bold fs-6">${fest.name}</span>
+              ${fest.badgeLabel ? `<span class="badge bg-label-danger w-fit-content mt-1" style="font-size: 10px; width: fit-content;">${fest.badgeLabel}</span>` : ''}
+            </div>
+          </td>
+          <td><span class="badge bg-label-info">${fest.category || '콘서트/뮤지컬'}</span></td>
+          <td>
+            <div class="d-flex flex-column">
+              <span class="fs-7 text-dark">${fest.venue || '-'}</span>
+              <span class="font-mono fs-7 text-primary">${fest.minPrice ? fest.minPrice.toLocaleString() + '원' : '0원'}~</span>
+            </div>
+          </td>
+          <td><span class="font-mono text-secondary" style="font-size:12px;">${fest.startDate}<br>~ ${fest.endDate}</span></td>
           <td class="text-center">
             <span class="badge ${fest.isActive ? 'bg-label-success' : 'bg-label-secondary'} cursor-pointer" onclick="toggleActive(${fest.id})">
               ${fest.isActive ? 'ACTIVE' : 'INACTIVE'}
@@ -488,26 +608,42 @@
     // 축제 추가 함수 (POST /api/festival)
     function addFestival() {
       const name = document.getElementById("festName").value;
+      const category = document.getElementById("festCategory").value;
+      const venue = document.getElementById("festVenue").value;
+      const minPrice = parseInt(document.getElementById("festMinPrice").value || "0");
+      const thumbnailUrl = document.getElementById("festThumbnailUrl").value;
       let mapImage = document.getElementById("festMapImage").value;
       const startDate = document.getElementById("festStartDate").value;
       const endDate = document.getElementById("festEndDate").value;
+      const startTimeVal = document.getElementById("festStartTime").value;
+      const endTimeVal = document.getElementById("festEndTime").value;
+      const badgeLabel = document.getElementById("festBadgeLabel").value;
       const isActive = document.getElementById("festIsActive").checked;
+      const isHot = document.getElementById("festIsHot").checked;
 
-      if (!name || !startDate || !endDate) {
+      if (!name || !startDate || !endDate || !category || !venue || !thumbnailUrl) {
         alert("모든 필수 값을 입력해 주세요.");
         return;
       }
 
-      if (!mapImage) {
-        mapImage = "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?q=80&w=800&auto=format&fit=crop";
-      }
+      // 시간 포맷 정리 (HH:mm:ss 형식)
+      const startTime = startTimeVal ? startTimeVal + ":00" : "18:00:00";
+      const endTime = endTimeVal ? endTimeVal + ":00" : "22:00:00";
 
       const payload = {
         name: name,
+        category: category,
+        venue: venue,
+        minPrice: minPrice,
+        thumbnailUrl: thumbnailUrl,
+        mapImageUrl: mapImage || null,
         startDate: startDate,
         endDate: endDate,
+        startTime: startTime,
+        endTime: endTime,
+        badgeLabel: badgeLabel || null,
         isActive: isActive,
-        mapImageUrl: mapImage
+        isHot: isHot
       };
 
       fetch("/api/festival", {
@@ -527,6 +663,7 @@
         alert(`🎉 [${savedFest.name}] 페스티벌이 실제 Supabase PostgreSQL DB에 성공적으로 등록되었습니다!`);
         document.getElementById("createFestivalForm").reset();
         document.getElementById("festIsActive").checked = true;
+        document.getElementById("festIsHot").checked = false;
         loadFestivals(); // 목록 새로고침
       })
       .catch(error => {
@@ -537,6 +674,7 @@
 
     // 축제 활성화 토글 함수 (PUT /api/festival/{id}/toggle)
     function toggleActive(id) {
+      console.log("[toggleActive] Called for festival ID:", id);
       fetch(`/api/festival/${id}/toggle`, {
         method: "PUT"
       })
@@ -547,6 +685,7 @@
         return response.json();
       })
       .then(updatedFest => {
+        console.log("[toggleActive] Success:", updatedFest);
         loadFestivals(); // 목록 새로고침
       })
       .catch(error => {
@@ -557,23 +696,28 @@
 
     // 축제 삭제 함수 (DELETE /api/festival/{id})
     function deleteFestival(id) {
-      if (confirm("정말로 해당 축제 마스터 데이터를 실제 DB에서 영구 삭제하시겠습니까? 관련 데이터가 함께 삭제됩니다.")) {
-        fetch(`/api/festival/${id}`, {
-          method: "DELETE"
-        })
-        .then(response => {
-          if (!response.ok) {
-            throw new Error("삭제 실패");
-          }
-          alert("데이터베이스에서 성공적으로 영구 삭제되었습니다.");
-          loadFestivals(); // 목록 새로고침
-        })
-        .catch(error => {
-          alert("삭제 오류가 발생했습니다.");
-          console.error("삭제 오류:", error);
-        });
-      }
+      console.log("[deleteFestival] Called for festival ID:", id);
+      // 브라우저의 Native Confirm 창 차단 현상을 우회하기 위해 즉시 삭제 fetch를 단행합니다!
+      fetch(`/api/festival/${id}`, {
+        method: "DELETE"
+      })
+      .then(response => {
+        console.log("[deleteFestival] Response status:", response.status);
+        if (!response.ok) {
+          throw new Error("삭제 실패");
+        }
+        alert("데이터베이스에서 성공적으로 영구 삭제되었습니다.");
+        loadFestivals(); // 목록 새로고침
+      })
+      .catch(error => {
+        alert("삭제 오류가 발생했습니다.");
+        console.error("삭제 오류:", error);
+      });
     }
+
+    // 인라인 onclick 이벤트 호출을 위한 전역 스코프(window) 바인딩 보장
+    window.toggleActive = toggleActive;
+    window.deleteFestival = deleteFestival;
 
     // 3. [동적 탭 스위칭 감지 및 라우팅 로직]
     function checkTabRouting() {

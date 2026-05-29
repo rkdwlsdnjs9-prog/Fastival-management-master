@@ -1,8 +1,66 @@
 package festival.user.domain;
 
-/**
- * User 도메인의 엔티티 및 DTO 객체입니다.
- */
+import jakarta.persistence.*;
+import lombok.*;
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "app_user")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class UserVo {
-    
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false, unique = true, length = 100)
+    private String email;
+
+    @Column(nullable = false, length = 255)
+    private String password;
+
+    @Column(nullable = false, length = 50)
+    private String name;
+
+    @Column(length = 20)
+    private String phone;
+
+    @Column(nullable = false, length = 20)
+    @Builder.Default
+    private String role = "ROLE_USER";
+
+    @Column(name = "membership_grade", nullable = false, length = 20)
+    @Builder.Default
+    private String membershipGrade = "BRONZE";
+
+    @Column(nullable = false)
+    @Builder.Default
+    private Integer balance = 0;
+
+    @Column(name = "face_vector", columnDefinition = "TEXT")
+    private String faceVector;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    @Builder.Default
+    private LocalDateTime createdAt = LocalDateTime.now();
+
+    @PrePersist
+    protected void onCreate() {
+        if (this.createdAt == null) {
+            this.createdAt = LocalDateTime.now();
+        }
+        if (this.role == null) {
+            this.role = "ROLE_USER";
+        }
+        if (this.membershipGrade == null) {
+            this.membershipGrade = "BRONZE";
+        }
+        if (this.balance == null) {
+            this.balance = 0;
+        }
+    }
 }

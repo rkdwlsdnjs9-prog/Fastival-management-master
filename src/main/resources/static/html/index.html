@@ -6,6 +6,18 @@
   data-assets-path="../assets/"
   data-template="vertical-menu-template-free">
   <head>
+    <!-- Admin Security Guard -->
+    <script>
+      (function() {
+        const userEmail = localStorage.getItem('userEmail') || localStorage.getItem('email');
+        const userRole = localStorage.getItem('userRole');
+        
+        if (userEmail !== 'admin@gmail.com' || userRole !== 'ADMIN') {
+          alert('관리자만 접근할 수 있는 페이지입니다.');
+          window.location.href = '../Festio/login.html';
+        }
+      })();
+    </script>
     <meta charset="utf-8" />
     <meta
       name="viewport"
