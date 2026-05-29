@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>FESTIO | 모든 행사</title>
+
+  <!-- Pretendard Font -->
+  <link rel="stylesheet" as="style" crossorigin
+    href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="css/common.css">
+  <link rel="stylesheet" href="css/index.css">
+  <link rel="stylesheet" href="css/list.css">
+</head>
+
+<body>
+  <!-- ══ 사이드 오버레이 ═══════════════════════════════════════ -->
+  <div class="side-overlay" id="sideOverlay" aria-hidden="true"></div>
+
+  <!-- ══ 사이드 패널 ═══════════════════════════════════════════ -->
+  <nav class="side-panel" id="sidePanel" aria-label="전체 메뉴">
+    <div class="side-panel-header">
+      <span class="side-panel-logo">FESTIO</span>
+      <button class="side-close-btn" id="sideClose" aria-label="메뉴 닫기">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+          stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- 카테고리 섹션 -->
+    <div class="side-section">
+      <!-- 콘서트 -->
+      <button class="side-cat-item" data-submenu="sub-concert" data-cat="concert">
+        콘서트
+        <svg class="icon side-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+          stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </button>
+      <div class="side-submenu" id="sub-concert">
+        <button class="side-subitem" data-cat="concert" data-sub="all">전체보기</button>
+        <button class="side-subitem" data-cat="concert" data-sub="domestic">국내뮤지션</button>
+        <button class="side-subitem" data-cat="concert" data-sub="overseas">해외뮤지션</button>
+        <button class="side-subitem" data-cat="concert" data-sub="festival">페스티벌</button>
+      </div>
+
+      <!-- 뮤지컬 -->
+      <button class="side-cat-item" data-cat="musical">뮤지컬</button>
+
+      <!-- 연극 -->
+      <button class="side-cat-item" data-cat="play">연극</button>
+
+      <!-- 클래식/무용 -->
+      <button class="side-cat-item" data-submenu="sub-classic" data-cat="classic">
+        클래식/무용
+        <svg class="icon side-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+          stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </button>
+      <div class="side-submenu" id="sub-classic">
+        <button class="side-subitem" data-cat="classic" data-sub="all">전체보기</button>
+        <button class="side-subitem" data-cat="classic" data-sub="classic">클래식</button>
+        <button class="side-subitem" data-cat="classic" data-sub="ballet">발레/무용</button>
+        <button class="side-subitem" data-cat="classic" data-sub="gukak">국악</button>
+      </div>
+
+      <!-- 전시/스포츠 -->
+      <button class="side-cat-item" data-submenu="sub-exhibition" data-cat="exhibition">
+        전시/스포츠
+        <svg class="icon side-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+          stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </button>
+      <div class="side-submenu" id="sub-exhibition">
+        <button class="side-subitem" data-cat="exhibition" data-sub="all">전체보기</button>
+        <button class="side-subitem" data-cat="exhibition" data-sub="exhibition">전시</button>
+        <button class="side-subitem" data-cat="exhibition" data-sub="experience">체험/행사</button>
+        <button class="side-subitem" data-cat="exhibition" data-sub="sports">스포츠</button>
+      </div>
+
+      <!-- 가족/어린이 -->
+      <button class="side-cat-item" data-cat="family">가족/어린이</button>
+
+      <!-- 지역축제 -->
+      <button class="side-cat-item" data-cat="local">지역축제</button>
+
+      <!-- 대학축제 -->
+      <button class="side-cat-item" data-cat="univ">대학축제</button>
+
+      <!-- 박람회 -->
+      <button class="side-cat-item" data-cat="expo">박람회</button>
+    </div>
+
+    <!-- 정보 섹션 -->
+    <div class="side-section">
+            <button class="side-cat-item" data-submenu="sub-guide" style="font-size: 0.9375rem; font-weight: 500; color: rgba(0, 0, 0, 0.7);">
+        <div style="display: flex; align-items: center; gap: var(--sp-3); white-space: nowrap;">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+            <polyline points="14 2 14 8 20 8" />
+          </svg>
+          <span style="white-space: nowrap;">이용안내</span>
+        </div>
+        <svg class="icon side-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </button>
+      <div class="side-submenu" id="sub-guide">
+        <a href="guide.html?tab=tab-book" class="side-subitem">예매방법</a>
+        <a href="guide.html?tab=tab-pay" class="side-subitem">결제방법</a>
+        <a href="guide.html?tab=tab-fee" class="side-subitem">수수료</a>
+        <a href="guide.html?tab=tab-cancel" class="side-subitem">취소/환불</a>
+        <a href="guide.html?tab=tab-receive" class="side-subitem">티켓수령</a>
+        <a href="guide.html?tab=tab-faq" class="side-subitem">FAQ</a>
+        <a href="guide.html?tab=tab-partner" class="side-subitem">티켓판매/제휴문의</a>
+      </div>
+      <button class="side-link-item">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round">
+          <polygon
+            points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+        </svg>
+        이벤트
+      </button>
+    </div>
+
+    <!-- MY 섹션 -->
+    <div class="side-section">
+      <div class="side-section-title">MY</div>
+      <button class="side-cat-item" data-submenu="sub-my">
+        MY티켓
+        <svg class="icon side-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+          stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </button>
+      <div class="side-submenu" id="sub-my">
+        <a href="mypage.html" class="side-subitem">예매확인/취소</a>
+      </div>
+      <a href="mypage.html#tab-inquiries" class="side-link-item">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round">
+          <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+        </svg>
+        1:1 문의하기
+      </a>
+    </div>
+
+    <!-- 바로가기 섹션 -->
+    <div class="side-section">
+      <div class="side-section-title">바로가기</div>
+      <button class="side-link-item" id="sideWishlistBtn">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round">
+          <path
+            d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
+        </svg>
+        찜
+      </button>
+      <button class="side-link-item">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round">
+          <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
+          <line x1="3" y1="6" x2="21" y2="6" />
+          <path d="M16 10a4 4 0 01-8 0" />
+        </svg>
+        장바구니
+      </button>
+    </div>
+
+    <!-- 최근 본 상품 -->
+    <div class="side-section" style="border-bottom: none; padding-bottom: 30px;">
+      <div style="background: #333; padding: 20px;">
+        <div style="color: #fff; font-size: 15px; font-weight: bold; margin-bottom: 15px;">최근 본 상품</div>
+        
+        <div class="recent-carousel" style="background: #222; padding: 20px 5px; display: flex; align-items: center; justify-content: space-between; text-align: center; position: relative;">
+          <button class="recent-prev" style="background: none; border: none; color: #777; cursor: pointer; padding: 0;">
+            <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+          </button>
+          
+          <div class="recent-carousel-content" style="flex: 1; overflow: hidden; position: relative; min-width: 0;">
+            
+            <!-- 아이템 1 -->
+            <div class="recent-item active" style="display: block; animation: fadeIn 0.3s;">
+              <div style="color: #e96d2b; font-size: 14px; font-weight: bold; margin-bottom: 15px;">공지사항</div>
+              <a href="#" style="display: block; color: #fff; font-size: 15px; line-height: 1.4; margin-bottom: 20px; word-break: break-word; text-decoration: underline; text-underline-offset: 4px;">뮤지컬 &lt;겨울왕국&gt; 한국 초<br>연 -<br>YES24DAY</a>
+              <div style="color: #777; font-size: 13px;"><strong style="color: #fff;">1</strong> / 2</div>
+            </div>
+            
+            <!-- 아이템 2 -->
+            <div class="recent-item" style="display: none; animation: fadeIn 0.3s;">
+              <div style="color: #e96d2b; font-size: 14px; font-weight: bold; margin-bottom: 15px;">뮤지컬</div>
+              <a href="#" style="display: block; color: #fff; font-size: 15px; line-height: 1.4; margin-bottom: 20px; word-break: break-word; text-decoration: underline; text-underline-offset: 4px;">뮤지컬 &lt;오페라의 유령&gt;<br>티켓오픈 안내</a>
+              <div style="color: #777; font-size: 13px;"><strong style="color: #fff;">2</strong> / 2</div>
+            </div>
+            
+          </div>
+          
+          <button class="recent-next" style="background: none; border: none; color: #777; cursor: pointer; padding: 0;">
+            <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ══ 헤더 ═══════════════════════════════════════════════════ -->
+  <script src="js/components/appHeader.js"></script>
+
+  <!-- 모바일 검색 모달 -->
+  <div class="modal-overlay modal-center" id="modal-mobile-search" role="dialog" aria-modal="true">
+    <div class="modal-sheet">
+      <div class="modal-header search-modal-header">
+        <button class="modal-close-btn" data-close-modal="modal-mobile-search" aria-label="닫기">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="mobile-search-form">
+          <div class="mobile-search-input-wrap">
+            <svg class="icon search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            <input type="search" class="filter-range-input mobile-search-input" id="mobileSearchInput"
+              placeholder="행사명, 아티스트 검색" autocomplete="off">
+          </div>
+          <button class="btn btn-pastel-blue" id="btn-mobile-search-execute">검색</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 토스트 -->
+  <div class="toast-container" aria-live="polite"></div>
+
+  <main class="page-body" id="mainContent">
+    <!-- 검색 및 카테고리 탭 -->
+    <div class="list-top-container">
+      <div class="list-search-bar">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+        <input type="text" placeholder="행사명, 장소로 검색" class="list-search-input">
+      </div>
+      <nav class="category-tabs" id="category-tabs" aria-label="행사 카테고리 필터"></nav>
+    </div>
+
+    <!-- 전체 벤토 그리드 섹션 -->
+    <section class="bento-section list-bento-section">
+      <div class="bento-grid" id="bento-grid" aria-label="행사 목록"></div>
+    </section>
+
+    <!-- Bottom Navigation -->
+    <script src="js/components/bottomNav.js"></script>
+  </main>
+
+  <!-- Supabase JS -->
+  <script src="js/components/appFooter.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- JavaScript -->
+  <script src="js/common.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/list.js"></script>
+  <script src="js/recent_carousel.js"></script>
+</body>
+
+</html>

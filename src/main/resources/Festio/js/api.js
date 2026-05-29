@@ -1,0 +1,733 @@
+/**
+ * Festival O2O Platform — api.js  (Supabase 직접 연동)
+ * ─────────────────────────────────────────────────────────────
+ * [DB 테이블명 기준 — Supabase 실제 테이블]
+ *   app_user      (구: member)
+ *   festival      (구: event)         컬럼: id, name, start_date, end_date, is_active, map_image_url, created_at, is_adult_only
+ *   festival_zone (구: event_zone)
+ *   orders        (구: ticket_order)
+ *   order_item
+ *   coupon
+ *   user_coupon
+ *   wishlist
+ *   review
+ *   inquiry
+ *   scan_log
+ *   wallet_history
+ *   settlement
+ *   store
+ *   product
+ *   seat_map
+ *   emergency_broadcast
+ * ─────────────────────────────────────────────────────────────
+ * [내부 JS 필드명 매핑]
+ *   DB: id          → JS: eventNo / id
+ *   DB: name        → JS: eventName / name
+ *   DB: start_date  → JS: startDate  (표시용: eventDate)
+ *   DB: end_date    → JS: endDate    (표시용: eventEndDate)
+ *   DB: is_active   → JS: isActive
+ *   DB: is_adult_only → JS: isAdultOnly
+ *   DB: map_image_url → JS: mapImageUrl
+ * ─────────────────────────────────────────────────────────────
+ */
+
+'use strict';
+
+/* ── Supabase 설정 ─────────────────────────────────────────── */
+const SUPABASE_URL = 'https://loqsekbplftdjphzewmx.supabase.co';   // TODO: 실제 URL로 교체
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxvcXNla2JwbGZ0ZGpwaHpld214Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3NzM5NDYsImV4cCI6MjA5NTM0OTk0Nn0.l6i4VUx6fU0ePN_3RxNb9CJQkpWC-X2HeXb2yGBqDnM';                          // TODO: 실제 anon key로 교체
+
+let _supabase = null;
+function getSupabase() {
+  if (!_supabase && window.supabase) {
+    _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  }
+  return _supabase;
+}
+
+/* ── KOPIS / TourAPI 설정 ──────────────────────────────────── */
+const KOPIS_BASE = 'https://kopis.or.kr/openApi/restful';
+const KOPIS_KEY = '6156a605351f4790954ec109178034b7';   // TODO: 실제 키로 교체
+const TOUR_BASE = 'http://apis.data.go.kr/B551011/KorService1';
+const TOUR_KEY = '8507fc92e13f94fe27aa4b31d96e6544d2c607909b221d682b02508f105de532';    // TODO: 실제 키로 교체
+
+const USE_MOCK = true;  // Supabase 연동 전까지 true 유지
+
+/* ── Mock 데이터 (festival 테이블 컬럼명 기준) ─────────────── */
+const MOCK = {
+  /* app_user 테이블 기준 */
+  app_user: {
+    id: 1,
+    email: 'test@festio.kr',
+    nickname: '오지율',
+    phone: '010-1234-5678',
+    grade: 'Bronze',
+    total_purchase_amount: 50000,
+    is_face_registered: false,
+    is_email_agreed: true,
+    created_at: '2025-01-01T00:00:00',
+  },
+
+  /* festival 테이블 컬럼명 기준 */
+  festivals: [
+    {
+      id: 1,
+      name: '2026 워터밤 서울',
+      start_date: '2026-07-01',
+      end_date: '2026-07-03',
+      is_active: true,
+      map_image_url: 'https://example.com/maps/waterbomb.png',
+      created_at: '2026-05-28T00:33:42',
+      is_adult_only: false,
+      /* 추가 메타 (프론트 전용) */
+      category: '콘서트',
+      venue: 'DDP 서울디자인플라자',
+      start_time: '13:00',
+      end_time: '22:00',
+      min_price: 88000,
+      thumbnail_url: null,
+      badge_label: 'HOT',
+      is_hot: true,
+      view_count: 15420,
+    },
+    {
+      id: 2,
+      name: '2026 퀸즈 락페',
+      start_date: '2026-08-15',
+      end_date: '2026-08-17',
+      is_active: true,
+      map_image_url: 'https://example.com/maps/queensrock.png',
+      created_at: '2026-05-28T00:33:42',
+      is_adult_only: false,
+      category: '콘서트',
+      venue: '인천 송도 달빛공원',
+      start_time: '16:00',
+      end_time: '24:00',
+      min_price: 99000,
+      thumbnail_url: null,
+      badge_label: 'HOT',
+      is_hot: true,
+      view_count: 21000,
+    },
+    {
+      id: 3,
+      name: '2026 FESTIO 대전 여름 페스티벌',
+      start_date: '2026-07-25',
+      end_date: '2026-07-27',
+      is_active: true,
+      map_image_url: null,
+      created_at: '2026-05-28T02:39:20',
+      is_adult_only: false,
+      category: '지역축제',
+      venue: 'DCC 대전컨벤션센터',
+      start_time: '15:00',
+      end_time: '22:00',
+      min_price: 35000,
+      thumbnail_url: null,
+      badge_label: '신규',
+      is_hot: false,
+      view_count: 3200,
+    },
+    {
+      id: 4,
+      name: '2026 FESTIO 성인 나이트 페스티벌',
+      start_date: '2026-08-10',
+      end_date: '2026-08-10',
+      is_active: true,
+      map_image_url: null,
+      created_at: '2026-05-28T02:39:20',
+      is_adult_only: true,
+      category: '콘서트',
+      venue: '서울 올림픽공원 SKY잔디광장',
+      start_time: '19:00',
+      end_time: '02:00',
+      min_price: 66000,
+      thumbnail_url: null,
+      badge_label: '타임세일',
+      is_hot: true,
+      view_count: 8800,
+    },
+    {
+      id: 5,
+      name: '2026 서울 뮤직위크',
+      start_date: '2026-09-05',
+      end_date: '2026-09-07',
+      is_active: true,
+      map_image_url: null,
+      created_at: '2026-05-28T03:00:00',
+      is_adult_only: false,
+      category: '뮤지컬',
+      venue: '세종문화회관 대극장',
+      start_time: '19:30',
+      end_time: '22:00',
+      min_price: 110000,
+      thumbnail_url: null,
+      badge_label: '추천',
+      is_hot: false,
+      view_count: 5600,
+    },
+    {
+      id: 6,
+      name: '2026 킨텍스 K-컬처 박람회',
+      start_date: '2026-09-20',
+      end_date: '2026-09-23',
+      is_active: true,
+      map_image_url: null,
+      created_at: '2026-05-28T03:00:00',
+      is_adult_only: false,
+      category: '박람회',
+      venue: '킨텍스 제1전시장',
+      start_time: '10:00',
+      end_time: '20:00',
+      min_price: 30000,
+      thumbnail_url: null,
+      badge_label: '신규',
+      is_hot: false,
+      view_count: 2100,
+    },
+    {
+      id: 7,
+      name: '2026 한양대 대동제',
+      start_date: '2026-05-28',
+      end_date: '2026-05-30',
+      is_active: true,
+      map_image_url: null,
+      created_at: '2026-05-28T03:30:00',
+      is_adult_only: false,
+      category: '대학축제',
+      venue: '한양대학교 대운동장',
+      start_time: '13:00',
+      end_time: '22:00',
+      min_price: 0,
+      thumbnail_url: null,
+      badge_label: 'D-DAY',
+      is_hot: false,
+      view_count: 4500,
+    },
+  ],
+
+  /* festival_zone 테이블 기준 */
+  festival_zones: [
+    { id: 1, festival_id: 1, zone_name: '스탠딩존', zone_code: 'STANDING', capacity: 500, remaining: 342, price: 55000, color_code: '#00E5CC' },
+    { id: 2, festival_id: 1, zone_name: '지정석 A', zone_code: 'ZONE_A', capacity: 300, remaining: 156, price: 88000, color_code: '#6A4DFF' },
+    { id: 3, festival_id: 1, zone_name: '지정석 B', zone_code: 'ZONE_B', capacity: 400, remaining: 289, price: 66000, color_code: '#FF6B35' },
+    { id: 4, festival_id: 1, zone_name: 'VIP석', zone_code: 'VIP', capacity: 100, remaining: 23, price: 132000, color_code: '#FFB800' },
+  ],
+
+  /* orders 테이블 기준 (구: ticket_order) */
+  orders: [
+    {
+      id: 1,
+      user_id: 1,
+      festival_id: 1,
+      zone_id: 2,
+      quantity: 2,
+      total_amount: 176000,
+      status: 'PAID',
+      payment_method: 'CARD',
+      pg_provider: 'toss',
+      order_uid: 'ORDER-UUID-001',
+      created_at: '2026-05-10T14:32:00',
+      /* 조인 데이터 */
+      festival_name: '2026 워터밤 서울',
+      zone_name: '지정석 A',
+      thumbnail_url: null,
+    },
+  ],
+
+  /* user_coupon 테이블 기준 */
+  user_coupons: [
+    {
+      id: 1,
+      user_id: 1,
+      coupon_id: 1,
+      is_used: false,
+      used_at: null,
+      /* coupon 조인 */
+      coupon_name: '신규가입 20% 할인',
+      discount_type: 'PERCENT',
+      discount_value: 20,
+      min_order_amount: 30000,
+      expires_at: '2026-08-31T23:59:59',
+    },
+  ],
+
+  /* wishlist 테이블 기준 */
+  wishlist_ids: [2, 5],
+
+  /* review 테이블 기준 */
+  reviews: [
+    {
+      id: 1,
+      user_id: 1,
+      festival_id: 1,
+      rating: 5,
+      content: '음향이 정말 훌륭했고 아티스트 라인업이 완벽했습니다!',
+      created_at: '2026-05-12T10:00:00',
+      festival_name: '2026 워터밤 서울',
+    },
+  ],
+
+  /* inquiry 테이블 기준 */
+  inquiries: [],
+};
+
+/* ── DB 컬럼명 → JS 필드명 변환 헬퍼 ──────────────────────── */
+/**
+ * festival 테이블 row → JS에서 사용하는 필드명으로 정규화
+ * DB: id, name, start_date, end_date, is_active, map_image_url, is_adult_only
+ * JS (기존 코드 호환): eventNo, eventName, startDate, endDate, isActive, isAdultOnly
+ */
+function normalizeFestival(row) {
+  if (!row) return null;
+  return {
+    /* DB 컬럼 원본 (항상 포함) */
+    id: row.id,
+    name: row.name,
+    start_date: row.start_date,
+    end_date: row.end_date,
+    is_active: row.is_active,
+    map_image_url: row.map_image_url,
+    created_at: row.created_at,
+    is_adult_only: row.is_adult_only,
+
+    /* 기존 JS 코드 호환 alias */
+    eventNo: row.id,
+    eventName: row.name,
+    startDate: row.start_date,
+    endDate: row.end_date,
+    eventDate: row.start_date,      // 표시용 단일 날짜
+    eventEndDate: row.end_date,
+    isActive: row.is_active,
+    isAdultOnly: row.is_adult_only,
+    mapImageUrl: row.map_image_url,
+
+    /* 추가 메타 (API 또는 Mock에서 제공) */
+    category: row.category || '',
+    venue: row.venue || '',
+    startTime: row.start_time || '',
+    endTime: row.end_time || '',
+    minPrice: row.min_price || 0,
+    thumbnailUrl: row.thumbnail_url || null,
+    badgeLabel: row.badge_label || null,
+    isHot: row.is_hot || false,
+    viewCount: row.view_count || 0,
+  };
+}
+
+function normalizeOrder(row) {
+  if (!row) return null;
+  return {
+    id: row.id,
+    userId: row.user_id,
+    festivalId: row.festival_id,
+    zoneId: row.zone_id,
+    quantity: row.quantity,
+    totalAmount: row.total_amount,
+    status: row.status,
+    paymentMethod: row.payment_method,
+    pgProvider: row.pg_provider,
+    orderUid: row.order_uid,
+    createdAt: row.created_at,
+    /* 조인 */
+    eventName: row.festival_name,
+    zoneName: row.zone_name,
+    thumbnailUrl: row.thumbnail_url,
+    /* 상태 한글 */
+    statusLabel: { PAID: '결제완료', PENDING: '결제대기', CANCELLED: '취소완료', USED: '사용완료' }[row.status] || row.status,
+  };
+}
+
+function normalizeUserCoupon(row) {
+  if (!row) return null;
+  return {
+    id: row.id,
+    userId: row.user_id,
+    couponId: row.coupon_id,
+    isUsed: row.is_used,
+    usedAt: row.used_at,
+    couponName: row.coupon_name,
+    discountType: row.discount_type,
+    discountValue: row.discount_value,
+    minOrderAmount: row.min_order_amount,
+    expiresAt: row.expires_at,
+  };
+}
+
+/* ═══════════════════════════════════════════════════════════
+   app_user API (구: memberApi)
+═══════════════════════════════════════════════════════════ */
+const memberApi = {
+  /** 현재 사용자 정보 조회 */
+  getMe: async () => {
+    if (USE_MOCK) return { ...MOCK.app_user };
+    const sb = getSupabase();
+    if (!sb) return null;
+    const { data: { user } } = await sb.auth.getUser();
+    if (!user) return null;
+    const { data } = await sb.from('app_user').select('*').eq('id', user.id).single();
+    return data;
+  },
+
+  /** 프로필 수정 */
+  updateMe: async (payload) => {
+    if (USE_MOCK) { Object.assign(MOCK.app_user, payload); return { ...MOCK.app_user }; }
+    const sb = getSupabase();
+    const { data: { user } } = await sb.auth.getUser();
+    const { data } = await sb.from('app_user').update(payload).eq('id', user.id).select().single();
+    return data;
+  },
+
+  /** 알림 설정 변경 */
+  updateNotification: async (is_email_agreed) => {
+    return memberApi.updateMe({ is_email_agreed });
+  },
+
+  /** 안면인증 데이터 저장 */
+  saveFaceData: async (faceLandmarkData) => {
+    if (USE_MOCK) { MOCK.app_user.is_face_registered = true; return { success: true }; }
+    return memberApi.updateMe({ face_landmark_data: faceLandmarkData, is_face_registered: true });
+  },
+};
+
+/* ═══════════════════════════════════════════════════════════
+   festival API (구: eventApi)
+   DB 테이블명: festival
+   컬럼: id, name, start_date, end_date, is_active, map_image_url, created_at, is_adult_only
+═══════════════════════════════════════════════════════════ */
+const eventApi = {
+  /** 전체 행사 목록 조회 (점진적 로드) */
+  getEvents: async (category = null, onProgress = null) => {
+    if (USE_MOCK) {
+      let list = MOCK.festivals.filter(f => f.is_active);
+      if (category && category !== 'all') {
+        list = list.filter(f => f.category === category);
+      }
+      const normalized = list.map(normalizeFestival);
+      if (onProgress) onProgress(normalized);
+      return normalized;
+    }
+
+    const sb = getSupabase();
+    if (!sb) return [];
+
+    let q = sb.from('festival')
+      .select('*')
+      .eq('is_active', true)
+      .order('created_at', { ascending: false });
+
+    // 카테고리 필터 (category 컬럼이 추가된 경우)
+    if (category && category !== 'all') {
+      q = q.eq('category', category);
+    }
+
+    const { data, error } = await q;
+    if (error) { console.error('[festival] getEvents:', error); return []; }
+
+    const normalized = (data || []).map(normalizeFestival);
+    if (onProgress) onProgress(normalized);
+    return normalized;
+  },
+
+  /** 행사 상세 조회 */
+  getEventDetail: async (id) => {
+    if (USE_MOCK) {
+      const found = MOCK.festivals.find(f => f.id === parseInt(id));
+      return normalizeFestival(found);
+    }
+    const sb = getSupabase();
+    const { data, error } = await sb.from('festival').select('*').eq('id', id).single();
+    if (error) return null;
+    return normalizeFestival(data);
+  },
+
+  /** 구역 잔여 수량 조회 (festival_zone 테이블) */
+  getZoneCapacity: async (festivalId) => {
+    if (USE_MOCK) {
+      return MOCK.festival_zones.filter(z => z.festival_id === parseInt(festivalId));
+    }
+    const sb = getSupabase();
+    const { data } = await sb.from('festival_zone')
+      .select('*')
+      .eq('festival_id', festivalId);
+    return data || [];
+  },
+};
+
+/* ═══════════════════════════════════════════════════════════
+   wishlist API
+   DB 테이블명: wishlist
+   컬럼: id, user_id, festival_id, created_at
+═══════════════════════════════════════════════════════════ */
+const wishlistApi = {
+  /** 찜 목록 festival_id 배열 반환 */
+  getWishlist: async () => {
+    if (USE_MOCK) return [...MOCK.wishlist_ids];
+    const sb = getSupabase();
+    const { data: { user } } = await sb.auth.getUser();
+    if (!user) return [];
+    const { data } = await sb.from('wishlist').select('festival_id').eq('user_id', user.id);
+    return (data || []).map(r => r.festival_id);
+  },
+
+  /** 찜 추가 */
+  addWishlist: async (festivalId) => {
+    if (USE_MOCK) {
+      if (!MOCK.wishlist_ids.includes(festivalId)) MOCK.wishlist_ids.push(festivalId);
+      return { success: true };
+    }
+    const sb = getSupabase();
+    const { data: { user } } = await sb.auth.getUser();
+    const { data } = await sb.from('wishlist').insert({ user_id: user.id, festival_id: festivalId }).select().single();
+    return data;
+  },
+
+  /** 찜 제거 */
+  removeWishlist: async (festivalId) => {
+    if (USE_MOCK) {
+      MOCK.wishlist_ids = MOCK.wishlist_ids.filter(n => n !== festivalId);
+      return { success: true };
+    }
+    const sb = getSupabase();
+    const { data: { user } } = await sb.auth.getUser();
+    await sb.from('wishlist').delete().eq('user_id', user.id).eq('festival_id', festivalId);
+    return { success: true };
+  },
+
+  /** 토글 */
+  toggleWishlist: (festivalId, isCurrentlyWished) =>
+    isCurrentlyWished
+      ? wishlistApi.removeWishlist(festivalId)
+      : wishlistApi.addWishlist(festivalId),
+};
+
+/* ═══════════════════════════════════════════════════════════
+   orders API (구: ticketOrderApi)
+   DB 테이블명: orders
+   컬럼: id, user_id, festival_id, zone_id, quantity, total_amount,
+         status, payment_method, pg_provider, order_uid, created_at
+═══════════════════════════════════════════════════════════ */
+const ticketOrderApi = {
+  /** 예매 내역 조회 */
+  getMyOrders: async () => {
+    if (USE_MOCK) return MOCK.orders.map(normalizeOrder);
+    const sb = getSupabase();
+    const { data: { user } } = await sb.auth.getUser();
+    if (!user) return [];
+    const { data } = await sb.from('orders')
+      .select(`
+        *,
+        festival:festival_id ( name, thumbnail_url ),
+        festival_zone:zone_id ( zone_name, price )
+      `)
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false });
+    return (data || []).map(row => normalizeOrder({
+      ...row,
+      festival_name: row.festival?.name,
+      thumbnail_url: row.festival?.thumbnail_url,
+      zone_name: row.festival_zone?.zone_name,
+    }));
+  },
+
+  /** 예매 생성 (대기열 진입 후 결제 완료 시 호출) */
+  createOrder: async ({ festivalId, zoneId, quantity, couponId = null, paymentMethod = 'CARD' }) => {
+    if (USE_MOCK) {
+      const zone = MOCK.festival_zones.find(z => z.id === parseInt(zoneId));
+      const totalAmount = zone ? zone.price * quantity : 0;
+      const orderUid = `FESTIO-${MOCK.app_user.id}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`.toUpperCase();
+      const newOrder = {
+        id: Date.now(),
+        user_id: MOCK.app_user.id,
+        festival_id: parseInt(festivalId),
+        zone_id: parseInt(zoneId),
+        quantity,
+        total_amount: totalAmount,
+        status: 'PENDING',
+        payment_method: paymentMethod,
+        pg_provider: 'toss',
+        order_uid: orderUid,
+        created_at: new Date().toISOString(),
+        festival_name: MOCK.festivals.find(f => f.id === parseInt(festivalId))?.name,
+        zone_name: zone?.zone_name,
+        thumbnail_url: null,
+      };
+      MOCK.orders.unshift(newOrder);
+      return normalizeOrder(newOrder);
+    }
+    const sb = getSupabase();
+    const { data: { user } } = await sb.auth.getUser();
+    const zone = await sb.from('festival_zone').select('price').eq('id', zoneId).single();
+    const totalAmount = (zone.data?.price || 0) * quantity;
+    const orderUid = `FESTIO-${user.id}-${Date.now()}`.toUpperCase();
+    const { data } = await sb.from('orders').insert({
+      user_id: user.id, festival_id: festivalId, zone_id: zoneId,
+      quantity, total_amount: totalAmount,
+      status: 'PENDING', payment_method: paymentMethod,
+      pg_provider: 'toss', order_uid: orderUid,
+    }).select().single();
+    return normalizeOrder(data);
+  },
+
+  /** 결제 완료 처리 */
+  confirmPayment: async (orderId, pgData) => {
+    if (USE_MOCK) {
+      const o = MOCK.orders.find(o => o.id === orderId);
+      if (o) o.status = 'PAID';
+      return normalizeOrder(o);
+    }
+    const sb = getSupabase();
+    const { data } = await sb.from('orders')
+      .update({ status: 'PAID', pg_data: pgData })
+      .eq('id', orderId).select().single();
+    return normalizeOrder(data);
+  },
+
+  /** 예매 취소 */
+  cancelOrder: async (orderId) => {
+    if (USE_MOCK) {
+      const o = MOCK.orders.find(o => o.id === orderId);
+      if (o) o.status = 'CANCELLED';
+      return { success: true };
+    }
+    const sb = getSupabase();
+    await sb.from('orders').update({ status: 'CANCELLED' }).eq('id', orderId);
+    return { success: true };
+  },
+};
+
+/* ═══════════════════════════════════════════════════════════
+   user_coupon API (구: couponApi 일부 변경)
+   DB 테이블명: user_coupon + coupon join
+═══════════════════════════════════════════════════════════ */
+const couponApi = {
+  /** 보유 쿠폰 목록 */
+  getMyCoupons: async () => {
+    if (USE_MOCK) return MOCK.user_coupons.map(normalizeUserCoupon);
+    const sb = getSupabase();
+    const { data: { user } } = await sb.auth.getUser();
+    if (!user) return [];
+    const { data } = await sb.from('user_coupon')
+      .select(`*, coupon:coupon_id ( name, discount_type, discount_value, min_order_amount, expires_at )`)
+      .eq('user_id', user.id)
+      .eq('is_used', false);
+    return (data || []).map(row => normalizeUserCoupon({
+      ...row,
+      coupon_name: row.coupon?.name,
+      discount_type: row.coupon?.discount_type,
+      discount_value: row.coupon?.discount_value,
+      min_order_amount: row.coupon?.min_order_amount,
+      expires_at: row.coupon?.expires_at,
+    }));
+  },
+};
+
+/* ═══════════════════════════════════════════════════════════
+   review API
+   DB 테이블명: review
+   컬럼: id, user_id, festival_id, rating, content, created_at
+═══════════════════════════════════════════════════════════ */
+const reviewApi = {
+  getMyReviews: async () => {
+    if (USE_MOCK) return [...MOCK.reviews];
+    const sb = getSupabase();
+    const { data: { user } } = await sb.auth.getUser();
+    if (!user) return [];
+    const { data } = await sb.from('review')
+      .select(`*, festival:festival_id ( name )`)
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false });
+    return (data || []).map(r => ({ ...r, festival_name: r.festival?.name }));
+  },
+
+  createReview: async ({ festivalId, orderId, rating, content }) => {
+    if (USE_MOCK) {
+      const r = { id: Date.now(), user_id: MOCK.app_user.id, festival_id: festivalId, rating, content, created_at: new Date().toISOString() };
+      MOCK.reviews.unshift(r);
+      return r;
+    }
+    const sb = getSupabase();
+    const { data: { user } } = await sb.auth.getUser();
+    const { data } = await sb.from('review').insert({
+      user_id: user.id, festival_id: festivalId, order_id: orderId, rating, content,
+    }).select().single();
+    return data;
+  },
+};
+
+/* ═══════════════════════════════════════════════════════════
+   inquiry API
+   DB 테이블명: inquiry
+   컬럼: id, user_id, title, content, status, answer, created_at
+═══════════════════════════════════════════════════════════ */
+const inquiryApi = {
+  getMyInquiries: async () => {
+    if (USE_MOCK) return [...MOCK.inquiries];
+    const sb = getSupabase();
+    const { data: { user } } = await sb.auth.getUser();
+    if (!user) return [];
+    const { data } = await sb.from('inquiry')
+      .select('*').eq('user_id', user.id).order('created_at', { ascending: false });
+    return data || [];
+  },
+
+  createInquiry: async ({ title, content }) => {
+    if (USE_MOCK) {
+      const item = { id: Date.now(), user_id: MOCK.app_user.id, title, content, status: 'PENDING', answer: null, created_at: new Date().toISOString() };
+      MOCK.inquiries.unshift(item);
+      return item;
+    }
+    const sb = getSupabase();
+    const { data: { user } } = await sb.auth.getUser();
+    const { data } = await sb.from('inquiry').insert({ user_id: user.id, title, content, status: 'PENDING' }).select().single();
+    return data;
+  },
+};
+
+/* ═══════════════════════════════════════════════════════════
+   scan_log API (QR 입장 스캔)
+   DB 테이블명: scan_log
+   컬럼: id, order_id, scanned_at, scanner_user_id, is_valid
+═══════════════════════════════════════════════════════════ */
+const scanApi = {
+  logScan: async ({ orderId, isValid }) => {
+    if (USE_MOCK) return { success: true, is_valid: isValid };
+    const sb = getSupabase();
+    const { data } = await sb.from('scan_log').insert({
+      order_id: orderId, is_valid: isValid, scanned_at: new Date().toISOString(),
+    }).select().single();
+    return data;
+  },
+};
+
+/* ═══════════════════════════════════════════════════════════
+   emergency_broadcast API
+   DB 테이블명: emergency_broadcast
+   컬럼: id, festival_id, message, severity, created_at, is_active
+═══════════════════════════════════════════════════════════ */
+const broadcastApi = {
+  getActive: async (festivalId) => {
+    if (USE_MOCK) return [];
+    const sb = getSupabase();
+    const { data } = await sb.from('emergency_broadcast')
+      .select('*')
+      .eq('festival_id', festivalId)
+      .eq('is_active', true)
+      .order('created_at', { ascending: false })
+      .limit(5);
+    return data || [];
+  },
+};
+
+/* ── 전역 노출 ──────────────────────────────────────────────── */
+window.MOCK = MOCK;
+window.memberApi = memberApi;
+window.eventApi = eventApi;
+window.wishlistApi = wishlistApi;
+window.ticketOrderApi = ticketOrderApi;
+window.couponApi = couponApi;
+window.reviewApi = reviewApi;
+window.inquiryApi = inquiryApi;
+window.scanApi = scanApi;
+window.broadcastApi = broadcastApi;
+window.normalizeFestival = normalizeFestival;
