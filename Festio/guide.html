@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>FESTIO | 이용안내</title>
+
+  <!-- Pretendard Font -->
+  <link rel="stylesheet" as="style" crossorigin
+    href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css" />
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="css/common.css">
+  <link rel="stylesheet" href="css/index.css">
+  <link rel="stylesheet" href="css/guide.css">
+</head>
+
+<body>
+  <script src="js/components/sidePanel.js"></script>
+
+  <!-- ══ 헤더 ═══════════════════════════════════════════════════ -->
+  <header class="app-header" role="banner" id="appHeader">
+    <!-- 햄버거 -->
+    <button class="header-hamburger" id="hamburgerBtn" aria-label="전체 메뉴 열기" aria-expanded="false">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+        stroke-linejoin="round">
+        <line x1="3" y1="6" x2="21" y2="6" />
+        <line x1="3" y1="12" x2="21" y2="12" />
+        <line x1="3" y1="18" x2="21" y2="18" />
+      </svg>
+    </button>
+
+    <!-- 로고 -->
+    <a href="index.html" class="header-logo" aria-label="FESTIO 홈">
+      <span class="header-logo-text">FESTIO</span>
+    </a>
+
+    <!-- 데스크톱 카테고리 네비 -->
+    <nav class="header-cat-nav" aria-label="주요 카테고리">
+      <button class="header-cat-item" data-cat="concert">콘서트
+        <svg class="icon cat-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+          stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+        <div class="cat-dropdown">
+          <a class="cat-dropdown-item" data-cat="concert" data-sub="all"><span>전체보기</span></a>
+          <a class="cat-dropdown-item" data-cat="concert" data-sub="domestic"><span>국내뮤지션</span></a>
+          <a class="cat-dropdown-item" data-cat="concert" data-sub="overseas"><span>해외뮤지션</span></a>
+          <a class="cat-dropdown-item" data-cat="concert" data-sub="festival"><span>페스티벌</span></a>
+        </div>
+      </button>
+      <button class="header-cat-item" data-cat="musical">뮤지컬</button>
+      <button class="header-cat-item" data-cat="play">연극</button>
+      <button class="header-cat-item" data-cat="classic">클래식/무용<svg class="icon cat-arrow" viewBox="0 0 24 24"
+          fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+        <div class="cat-dropdown">
+          <a class="cat-dropdown-item" data-cat="classic" data-sub="all"><span>전체보기</span></a>
+          <a class="cat-dropdown-item" data-cat="classic" data-sub="classic"><span>클래식</span></a>
+          <a class="cat-dropdown-item" data-cat="classic" data-sub="ballet"><span>발레/무용</span></a>
+          <a class="cat-dropdown-item" data-cat="classic" data-sub="gukak"><span>국악</span></a>
+        </div>
+      </button>
+      <button class="header-cat-item" data-cat="exhibition">전시/스포츠<svg class="icon cat-arrow" viewBox="0 0 24 24"
+          fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+        <div class="cat-dropdown">
+          <a class="cat-dropdown-item" data-cat="exhibition" data-sub="all"><span>전체보기</span></a>
+          <a class="cat-dropdown-item" data-cat="exhibition" data-sub="exhibition"><span>전시</span></a>
+          <a class="cat-dropdown-item" data-cat="exhibition" data-sub="experience"><span>체험/행사</span></a>
+          <a class="cat-dropdown-item" data-cat="exhibition" data-sub="sports"><span>스포츠</span></a>
+        </div>
+      </button>
+      <button class="header-cat-item" data-cat="family">가족/어린이</button>
+      <button class="header-cat-item" data-cat="local">지역축제</button>
+      <button class="header-cat-item" data-cat="univ">대학축제</button>
+      <button class="header-cat-item" data-cat="expo">박람회</button>
+    </nav>
+
+    <div class="header-spacer"></div>
+
+    <!-- 액션 버튼 -->
+    <div class="header-actions">
+      <a href="mypage.html" class="header-text-btn" aria-label="MY티켓">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round">
+          <path d="M20 12v6a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h6" />
+          <path d="M14 4h6v6" />
+          <path d="M10 14L20 4" />
+        </svg>
+        MY티켓
+      </a>
+      <!-- 데스크톱 검색 -->
+      <div class="header-search-bar" role="search">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+        <input type="search" class="header-search-input" id="headerSearch" placeholder="행사명, 아티스트 검색" autocomplete="off"
+          aria-label="검색">
+      </div>
+      <!-- 모바일 검색 -->
+      <button class="header-icon-btn mobile-search-btn" aria-label="검색">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+      </button>
+      <!-- 알림 -->
+      <button class="header-icon-btn" aria-label="알림">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round">
+          <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
+          <path d="M13.73 21a2 2 0 01-3.46 0" />
+        </svg>
+      </button>
+      <!-- 마이페이지 -->
+      <a href="mypage.html" class="header-icon-btn" aria-label="마이페이지">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round">
+          <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+          <circle cx="12" cy="7" r="4" />
+        </svg>
+      </a>
+    </div>
+  </header>
+
+  <!-- 모바일 검색 모달 -->
+  <div class="modal-overlay modal-center" id="modal-mobile-search" role="dialog" aria-modal="true">
+    <div class="modal-sheet">
+      <div class="modal-header search-modal-header">
+        <button class="modal-close-btn" data-close-modal="modal-mobile-search" aria-label="닫기">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="mobile-search-form">
+          <div class="mobile-search-input-wrap">
+            <svg class="icon search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            <input type="search" class="filter-range-input mobile-search-input" id="mobileSearchInput"
+              placeholder="행사명, 아티스트 검색" autocomplete="off">
+          </div>
+          <button class="btn btn-pastel-blue" id="btn-mobile-search-execute">검색</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 토스트 -->
+  <div class="toast-container" aria-live="polite"></div>
+
+  <main class="page-body" id="mainContent">
+
+    <!-- 고객센터 상단 영역 -->
+    <div class="guide-header">
+      <h2 class="guide-title">이용안내</h2>
+
+      <div class="guide-cs-box">
+        <div class="cs-box-left">
+          <div class="cs-icon-circle">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round">
+              <path
+                d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z">
+              </path>
+            </svg>
+          </div>
+          <div class="cs-text">
+            <div class="cs-title">고객센터</div>
+            <div class="cs-desc">전화문의 : 1544-6399</div>
+            <div class="cs-desc">이용시간 : 평일 09:00~18:00 / 토요일 09:00~17:00</div>
+            <div class="cs-desc">
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(점심시간:
+              12:00~13:00 / 일요일, 공휴일 휴무)</div>
+          </div>
+        </div>
+        <div class="cs-box-right">
+          <div class="cs-icon-circle">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round">
+              <path d="M12 20h9"></path>
+              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+            </svg>
+          </div>
+          <div class="cs-text">
+            <div class="cs-title-wrap">
+              <div class="cs-title">1:1문의</div>
+              <a href="#" class="btn-inquiry">문의하기</a>
+            </div>
+            <div class="cs-desc">평일 오후 5시 이후 문의는 당일 답변이 어려울 수 있습니다.</div>
+            <div class="cs-desc">토,일요일/공휴일 문의는 운영 시간 내 순차적으로 답변 드리겠습니다.</div>
+            <div class="cs-desc highlight"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round"
+                style="width:14px; height:14px; vertical-align:middle; margin-right:4px;">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+              </svg>잠깐! 1:1 문의 전 FAQ를 먼저 확인해보세요.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 탭 영역 -->
+    <div class="guide-tabs-wrap">
+      <ul class="guide-tabs">
+        <li class="active" data-tab="tab-book">예매방법</li>
+        <li data-tab="tab-pay">결제방법</li>
+        <li data-tab="tab-fee">수수료</li>
+        <li data-tab="tab-cancel">취소/환불</li>
+        <li data-tab="tab-receive">티켓수령</li>
+        <li data-tab="tab-faq">FAQ</li>
+        <li data-tab="tab-partner">티켓판매/제휴문의</li>
+      </ul>
+    </div>
+
+    <!-- 탭 콘텐츠 영역 -->
+    <div class="guide-content-wrap">
+
+      <!-- 예매방법 탭 -->
+      <div id="tab-book" class="guide-tab-content active">
+        <div class="book-process">
+          <div class="process-step">
+            <div class="step-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+              </svg></div>
+            <div class="step-text">본인인증/로그인</div>
+          </div>
+          <div class="step-arrow"></div>
+          <div class="process-step">
+            <div class="step-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+              </svg></div>
+            <div class="step-text">공연/관람일시 선택</div>
+          </div>
+          <div class="step-arrow"></div>
+          <div class="process-step">
+            <div class="step-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-6"></path>
+                <path d="M14 4h6v6"></path>
+                <path d="M10 14L20 4"></path>
+              </svg></div>
+            <div class="step-text">좌석 선택</div>
+          </div>
+          <div class="step-arrow"></div>
+          <div class="process-step">
+            <div class="step-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M16 8l-8 8"></path>
+                <path d="M9 9h.01"></path>
+                <path d="M15 15h.01"></path>
+              </svg></div>
+            <div class="step-text">할인/쿠폰 선택</div>
+          </div>
+          <div class="step-arrow"></div>
+          <div class="process-step">
+            <div class="step-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M8 12l2 2 4-4"></path>
+              </svg></div>
+            <div class="step-text">수령방법 선택</div>
+          </div>
+          <div class="step-arrow"></div>
+          <div class="process-step">
+            <div class="step-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="5" width="20" height="14" rx="2" ry="2"></rect>
+                <line x1="2" y1="10" x2="22" y2="10"></line>
+              </svg></div>
+            <div class="step-text">결제방법 선택</div>
+          </div>
+          <div class="step-arrow"></div>
+          <div class="process-step">
+            <div class="step-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+              </svg></div>
+            <div class="step-text">정책 동의</div>
+          </div>
+          <div class="step-arrow"></div>
+          <div class="process-step">
+            <div class="step-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+                <polyline points="10 9 9 9 8 9"></polyline>
+              </svg></div>
+            <div class="step-text">예매내역 확인</div>
+          </div>
+        </div>
+        <div class="tab-desc-text">
+          <h3>회원 예매</h3>
+          <p>FESTIO는 회원 가입 후 예매 서비스를 이용하실 수 있습니다. (비회원 예매 불가)<br>로그인 시 더 편리하고 빠른 서비스를 제공받으실 수 있습니다.</p>
+        </div>
+      </div>
+
+      <!-- 결제방법 탭 -->
+      <div id="tab-pay" class="guide-tab-content">
+        <div class="tab-desc-text">
+          <h3>결제수단 안내</h3>
+          <ul>
+            <li>신용카드, 체크카드, 무통장 입금(가상계좌) 등을 통해 결제가 가능합니다.</li>
+            <li>간편결제 서비스(카카오페이, 네이버페이, 페이코 등)도 지원됩니다.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- 수수료 탭 -->
+      <div id="tab-fee" class="guide-tab-content">
+        <div class="tab-desc-text">
+          <h3>예매 수수료</h3>
+          <p>예매 시 결제 금액에 따라 다음과 같은 예매 수수료가 부과됩니다.</p>
+          <table class="guide-table">
+            <thead>
+              <tr>
+                <th>장르</th>
+                <th>예매수수료 (장당)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>콘서트, 뮤지컬, 클래식 등</td>
+                <td>2,000원</td>
+              </tr>
+              <tr>
+                <td>연극, 전시 등</td>
+                <td>1,000원</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 취소/환불 탭 -->
+      <div id="tab-cancel" class="guide-tab-content">
+        <div class="tab-desc-text">
+          <h3>취소 수수료 안내</h3>
+          <p>공연일 기준에 따라 취소 수수료가 차등 부과됩니다.</p>
+          <table class="guide-table">
+            <thead>
+              <tr>
+                <th>취소일</th>
+                <th>취소수수료</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>예매 후 7일 이내</td>
+                <td>없음</td>
+              </tr>
+              <tr>
+                <td>예매 후 8일 ~ 관람일 10일 전</td>
+                <td>장당 4,000원 (단, 티켓 금액의 10% 이내)</td>
+              </tr>
+              <tr>
+                <td>관람일 9일 전 ~ 7일 전</td>
+                <td>티켓 금액의 10%</td>
+              </tr>
+              <tr>
+                <td>관람일 6일 전 ~ 3일 전</td>
+                <td>티켓 금액의 20%</td>
+              </tr>
+              <tr>
+                <td>관람일 2일 전 ~ 1일 전</td>
+                <td>티켓 금액의 30%</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 티켓수령 탭 -->
+      <div id="tab-receive" class="guide-tab-content">
+        <div class="tab-desc-text">
+          <h3>티켓 수령 방법</h3>
+          <ul>
+            <li><strong>현장수령:</strong> 공연 당일 매표소에서 예매번호 및 신분증 확인 후 수령 가능합니다.</li>
+            <li><strong>배송:</strong> 예매 시 입력한 주소로 우편 배송되며, 배송비(3,200원)가 별도 부과됩니다.</li>
+            <li><strong>모바일 티켓:</strong> APP에서 생성되는 바코드/QR코드로 입장 가능합니다.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- FAQ 탭 -->
+      <div id="tab-faq" class="guide-tab-content">
+        <div class="tab-desc-text">
+          <h3>자주 묻는 질문(FAQ)</h3>
+          <p>고객센터 > FAQ 메뉴를 확인해주세요.</p>
+        </div>
+      </div>
+
+      <!-- 제휴문의 탭 -->
+      <div id="tab-partner" class="guide-tab-content">
+        <div class="tab-desc-text">
+          <h3>티켓판매 / 제휴문의</h3>
+          <p>FESTIO와 함께하실 공연 기획사 및 제휴사를 기다립니다.<br>상세 문의는 <strong>festival@festio.com</strong> 으로 메일 부탁드립니다.</p>
+        </div>
+      </div>
+
+    </div>
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav" aria-label="하단 메뉴">
+      <a href="index.html" class="bottom-nav-item" aria-label="홈">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round">
+          <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+          <polyline points="9 22 9 12 15 12 15 22" />
+        </svg>
+        <span>홈</span>
+      </a>
+      <button class="bottom-nav-item" aria-label="검색">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+        <span>검색</span>
+      </button>
+      <a href="list.html" class="bottom-nav-item active" aria-label="티켓">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round">
+          <path d="M20 12v6a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h6" />
+          <path d="M14 4h6v6" />
+          <path d="M10 14L20 4" />
+        </svg>
+        <span>티켓</span>
+      </a>
+      <button class="bottom-nav-item" aria-label="장바구니">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round">
+          <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
+          <line x1="3" y1="6" x2="21" y2="6" />
+          <path d="M16 10a4 4 0 01-8 0" />
+        </svg>
+        <span>장바구니</span>
+      </button>
+      <a href="mypage.html" class="bottom-nav-item" aria-label="마이페이지">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round">
+          <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+          <circle cx="12" cy="7" r="4" />
+        </svg>
+        <span>마이</span>
+      </a>
+    </nav>
+  </main>
+
+  <!-- Supabase JS -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- JavaScript -->
+  <script src="js/common.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/guide.js"></script>
+  <script src="js/recent_carousel.js"></script>
+</body>
+
+</html>

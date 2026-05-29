@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <meta name="theme-color" content="#0A0A18">
+  <title>FESTIO | 행사 티켓 예매</title>
+  <link rel="stylesheet" href="css/common.css">
+  <link rel="stylesheet" href="css/index.css">
+</head>
+
+<body>
+
+  <script src="js/components/sidePanel.js"></script>
+
+  <!-- ══ 헤더 ═══════════════════════════════════════════════════ -->
+  <header class="app-header header-home" role="banner" id="appHeader">
+    <!-- 햄버거 -->
+    <button class="header-hamburger" id="hamburgerBtn" aria-label="전체 메뉴 열기" aria-expanded="false">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+        stroke-linejoin="round">
+        <line x1="3" y1="6" x2="21" y2="6" />
+        <line x1="3" y1="12" x2="21" y2="12" />
+        <line x1="3" y1="18" x2="21" y2="18" />
+      </svg>
+    </button>
+
+    <!-- 로고 -->
+    <a href="index.html" class="header-logo" aria-label="FESTIO 홈">
+      <span class="header-logo-text">FESTIO</span>
+    </a>
+
+    <!-- 데스크톱 카테고리 네비 -->
+    <nav class="header-cat-nav" aria-label="주요 카테고리">
+      <button class="header-cat-item" data-cat="concert">콘서트
+        <svg class="icon cat-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+          stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+        <div class="cat-dropdown">
+          <a class="cat-dropdown-item" data-cat="concert" data-sub="all"><span>전체보기</span></a>
+          <a class="cat-dropdown-item" data-cat="concert" data-sub="domestic"><span>국내뮤지션</span></a>
+          <a class="cat-dropdown-item" data-cat="concert" data-sub="overseas"><span>해외뮤지션</span></a>
+          <a class="cat-dropdown-item" data-cat="concert" data-sub="festival"><span>페스티벌</span></a>
+        </div>
+      </button>
+      <button class="header-cat-item" data-cat="musical">뮤지컬</button>
+      <button class="header-cat-item" data-cat="play">연극</button>
+      <button class="header-cat-item" data-cat="classic">클래식/무용<svg class="icon cat-arrow" viewBox="0 0 24 24"
+          fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+        <div class="cat-dropdown">
+          <a class="cat-dropdown-item" data-cat="classic" data-sub="all"><span>전체보기</span></a>
+          <a class="cat-dropdown-item" data-cat="classic" data-sub="classic"><span>클래식</span></a>
+          <a class="cat-dropdown-item" data-cat="classic" data-sub="ballet"><span>발레/무용</span></a>
+          <a class="cat-dropdown-item" data-cat="classic" data-sub="gukak"><span>국악</span></a>
+        </div>
+      </button>
+      <button class="header-cat-item" data-cat="exhibition">전시/스포츠<svg class="icon cat-arrow" viewBox="0 0 24 24"
+          fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+        <div class="cat-dropdown">
+          <a class="cat-dropdown-item" data-cat="exhibition" data-sub="all"><span>전체보기</span></a>
+          <a class="cat-dropdown-item" data-cat="exhibition" data-sub="exhibition"><span>전시</span></a>
+          <a class="cat-dropdown-item" data-cat="exhibition" data-sub="experience"><span>체험/행사</span></a>
+          <a class="cat-dropdown-item" data-cat="exhibition" data-sub="sports"><span>스포츠</span></a>
+        </div>
+      </button>
+      <button class="header-cat-item" data-cat="family">가족/어린이</button>
+      <button class="header-cat-item" data-cat="local">지역축제</button>
+      <button class="header-cat-item" data-cat="univ">대학축제</button>
+      <button class="header-cat-item" data-cat="expo">박람회</button>
+    </nav>
+
+    <div class="header-spacer"></div>
+
+    <!-- 액션 버튼 -->
+    <div class="header-actions">
+      <a href="mypage.html" class="header-text-btn" aria-label="MY티켓">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round">
+          <path d="M20 12v6a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h6" />
+          <path d="M14 4h6v6" />
+          <path d="M10 14L20 4" />
+        </svg>
+        MY티켓
+      </a>
+      <!-- 데스크톱 검색 -->
+      <div class="header-search-bar" role="search">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+        <input type="search" class="header-search-input" id="headerSearch" placeholder="행사명, 아티스트 검색" autocomplete="off"
+          aria-label="검색">
+      </div>
+      <!-- 모바일 검색 -->
+      <button class="header-icon-btn mobile-search-btn" aria-label="검색">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+      </button>
+      <!-- 알림 -->
+      <button class="header-icon-btn" aria-label="알림">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round">
+          <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
+          <path d="M13.73 21a2 2 0 01-3.46 0" />
+        </svg>
+      </button>
+      <!-- 마이페이지 -->
+      <a href="mypage.html" class="header-icon-btn" aria-label="마이페이지">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round">
+          <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+          <circle cx="12" cy="7" r="4" />
+        </svg>
+      </a>
+    </div>
+  </header>
+
+  <!-- 모바일 검색 모달 -->
+  <div class="modal-overlay modal-center" id="modal-mobile-search" role="dialog" aria-modal="true">
+    <div class="modal-sheet">
+      <div class="modal-header search-modal-header">
+        <button class="modal-close-btn" data-close-modal="modal-mobile-search" aria-label="닫기">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="mobile-search-form">
+          <div class="mobile-search-input-wrap">
+            <svg class="icon search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            <input type="search" class="filter-range-input mobile-search-input" id="mobileSearchInput"
+              placeholder="행사명, 아티스트 검색" autocomplete="off">
+          </div>
+          <button class="btn btn-pastel-blue" id="btn-mobile-search-execute">검색</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 토스트 -->
+  <div class="toast-container" aria-live="polite"></div>
+
+  <!-- ══ 메인 ═══════════════════════════════════════════════════ -->
+  <main class="page-body" id="mainContent">
+
+    <!-- 히어로 슬라이더 (모바일) -->
+    <section class="hero-section" aria-label="주요 행사 배너">
+      <button class="hero-nav-btn prev" id="heroPrevBtn" aria-label="이전 배너">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+      </button>
+      <div class="hero-slider" id="heroSlider"></div>
+      <div class="hero-indicators" id="heroIndicators" aria-label="슬라이드 이동"></div>
+      <button class="hero-nav-btn next" id="heroNextBtn" aria-label="다음 배너">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round">
+          <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+      </button>
+    </section>
+
+    <!-- WHAT'S HOT 섹션 (데스크톱 메인) -->
+    <section class="whats-hot-section" aria-label="인기 행사">
+      <h2 class="whats-hot-title">WHAT'S <span class="hot-text">HOT</span></h2>
+      <div class="whats-hot-grid" id="whatsHotGrid">
+        <!-- JS로 렌더링 -->
+      </div>
+    </section>
+
+    <!-- TICKET OPEN 섹션 -->
+    <section class="ticket-open-section" aria-label="티켓 오픈">
+      <h2 class="ticket-open-title">TICKET OPEN</h2>
+      <div class="ticket-open-grid">
+        <!-- 아이템 1 -->
+        <a href="#" class="ticket-open-item">
+          <div class="ticket-img-wrap">
+            <img src="https://picsum.photos/300/400?1" alt="포스터" class="ticket-cover">
+            <div class="ticket-badge red">단독</div>
+            <div class="ticket-today-overlay">
+              <span class="today-text">Today</span>
+            </div>
+          </div>
+          <div class="ticket-info">
+            <div class="ticket-date">2026.05.29(금) 18:00</div>
+            <div class="ticket-name">2026 DXMON FANMEETI...</div>
+          </div>
+        </a>
+        <!-- 아이템 2 -->
+        <a href="#" class="ticket-open-item">
+          <div class="ticket-img-wrap">
+            <img src="https://picsum.photos/300/400?2" alt="포스터" class="ticket-cover">
+            <div class="ticket-badge red">단독</div>
+            <div class="ticket-today-overlay">
+              <span class="today-text">Today</span>
+            </div>
+          </div>
+          <div class="ticket-info">
+            <div class="ticket-date">2026.05.29(금) 20:00</div>
+            <div class="ticket-name">SPYAIR JUST LIKE THIS 2...</div>
+          </div>
+        </a>
+        <!-- 아이템 3 -->
+        <a href="#" class="ticket-open-item">
+          <div class="ticket-img-wrap">
+            <img src="https://picsum.photos/300/400?3" alt="포스터" class="ticket-cover">
+            <div class="ticket-badge orange">선예매</div>
+            <div class="ticket-today-overlay">
+              <span class="today-text">Today</span>
+            </div>
+          </div>
+          <div class="ticket-info">
+            <div class="ticket-date">2026.05.29(금) 11:00</div>
+            <div class="ticket-name">연극 &lt;링스&gt; : 연극열전10_아...</div>
+          </div>
+        </a>
+        <!-- 아이템 4 -->
+        <a href="#" class="ticket-open-item">
+          <div class="ticket-img-wrap">
+            <img src="https://picsum.photos/300/400?4" alt="포스터" class="ticket-cover">
+            <div class="ticket-badge red">단독</div>
+            <div class="ticket-today-overlay">
+              <span class="today-text">Today</span>
+            </div>
+          </div>
+          <div class="ticket-info">
+            <div class="ticket-date">2026.05.29(금) 16:00</div>
+            <div class="ticket-name">뮤지컬 &lt;겨울왕국&gt; 한국 초연 ...</div>
+          </div>
+        </a>
+        <!-- 아이템 5 -->
+        <a href="#" class="ticket-open-item">
+          <div class="ticket-img-wrap">
+            <img src="https://picsum.photos/300/400?5" alt="포스터" class="ticket-cover">
+            <div class="ticket-today-overlay">
+              <span class="today-text">Today</span>
+            </div>
+          </div>
+          <div class="ticket-info">
+            <div class="ticket-date">2026.05.29(금) 15:00</div>
+            <div class="ticket-name">뮤지컬 [해몽가] 1차 티켓오...</div>
+          </div>
+        </a>
+      </div>
+      <div class="ticket-more-wrap">
+        <a href="#" class="btn-ticket-more">티켓오픈 더보기 +</a>
+      </div>
+    </section>
+
+    <!-- SPORTS 섹션 -->
+    <section class="sports-section" aria-label="스포츠 랭킹">
+      <h2 class="sports-title">SPORTS</h2>
+      <div class="sports-tags">
+        <span class="sports-tag">#축구</span>
+        <span class="sports-tag active">#야구</span>
+        <span class="sports-tag">#농구</span>
+        <span class="sports-tag">#배구</span>
+        <span class="sports-tag">#e스포츠</span>
+      </div>
+      <div class="sports-grid">
+        <a href="#" class="sports-item">
+          <div class="sports-img-wrap">
+            <img src="https://picsum.photos/300/400?10" alt="포스터">
+            <div class="sports-rank-badge">1위</div>
+          </div>
+          <div class="sports-info">
+            <div class="sports-name"><span class="sports-new">New</span> 2026 K리그 올스타전</div>
+            <div class="sports-date">2026.07.15 ~ 2026.07.15 서울월드컵경기장</div>
+          </div>
+        </a>
+        <a href="#" class="sports-item">
+          <div class="sports-img-wrap">
+            <img src="https://picsum.photos/300/400?11" alt="포스터">
+            <div class="sports-rank-badge">2위</div>
+          </div>
+          <div class="sports-info">
+            <div class="sports-name"><span class="sports-new">New</span> 2026 프로야구 한국시리즈 1차전</div>
+            <div class="sports-date">2026.10.20 ~ 2026.10.20 잠실야구장</div>
+          </div>
+        </a>
+        <a href="#" class="sports-item">
+          <div class="sports-img-wrap">
+            <img src="https://picsum.photos/300/400?12" alt="포스터">
+            <div class="sports-rank-badge" style="background-color: #ff9500;">3위</div>
+          </div>
+          <div class="sports-info">
+            <div class="sports-name"><span class="sports-down">↓2</span> 2026 V리그 챔피언결정전</div>
+            <div class="sports-date">2026.04.05 ~ 2026.04.05 장충체육관</div>
+          </div>
+        </a>
+      </div>
+      <div class="sports-more-wrap">
+        <a href="#" class="btn-ticket-more">랭킹 더보기 +</a>
+      </div>
+    </section>
+
+    <!-- 퀵스탯 (모바일) -->
+    <div class="quick-stats" aria-label="플랫폼 현황">
+      <div class="quick-stat-item">
+        <span class="quick-stat-val" id="statTotal"><span>0</span>개</span>
+        <span class="quick-stat-lbl">진행 행사</span>
+      </div>
+      <div class="quick-stat-item">
+        <span class="quick-stat-val" id="statHot"><span>0</span>개</span>
+        <span class="quick-stat-lbl">핫딜</span>
+      </div>
+      <div class="quick-stat-item">
+        <span class="quick-stat-val"><span>9</span>개</span>
+        <span class="quick-stat-lbl">카테고리</span>
+      </div>
+    </div>
+
+    <!-- 모바일 검색 (토글) -->
+    <div class="mobile-search hidden" id="mobileSearchBar">
+      <div class="mobile-search-wrap">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+        <input type="search" class="mobile-search-input" id="mobileSearchInput" placeholder="행사명, 아티스트 검색"
+          autocomplete="off" aria-label="검색">
+      </div>
+    </div>
+
+    <!-- 카테고리 탭바 (모바일) -->
+    <nav class="cat-tabbar" id="catTabbar" aria-label="카테고리 필터"></nav>
+
+    <!-- 포스터 섹션 -->
+    <section class="poster-section">
+      <!-- 데스크톱 결과 툴바 -->
+      <div class="results-toolbar">
+        <span class="results-count">총 <strong id="resultCount">0</strong>개의 행사</span>
+        <div class="results-sort">
+          <button class="sort-btn active" data-sort="latest">최신순</button>
+          <span class="sort-sep">|</span>
+          <button class="sort-btn" data-sort="popular">인기순</button>
+          <span class="sort-sep">|</span>
+          <button class="sort-btn" data-sort="date">날짜순</button>
+        </div>
+      </div>
+
+      <!-- 포스터 그리드 -->
+      <div class="poster-grid" id="posterGrid" aria-label="행사 목록">
+        <!-- JS 렌더링 -->
+      </div>
+
+      <!-- 더보기 -->
+      <div class="load-more-wrap hidden" id="loadMoreWrap">
+        <button class="btn btn-ghost" id="loadMoreBtn">
+          더보기
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
+        </button>
+      </div>
+    </section>
+
+    <!-- 타임세일 섹션 -->
+    <section class="timesale-section" aria-label="타임세일">
+      <div class="timesale-header">
+        <h2 class="timesale-title">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <polyline points="12 6 12 12 16 14" />
+          </svg>
+          타임세일
+        </h2>
+        <div class="timesale-countdown" aria-label="마감 카운트다운">
+          <div class="cd-unit"><span class="cd-val countdown-hours">00</span><span class="cd-lbl">시간</span></div>
+          <span class="cd-sep">:</span>
+          <div class="cd-unit"><span class="cd-val countdown-minutes">00</span><span class="cd-lbl">분</span></div>
+          <span class="cd-sep">:</span>
+          <div class="cd-unit"><span class="cd-val countdown-seconds">00</span><span class="cd-lbl">초</span></div>
+        </div>
+      </div>
+      <div class="timesale-scroll" id="timesaleCards"></div>
+    </section>
+
+  </main>
+
+  <!-- ══ 하단 네비 (모바일) ════════════════════════════════════ -->
+  <nav class="bottom-nav" aria-label="하단 메뉴">
+    <a href="index.html" class="bottom-nav-item active" aria-label="홈">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+        stroke-linejoin="round">
+        <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+        <polyline points="9 22 9 12 15 12 15 22" />
+      </svg>
+      홈
+    </a>
+    <a href="list.html" class="bottom-nav-item" aria-label="전체행사">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+        stroke-linejoin="round">
+        <rect x="3" y="3" width="7" height="7" />
+        <rect x="14" y="3" width="7" height="7" />
+        <rect x="3" y="14" width="7" height="7" />
+        <rect x="14" y="14" width="7" height="7" />
+      </svg>
+      전체행사
+    </a>
+    <button class="bottom-nav-item alert-ready" aria-label="장바구니">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+        stroke-linejoin="round">
+        <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
+        <line x1="3" y1="6" x2="21" y2="6" />
+        <path d="M16 10a4 4 0 01-8 0" />
+      </svg>
+      장바구니
+    </button>
+    <button class="bottom-nav-item" aria-label="찜목록">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+        stroke-linejoin="round">
+        <path
+          d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
+      </svg>
+      찜
+    </button>
+    <a href="mypage.html" class="bottom-nav-item" aria-label="마이페이지">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+        stroke-linejoin="round">
+        <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+        <circle cx="12" cy="7" r="4" />
+      </svg>
+      마이
+    </a>
+  </nav>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/api.js"></script>
+  <script src="js/common.js"></script>
+  <script src="js/index.js"></script>
+  <script src="js/recent_carousel.js"></script>
+</body>
+
+</html>
