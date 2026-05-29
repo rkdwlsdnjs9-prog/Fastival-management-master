@@ -84,8 +84,10 @@
   height: 100%;
   object-fit: cover;
   display: block;
-  filter: blur(25px) brightness(0.45); /* Apply beautiful blur & darken backdrop */
-  transform: scale(1.15); /* Scale up to avoid white edges from blur */
+  filter: blur(25px) brightness(0.45);
+  /* Apply beautiful blur & darken backdrop */
+  transform: scale(1.15);
+  /* Scale up to avoid white edges from blur */
 }
 
 /* Slide Container to hold poster & content */
@@ -120,10 +122,12 @@
 
 /* 4:3 (vertical 3:4 aspect) Poster Container */
 .hero-slide-poster {
-  display: none; /* Hidden on mobile */
+  display: none;
+  /* Hidden on mobile */
   flex-shrink: 0;
   width: 195px;
-  height: 260px; /* 3:4 ratio */
+  height: 260px;
+  /* 3:4 ratio */
   border-radius: var(--radius-lg);
   overflow: hidden;
   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.15);
@@ -139,7 +143,8 @@
 @media (min-width: 1024px) {
   .hero-slide-poster {
     width: 255px;
-    height: 340px; /* 3:4 ratio */
+    height: 340px;
+    /* 3:4 ratio */
   }
 }
 
@@ -1975,4 +1980,383 @@
   .sports-section {
     display: none;
   }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   제휴·입점 문의 섹션 (partner-section)
+   ─────────────────────────────────────────────────────────────── */
+.partner-section {
+  background: #f8f9fb;
+  border-top: 1px solid #eaeaea;
+  padding: 72px 0 80px;
+}
+
+.partner-inner {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* 헤더 */
+.partner-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.partner-eyebrow {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: #7c3aed;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  background: rgba(124, 58, 237, 0.08);
+  padding: 4px 12px;
+  border-radius: 20px;
+}
+
+.partner-title {
+  font-size: 26px;
+  font-weight: 800;
+  color: #111;
+  letter-spacing: -0.5px;
+  margin: 0 0 12px;
+  line-height: 1.25;
+}
+
+@media (max-width: 600px) {
+  .partner-title {
+    font-size: 20px;
+  }
+}
+
+.partner-sub {
+  font-size: 14px;
+  color: #777;
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* 문의 유형 칩 */
+.partner-type-chips {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 36px;
+}
+
+.partner-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 20px;
+  border-radius: 50px;
+  border: 1.5px solid #d1d5db;
+  background: #fff;
+  color: #555;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  line-height: 1;
+}
+
+.partner-chip svg {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+  stroke: currentColor;
+}
+
+.partner-chip:hover {
+  border-color: #7c3aed;
+  color: #7c3aed;
+  background: rgba(124, 58, 237, 0.04);
+}
+
+.partner-chip.active {
+  border-color: #7c3aed;
+  background: #7c3aed;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+}
+
+/* 폼 카드 */
+.partner-form {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 36px 40px;
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.06);
+}
+
+@media (max-width: 600px) {
+  .partner-form {
+    padding: 24px 18px;
+  }
+}
+
+/* 2열 그리드 입력 */
+.partner-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px 20px;
+  margin-bottom: 20px;
+}
+
+@media (max-width: 600px) {
+  .partner-form-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.partner-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.partner-field--full {
+  grid-column: 1 / -1;
+  position: relative;
+}
+
+.partner-label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.required-mark {
+  color: #7c3aed;
+  margin-left: 2px;
+}
+
+.partner-input,
+.partner-textarea {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1.5px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 13.5px;
+  color: #111;
+  background: #fff;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+.partner-input::placeholder,
+.partner-textarea::placeholder {
+  color: #b0b8c1;
+}
+
+.partner-input:focus,
+.partner-textarea:focus {
+  border-color: #7c3aed;
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12);
+}
+
+.partner-textarea {
+  resize: vertical;
+  min-height: 110px;
+}
+
+.textarea-counter {
+  position: absolute;
+  bottom: 10px;
+  right: 14px;
+  font-size: 11px;
+  color: #aaa;
+  pointer-events: none;
+}
+
+/* 개인정보 동의 */
+.partner-agree {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  color: #555;
+  margin-bottom: 24px;
+  cursor: pointer;
+}
+
+.partner-agree input[type="checkbox"] {
+  width: 15px;
+  height: 15px;
+  accent-color: #7c3aed;
+  flex-shrink: 0;
+}
+
+.agree-link {
+  color: #7c3aed;
+  text-decoration: none;
+}
+
+.agree-link:hover {
+  text-decoration: underline;
+}
+
+/* 제출 버튼 */
+.partner-submit-wrap {
+  text-align: center;
+}
+
+.partner-submit-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 13px 40px;
+  background: #7c3aed;
+  color: #fff;
+  border: none;
+  border-radius: 50px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+  box-shadow: 0 4px 16px rgba(124, 58, 237, 0.35);
+}
+
+.partner-submit-btn:hover {
+  background: #6d28d9;
+  box-shadow: 0 6px 20px rgba(124, 58, 237, 0.45);
+  transform: translateY(-2px);
+}
+
+.partner-submit-btn:active {
+  transform: translateY(0);
+}
+
+.partner-submit-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* 결과 메시지 */
+.partner-result {
+  margin-top: 18px;
+  padding: 14px 18px;
+  border-radius: 8px;
+  font-size: 13.5px;
+  font-weight: 500;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.partner-result.success {
+  background: #f0fdf4;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+.partner-result.error {
+  background: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+/* ── 동적 파일 첨부 필드 스타일 ─────────────────────────────────── */
+.file-group-wrapper {
+  margin-top: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.file-upload-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+@media (max-width: 600px) {
+  .file-upload-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.file-upload-box {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.custom-file-input {
+  position: relative;
+  width: 100%;
+  height: 48px;
+  border: 1.5px dashed #d1d5db;
+  border-radius: 8px;
+  background: #fdfdfd;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+.custom-file-input:hover {
+  border-color: #7c3aed;
+  background: rgba(124, 58, 237, 0.02);
+}
+
+.custom-file-input input[type="file"] {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 2;
+}
+
+.file-dummy {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  pointer-events: none;
+  font-size: 13px;
+  color: #6b7280;
+  font-weight: 500;
+  padding: 0 12px;
+  box-sizing: border-box;
+}
+
+.file-dummy .file-icon {
+  font-size: 15px;
+}
+
+.file-dummy .file-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: calc(100% - 30px);
+}
+
+.custom-file-input.has-file {
+  border-style: solid;
+  border-color: #7c3aed;
+  background: rgba(124, 58, 237, 0.04);
+}
+
+.custom-file-input.has-file .file-dummy {
+  color: #7c3aed;
+  font-weight: 600;
+}
+
+.file-guide-text {
+  font-size: 11px;
+  color: #8e95a1;
+  margin: 0;
+  line-height: 1.4;
 }

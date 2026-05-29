@@ -56,4 +56,18 @@ public class FestivalController {
         festivalService.deleteFestival(id);
         return ResponseEntity.noContent().build();
     }
+
+    /**
+     * 특정 페스티벌의 심사 상태 및 운영 단계를 변경합니다.
+     * PATCH /api/festival/{id}/status
+     */
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<FestivalVo> updateStatus(
+            @PathVariable("id") Long id,
+            @RequestBody java.util.Map<String, String> statusMap) {
+        String reviewStatus = statusMap.get("reviewStatus");
+        String operationalStatus = statusMap.get("operationalStatus");
+        FestivalVo updatedFestival = festivalService.updateStatus(id, reviewStatus, operationalStatus);
+        return ResponseEntity.ok(updatedFestival);
+    }
 }

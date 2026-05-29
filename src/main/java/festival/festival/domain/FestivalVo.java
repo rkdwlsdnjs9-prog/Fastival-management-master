@@ -54,14 +54,39 @@ public class FestivalVo {
     private String thumbnailUrl; // 행사 대표 포스터 썸네일 이미지
     @Column(name = "badge_label", length = 50)
     private String badgeLabel; // 'HOT', '신규', '타임세일' 등
-    @Column(name = "is_hot")
+    @Column(name = "is_hot", nullable = true)
     private Boolean isHot = false;
+
+    @Column(name = "review_status", length = 50)
+    private String reviewStatus = "PENDING"; // 'PENDING', 'APPROVED', 'REJECTED'
+
+    @Column(name = "operational_status", length = 50)
+    private String operationalStatus = "UPCOMING"; // 'UPCOMING', 'ONGOING', 'COMPLETED'
+
+    @Column(name = "agency", length = 255)
+    private String agency; // 기획사/신청 기관
 
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
         if (this.isActive == null) {
             this.isActive = true;
+        }
+        if (this.reviewStatus == null) {
+            this.reviewStatus = "PENDING";
+        }
+        if (this.operationalStatus == null) {
+            this.operationalStatus = "UPCOMING";
+        }
+    }
+
+    @PostLoad
+    protected void onPostLoad() {
+        if (this.reviewStatus == null) {
+            this.reviewStatus = "APPROVED"; // 기존의 데이터베이스 축제 데이터는 검수 완료된 Live(APPROVED) 상태로 처리
+        }
+        if (this.operationalStatus == null) {
+            this.operationalStatus = "UPCOMING"; // 기존 데이터는 기본적으로 UPCOMING 상태로 초기화
         }
     }
 }

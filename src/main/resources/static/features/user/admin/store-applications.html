@@ -1,252 +1,657 @@
 <!doctype html>
 <html lang="ko" class="layout-menu-fixed layout-compact" data-assets-path="/assets/" data-template="vertical-menu-template-free">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
-    <title>입점 신청 승인 - FASTIVAL O2O</title>
-
-    <link rel="icon" type="image/x-icon" href="/assets/img/favicon/favicon.ico" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="/assets/vendor/fonts/iconify-icons.css" />
-    <link rel="stylesheet" href="/assets/vendor/css/core.css" />
-    <link rel="stylesheet" href="/assets/css/demo.css" />
-    <link rel="stylesheet" href="/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
-    <link rel="stylesheet" href="/assets/vendor/libs/apex-charts/apex-charts.css" />
-    <script src="/assets/vendor/js/helpers.js"></script>
-    <script src="/assets/js/config.js"></script>
-    <style>
-      .premium-gradient {
-        background: linear-gradient(135deg, #696cff 0%, #a2a4ff 100%);
-        color: white;
-      }
-      .stat-card {
-        transition: transform 0.2s;
-      }
-      .stat-card:hover {
-        transform: translateY(-5px);
-      }
-    </style>
-  </head>
-
-  <body>
-    <div class="layout-wrapper layout-content-navbar">
-      <div class="layout-container">
-        
-        <!-- Sidebar Menu -->
-        <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
-          <!-- sidebar.js 가 런타임에 동적으로 삽입 -->
-        </aside>
-
-        <div class="layout-page">
-          <!-- Navbar -->
-          <nav class="layout-navbar container-xxl navbar navbar-expand-xl navbar-detached align-items-center bg-navbar-theme" id="layout-navbar">
-            <div class="layout-menu-toggle navbar-nav align-items-xl-center me-4 me-xl-0 d-xl-none">
-              <a class="nav-item nav-link px-0 me-xl-6" href="javascript:void(0)">
-                <i class="bx bx-menu bx-sm"></i>
-              </a>
-            </div>
-            <div class="navbar-nav-right d-flex align-items-center" id="navbar-collapse">
-              <h5 class="mb-0 fw-bold"><i class="bx bx-list-check me-2 text-primary"></i>입점 신청 승인</h5>
-              <ul class="navbar-nav flex-row align-items-center ms-auto">
-                <li class="nav-item dropdown-user dropdown">
-                  <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown">
-                    <div class="avatar avatar-online">
-                      <img src="/assets/img/avatars/1.png" class="w-px-40 h-auto rounded-circle" />
-                    </div>
-                  </a>
-                  <ul class="dropdown-menu dropdown-menu-end">
-                    <li>
-                      <a class="dropdown-item" href="#">
-                        <div class="d-flex">
-                          <div class="flex-shrink-0 me-3">
-                            <div class="avatar avatar-online">
-                              <img src="/assets/img/avatars/1.png" class="w-px-40 h-auto rounded-circle" />
-                            </div>
-                          </div>
-                          <div class="flex-grow-1">
-                            <span class="fw-medium d-block">최고 관리자</span>
-                            <small class="text-muted">Master Admin</small>
-                          </div>
-                        </div>
-                      </a>
-                    </li>
-                  </ul>
-                </li>
-              </ul>
-            </div>
-          </nav>
-
-          <!-- Content wrapper -->
-          <div class="content-wrapper">
-            <div class="container-xxl flex-grow-1 container-p-y">
-              
-              <div class="row">
-                <!-- 요약 현황 카드 -->
-                <div class="col-lg-4 mb-6">
-                  <div class="card stat-card h-100">
-                    <div class="card-body">
-                      <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="card-title mb-0 fw-semibold">신규 입점 신청 대기</h5>
-                        <i class="bx bx-file text-warning fs-3"></i>
-                      </div>
-                      <h3 class="fw-bold text-warning mb-2" id="pendingCount">3 건</h3>
-                      <p class="mb-0 text-muted fs-7">서류 심사 및 대기열 대기 중인 가맹점 수</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="col-lg-4 mb-6">
-                  <div class="card stat-card h-100">
-                    <div class="card-body">
-                      <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="card-title mb-0 fw-semibold">이번 달 승인 완료</h5>
-                        <i class="bx bx-check-circle text-success fs-3"></i>
-                      </div>
-                      <h3 class="fw-bold text-success mb-2">12 건</h3>
-                      <p class="mb-0 text-muted fs-7">심사 통과하여 입점 계약 완료된 가맹점 수</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="col-lg-4 mb-6">
-                  <div class="card stat-card h-100 bg-label-secondary border-0">
-                    <div class="card-body">
-                      <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="card-title mb-0 fw-semibold text-secondary">반려/취소 내역</h5>
-                        <i class="bx bx-x-circle text-danger fs-3"></i>
-                      </div>
-                      <h3 class="fw-bold text-danger mb-2">2 건</h3>
-                      <p class="mb-0 text-muted fs-7">서류 미달 및 중복 신청으로 반려 처리된 내역</p>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- 입점 신청 목록 테이블 -->
-                <div class="col-12">
-                  <div class="card">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                      <h5 class="card-title m-0 fw-semibold">대기 중인 입점 가맹점 신청서</h5>
-                      <span class="badge bg-label-primary">실시간 서류 검토</span>
-                    </div>
-                    <div class="table-responsive text-nowrap">
-                      <table class="table table-hover">
-                        <thead>
-                          <tr>
-                            <th>가맹점 상호명</th>
-                            <th>대표자명</th>
-                            <th>업종 카테고리</th>
-                            <th>사업자 등록번호</th>
-                            <th>신청 일자</th>
-                            <th>첨부서류</th>
-                            <th>상태</th>
-                            <th>심사 처리</th>
-                          </tr>
-                        </thead>
-                        <tbody id="applicationTableBody">
-                          <tr id="row-1">
-                            <td><strong>마포 닭강정 푸드트럭</strong></td>
-                            <td>홍길동</td>
-                            <td><span class="badge bg-label-primary">FOOD (음식)</span></td>
-                            <td>120-81-XXXXX</td>
-                            <td>2026-05-26</td>
-                            <td><a href="#" class="text-info"><i class="bx bx-paperclip"></i> 보건증_영업신고증.zip</a></td>
-                            <td><span class="badge bg-warning">대기 중</span></td>
-                            <td>
-                              <button class="btn btn-xs btn-success approve-btn" data-id="1" data-name="마포 닭강정 푸드트럭">승인</button>
-                              <button class="btn btn-xs btn-danger reject-btn" data-id="1" data-name="마포 닭강정 푸드트럭">반려</button>
-                            </td>
-                          </tr>
-                          <tr id="row-2">
-                            <td><strong>우주선 타코야끼</strong></td>
-                            <td>김철수</td>
-                            <td><span class="badge bg-label-primary">FOOD (음식)</span></td>
-                            <td>220-12-XXXXX</td>
-                            <td>2026-05-26</td>
-                            <td><a href="#" class="text-info"><i class="bx bx-paperclip"></i> 위생증명서.pdf</a></td>
-                            <td><span class="badge bg-warning">대기 중</span></td>
-                            <td>
-                              <button class="btn btn-xs btn-success approve-btn" data-id="2" data-name="우주선 타코야끼">승인</button>
-                              <button class="btn btn-xs btn-danger reject-btn" data-id="2" data-name="우주선 타코야끼">반려</button>
-                            </td>
-                          </tr>
-                          <tr id="row-3">
-                            <td><strong>페스티벌 썬글라스 & 굿즈</strong></td>
-                            <td>이영희</td>
-                            <td><span class="badge bg-label-info">GOODS (상품)</span></td>
-                            <td>105-04-XXXXX</td>
-                            <td>2026-05-25</td>
-                            <td><a href="#" class="text-info"><i class="bx bx-paperclip"></i> 사업자등록증.jpg</a></td>
-                            <td><span class="badge bg-warning">대기 중</span></td>
-                            <td>
-                              <button class="btn btn-xs btn-success approve-btn" data-id="3" data-name="페스티벌 썬글라스 & 굿즈">승인</button>
-                              <button class="btn btn-xs btn-danger reject-btn" data-id="3" data-name="페스티벌 썬글라스 & 굿즈">반려</button>
-                            </td>
-                          </tr>
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-            </div>
-
-            <!-- Footer -->
-            <footer class="content-footer footer bg-footer-theme">
-              <div class="container-xxl d-flex flex-wrap justify-content-between py-2 flex-md-row flex-column">
-                <div class="mb-2 mb-md-0">
-                  © <script>document.write(new Date().getFullYear());</script> FASTIVAL O2O
-                </div>
-              </div>
-            </footer>
-
-            <div class="content-backdrop fade"></div>
-          </div>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0"/>
+  <title>입점 신청 관리 - FASTIVAL O2O</title>
+  <link rel="icon" type="image/x-icon" href="/assets/img/favicon/favicon.ico"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/assets/vendor/fonts/iconify-icons.css"/>
+  <link rel="stylesheet" href="/assets/vendor/css/core.css"/>
+  <link rel="stylesheet" href="/assets/css/demo.css"/>
+  <link rel="stylesheet" href="/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css"/>
+  <script src="/assets/vendor/js/helpers.js"></script>
+  <script src="/assets/js/config.js"></script>
+  <style>
+    .stat-card { transition: transform .2s; }
+    .stat-card:hover { transform: translateY(-4px); }
+    .filter-bar { background:#f8f9fb; border:1px solid #e5e7eb; border-radius:10px; padding:18px 22px; margin-bottom:20px; display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
+    .filter-bar label { font-weight:600; font-size:13px; margin-bottom:0; }
+    .filter-bar select { min-width:220px; }
+    .status-tabs { display:flex; gap:6px; margin-bottom:18px; }
+    .status-tab { padding:8px 20px; border-radius:50px; border:1.5px solid #d1d5db; background:#fff; font-size:13px; font-weight:600; cursor:pointer; transition:all .2s; color:#555; }
+    .status-tab.active { background:#696cff; border-color:#696cff; color:#fff; box-shadow:0 3px 10px rgba(105,108,255,.35); }
+    .status-tab .tab-count { background:rgba(0,0,0,.08); border-radius:20px; padding:1px 8px; font-size:11px; margin-left:5px; }
+    .status-tab.active .tab-count { background:rgba(255,255,255,.25); }
+    .badge-type-food { background:#e3f2fd; color:#1565c0; padding:3px 9px; border-radius:20px; font-size:11.5px; font-weight:600; }
+    .badge-type-goods { background:#f3e5f5; color:#6a1b9a; padding:3px 9px; border-radius:20px; font-size:11.5px; font-weight:600; }
+    .badge-type-event { background:#e8f5e9; color:#2e7d32; padding:3px 9px; border-radius:20px; font-size:11.5px; font-weight:600; }
+    .empty-row td { text-align:center; padding:48px 0; color:#aaa; font-size:14px; }
+    /* Detail Modal */
+    .detail-modal-backdrop { display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:9999; align-items:center; justify-content:center; }
+    .detail-modal-backdrop.show { display:flex; }
+    .detail-modal { background:#fff; border-radius:14px; width:560px; max-width:92vw; max-height:85vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,.25); }
+    .detail-modal-header { padding:22px 26px 16px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center; }
+    .detail-modal-header h5 { margin:0; font-weight:700; font-size:16px; }
+    .detail-modal-close { background:none; border:none; font-size:22px; cursor:pointer; color:#888; line-height:1; }
+    .detail-modal-body { padding:22px 26px; }
+    .detail-row { display:flex; gap:10px; margin-bottom:14px; }
+    .detail-row .dl { font-size:12px; font-weight:600; color:#888; min-width:90px; }
+    .detail-row .dd { font-size:13.5px; color:#222; flex:1; word-break:break-all; }
+    .detail-content-box { background:#f8f9fb; border-radius:8px; padding:14px; font-size:13px; color:#444; line-height:1.7; margin-top:4px; }
+    .action-btn-wrap { display:flex; gap:8px; justify-content:flex-end; padding:16px 26px; border-top:1px solid #eee; }
+  </style>
+</head>
+<body>
+<div class="layout-wrapper layout-content-navbar">
+  <div class="layout-container">
+    <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme"></aside>
+    <div class="layout-page">
+      <!-- Navbar -->
+      <nav class="layout-navbar container-xxl navbar navbar-expand-xl navbar-detached align-items-center bg-navbar-theme" id="layout-navbar">
+        <div class="layout-menu-toggle navbar-nav align-items-xl-center me-4 me-xl-0 d-xl-none">
+          <a class="nav-item nav-link px-0 me-xl-6" href="javascript:void(0)"><i class="bx bx-menu bx-sm"></i></a>
         </div>
+        <div class="navbar-nav-right d-flex align-items-center" id="navbar-collapse">
+          <h5 class="mb-0 fw-bold"><i class="bx bx-list-check me-2 text-primary"></i>입점 신청 관리</h5>
+          <ul class="navbar-nav flex-row align-items-center ms-auto">
+            <li class="nav-item dropdown-user dropdown">
+              <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown">
+                <div class="avatar avatar-online"><img src="/assets/img/avatars/1.png" class="w-px-40 h-auto rounded-circle"/></div>
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li><a class="dropdown-item" href="#"><div class="d-flex"><div class="flex-shrink-0 me-3"><div class="avatar avatar-online"><img src="/assets/img/avatars/1.png" class="w-px-40 h-auto rounded-circle"/></div></div><div class="flex-grow-1"><span class="fw-medium d-block">최고 관리자</span><small class="text-muted">Master Admin</small></div></div></a></li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </nav>
+
+      <!-- Content wrapper -->
+      <div class="content-wrapper">
+        <div class="container-xxl flex-grow-1 container-p-y">
+
+          <!-- 요약 카드 -->
+          <div class="row mb-4">
+            <div class="col-lg-4 mb-4">
+              <div class="card stat-card h-100">
+                <div class="card-body">
+                  <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="card-title mb-0 fw-semibold">대기 중</h5>
+                    <i class="bx bx-file text-warning fs-3"></i>
+                  </div>
+                  <h3 class="fw-bold text-warning mb-2" id="summaryPending">0 건</h3>
+                  <p class="mb-0 text-muted fs-7">심사 대기 중인 신청서</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-4 mb-4">
+              <div class="card stat-card h-100">
+                <div class="card-body">
+                  <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="card-title mb-0 fw-semibold">승인 완료</h5>
+                    <i class="bx bx-check-circle text-success fs-3"></i>
+                  </div>
+                  <h3 class="fw-bold text-success mb-2" id="summaryApproved">0 건</h3>
+                  <p class="mb-0 text-muted fs-7">입점 계약 완료된 업체</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-lg-4 mb-4">
+              <div class="card stat-card h-100">
+                <div class="card-body">
+                  <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="card-title mb-0 fw-semibold">반려 내역</h5>
+                    <i class="bx bx-x-circle text-danger fs-3"></i>
+                  </div>
+                  <h3 class="fw-bold text-danger mb-2" id="summaryRejected">0 건</h3>
+                  <p class="mb-0 text-muted fs-7">서류 미달 등 반려 처리</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 필터 영역 -->
+          <div class="filter-bar">
+            <label for="festivalSelect"><i class="bx bx-calendar-event me-1"></i>행사 선택</label>
+            <select class="form-select" id="festivalSelect" style="max-width:260px;"></select>
+          </div>
+
+          <!-- 상태 탭 -->
+          <div class="status-tabs">
+            <button class="status-tab active" data-status="PENDING">대기중 <span class="tab-count" id="tabCountPending">0</span></button>
+            <button class="status-tab" data-status="APPROVED">승인됨 <span class="tab-count" id="tabCountApproved">0</span></button>
+            <button class="status-tab" data-status="REJECTED">반려됨 <span class="tab-count" id="tabCountRejected">0</span></button>
+          </div>
+
+          <!-- 테이블 -->
+          <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <h5 class="card-title m-0 fw-semibold" id="tableHeadTitle">대기중 신청서</h5>
+              <span class="badge bg-label-primary">실시간 심사</span>
+            </div>
+            <div class="table-responsive text-nowrap">
+              <table class="table table-hover">
+                <thead>
+                  <tr>
+                    <th>유형</th>
+                    <th>업체명</th>
+                    <th>담당자</th>
+                    <th>연락처</th>
+                    <th>신청일</th>
+                    <th>상태</th>
+                    <th>액션</th>
+                  </tr>
+                </thead>
+                <tbody id="appTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+
+        <footer class="content-footer footer bg-footer-theme">
+          <div class="container-xxl d-flex flex-wrap justify-content-between py-2 flex-md-row flex-column">
+            <div class="mb-2 mb-md-0">© <script>document.write(new Date().getFullYear());</script> FASTIVAL O2O</div>
+          </div>
+        </footer>
+        <div class="content-backdrop fade"></div>
       </div>
-      <div class="layout-overlay layout-menu-toggle"></div>
     </div>
+  </div>
+  <div class="layout-overlay layout-menu-toggle"></div>
+</div>
 
-    <!-- Scripts -->
-    <script src="/assets/vendor/libs/jquery/jquery.js"></script>
-    <script src="/assets/vendor/libs/popper/popper.js"></script>
-    <script src="/assets/vendor/js/bootstrap.js"></script>
-    <script src="/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
-    <script src="/assets/vendor/js/menu.js"></script>
-    <script src="/assets/js/main.js"></script>
-    <script src="/assets/js/sidebar.js"></script>
+<!-- 상세 모달 -->
+<div class="detail-modal-backdrop" id="detailModalBackdrop">
+  <div class="detail-modal">
+    <div class="detail-modal-header">
+      <h5 id="modalTitle">신청서 상세</h5>
+      <button class="detail-modal-close" id="modalCloseBtn">×</button>
+    </div>
+    <div class="detail-modal-body" id="modalBody"></div>
+    <div class="action-btn-wrap" id="modalActionWrap"></div>
+  </div>
+</div>
 
-    <script>
-      let activeCount = 3;
-      
-      document.querySelectorAll('.approve-btn').forEach(btn => {
-        btn.addEventListener('click', function(e) {
-          const id = e.target.getAttribute('data-id');
-          const name = e.target.getAttribute('data-name');
-          if (confirm(`🎉 [${name}]의 입점 신청을 최종 승인하시겠습니까? 승인 시 가맹점 계정 및 메뉴 등록 기능이 자동 활성화됩니다.`)) {
-            document.getElementById(`row-${id}`).remove();
-            activeCount--;
-            document.getElementById('pendingCount').innerText = activeCount + ' 건';
-            alert(`✅ [${name}]의 가맹 입점 승인이 완료되었습니다! 해당 점포 사장님께 계약 승인 알림 메시지가 발송되었습니다.`);
-          }
-        });
-      });
+<!-- Scripts -->
+<script src="/assets/vendor/libs/jquery/jquery.js"></script>
+<script src="/assets/vendor/libs/popper/popper.js"></script>
+<script src="/assets/vendor/js/bootstrap.js"></script>
+<script src="/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
+<script src="/assets/vendor/js/menu.js"></script>
+<script src="/assets/js/main.js"></script>
+<script src="/assets/js/sidebar.js"></script>
 
-      document.querySelectorAll('.reject-btn').forEach(btn => {
-        btn.addEventListener('click', function(e) {
-          const id = e.target.getAttribute('data-id');
-          const name = e.target.getAttribute('data-name');
-          const reason = prompt(`❌ [${name}]의 입점 신청을 반려합니다. 반려 사유를 입력해 주세요.`, "보건증 만료 및 서류 미비");
-          if (reason !== null) {
-            document.getElementById(`row-${id}`).remove();
-            activeCount--;
-            document.getElementById('pendingCount').innerText = activeCount + ' 건';
-            alert(`🚨 [${name}]의 입점 신청이 반려 처리되었습니다. 반려 사유 [${reason}] 가 이메일로 안내됩니다.`);
-          }
-        });
-      });
-    </script>
-  </body>
+<script>
+'use strict';
+
+/* ═══════════════════════════════════════════════════════
+   실제 Spring Boot API 연동 스크립트
+   GET  /api/festival                           → 행사 목록
+   GET  /api/partner/inquiry?festivalId=&status= → 문의 필터 조회
+   PUT  /api/partner/inquiry/{id}/status        → 상태 변경
+   ═══════════════════════════════════════════════════════ */
+
+let currentFestivalId = null;
+let currentStatus     = 'PENDING';
+let currentDetailId   = null;
+let cachedInquiries   = [];  // 현재 festivalId + status 로 로드된 데이터
+
+// ─── 행사 목록 로드 및 드롭다운 초기화 ──────────────────
+async function initFestivalSelect() {
+  const sel = document.getElementById('festivalSelect');
+  try {
+    const res = await fetch('/api/festival');
+    if (!res.ok) throw new Error('행사 목록 로드 실패');
+    const festivals = await res.json();
+
+    if (!festivals.length) {
+      sel.innerHTML = '<option value="">등록된 행사 없음</option>';
+      return;
+    }
+
+    sel.innerHTML = '';
+    festivals.forEach(f => {
+      const opt = document.createElement('option');
+      opt.value = f.id;
+      opt.textContent = f.name;
+      sel.appendChild(opt);
+    });
+
+    currentFestivalId = Number(festivals[0].id);
+    await loadAndRender();
+
+  } catch (err) {
+    console.error('[행사 목록 오류]', err);
+    sel.innerHTML = '<option value="">로드 실패</option>';
+  }
+
+  sel.addEventListener('change', async () => {
+    currentFestivalId = Number(sel.value);
+    await loadAndRender();
+  });
+}
+
+// ─── API에서 문의 데이터 로드 후 전체 갱신 ──────────────
+async function loadAndRender() {
+  await Promise.all([
+    loadInquiries('PENDING'),
+    loadInquiries('APPROVED'),
+    loadInquiries('REJECTED'),
+  ]);
+  updateSummary();
+  updateTabCounts();
+  renderTable();
+}
+
+// 특정 상태의 문의 개수 캐시 (탭 카운트용)
+const countCache = { PENDING: 0, APPROVED: 0, REJECTED: 0 };
+
+async function loadInquiries(status) {
+  let url = `/api/partner/inquiry?status=${status}`;
+  if (currentFestivalId) url += `&festivalId=${currentFestivalId}`;
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('문의 로드 실패');
+    const data = await res.json();
+    countCache[status] = data.length;
+    if (status === currentStatus) cachedInquiries = data;
+  } catch (err) {
+    console.error(`[문의 로드 오류 - ${status}]`, err);
+    countCache[status] = 0;
+    if (status === currentStatus) cachedInquiries = [];
+  }
+}
+
+// ─── 요약 카드 업데이트 ──────────────────────────────────
+function updateSummary() {
+  document.getElementById('summaryPending').textContent  = countCache.PENDING  + ' 건';
+  document.getElementById('summaryApproved').textContent = countCache.APPROVED + ' 건';
+  document.getElementById('summaryRejected').textContent = countCache.REJECTED + ' 건';
+}
+
+function updateTabCounts() {
+  document.getElementById('tabCountPending').textContent  = countCache.PENDING;
+  document.getElementById('tabCountApproved').textContent = countCache.APPROVED;
+  document.getElementById('tabCountRejected').textContent = countCache.REJECTED;
+}
+
+// ─── 유형 뱃지 ────────────────────────────────────────────
+function typeBadge(t) {
+  if (t === 'FOODTRUCK') return `<span class="badge-type-food">🍔 푸드트럭</span>`;
+  if (t === 'GOODS')     return `<span class="badge-type-goods">🛍 굿즈/셀러</span>`;
+  return `<span class="badge-type-event">🎪 행사/제휴</span>`;
+}
+
+function statusBadge(s) {
+  if (s === 'PENDING')  return `<span class="badge bg-warning text-dark">대기중</span>`;
+  if (s === 'APPROVED') return `<span class="badge bg-success">승인됨</span>`;
+  return `<span class="badge bg-danger">반려됨</span>`;
+}
+
+function formatDate(dtStr) {
+  if (!dtStr) return '-';
+  return dtStr.substring(0, 10);
+}
+
+// ─── 테이블 렌더링 ───────────────────────────────────────
+function renderTable() {
+  const titleMap = { PENDING:'대기중 신청서', APPROVED:'승인된 신청서', REJECTED:'반려된 신청서' };
+  document.getElementById('tableHeadTitle').textContent = titleMap[currentStatus];
+
+  const tbody = document.getElementById('appTableBody');
+  if (!cachedInquiries.length) {
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="7"><i class="bx bx-inbox fs-2 d-block mb-2"></i>해당 조건의 신청서가 없습니다.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = cachedInquiries.map(item => `
+    <tr data-id="${item.id}" style="cursor:pointer;">
+      <td>${typeBadge(item.inquiryType)}</td>
+      <td><strong>${item.companyName}</strong></td>
+      <td>${item.managerName}</td>
+      <td>${item.phone}</td>
+      <td>${formatDate(item.createdAt)}</td>
+      <td>${statusBadge(item.status)}</td>
+      <td>
+        <button class="btn btn-sm btn-outline-secondary detail-btn" data-id="${item.id}">
+          <i class="bx bx-show me-1"></i>상세
+        </button>
+        ${item.status === 'PENDING' ? `
+          <button class="btn btn-sm btn-success ms-1 action-btn" data-id="${item.id}" data-action="APPROVED">승인</button>
+          <button class="btn btn-sm btn-danger ms-1 action-btn" data-id="${item.id}" data-action="REJECTED">반려</button>
+        ` : ''}
+      </td>
+    </tr>
+  `).join('');
+
+  tbody.querySelectorAll('.detail-btn').forEach(btn => {
+    btn.addEventListener('click', e => { e.stopPropagation(); openModal(Number(btn.dataset.id)); });
+  });
+  tbody.querySelectorAll('.action-btn').forEach(btn => {
+    btn.addEventListener('click', e => { e.stopPropagation(); changeStatus(Number(btn.dataset.id), btn.dataset.action); });
+  });
+  tbody.querySelectorAll('tr[data-id]').forEach(row => {
+    row.addEventListener('click', () => openModal(Number(row.dataset.id)));
+  });
+}
+
+// ─── 상태 변경 (실제 API PUT) ────────────────────────────
+async function changeStatus(id, newStatus) {
+  const item = cachedInquiries.find(i => i.id === id);
+  if (!item) return;
+  const label = newStatus === 'APPROVED' ? '승인' : '반려';
+  if (!confirm(`[${item.companyName}] 을(를) ${label} 처리하시겠습니까?`)) return;
+
+  try {
+    const res = await fetch(`/api/partner/inquiry/${id}/status`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: newStatus }),
+    });
+    if (!res.ok) throw new Error('상태 변경 실패: ' + res.status);
+
+    closeModal();
+    await loadAndRender();
+    alert(`✅ [${item.companyName}] ${label} 처리 완료되었습니다.`);
+  } catch (err) {
+    console.error('[상태 변경 오류]', err);
+    alert('처리 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+  }
+}
+
+// ─── 상세 모달 ───────────────────────────────────────────
+function openModal(id) {
+  const item = cachedInquiries.find(i => i.id === id);
+  if (!item) return;
+  currentDetailId = id;
+
+  document.getElementById('modalTitle').textContent = `📋 ${item.companyName} 신청서 상세`;
+  document.getElementById('modalBody').innerHTML = `
+    <div class="detail-row"><span class="dl">문의 유형</span><span class="dd">${typeBadge(item.inquiryType)}</span></div>
+    <div class="detail-row"><span class="dl">업체명</span><span class="dd"><strong>${item.companyName}</strong></span></div>
+    <div class="detail-row"><span class="dl">담당자</span><span class="dd">${item.managerName}</span></div>
+    <div class="detail-row"><span class="dl">연락처</span><span class="dd">${item.phone}</span></div>
+    <div class="detail-row"><span class="dl">이메일</span><span class="dd">${item.email}</span></div>
+    <div class="detail-row"><span class="dl">신청일</span><span class="dd">${formatDate(item.createdAt)}</span></div>
+    <div class="detail-row"><span class="dl">현재 상태</span><span class="dd">${statusBadge(item.status)}</span></div>
+    <div class="detail-row" style="flex-direction:column;"><span class="dl" style="margin-bottom:6px;">상세 문의 내용</span><div class="detail-content-box">${item.content || '-'}</div></div>
+  `;
+
+  const actionWrap = document.getElementById('modalActionWrap');
+  if (item.status === 'PENDING') {
+    actionWrap.innerHTML = `
+      <button class="btn btn-danger" id="modalRejectBtn">반려</button>
+      <button class="btn btn-success" id="modalApproveBtn">승인</button>
+    `;
+    document.getElementById('modalApproveBtn').onclick = () => changeStatus(id, 'APPROVED');
+    document.getElementById('modalRejectBtn').onclick  = () => changeStatus(id, 'REJECTED');
+  } else {
+    actionWrap.innerHTML = `<button class="btn btn-outline-secondary" id="modalCloseBtn2">닫기</button>`;
+    document.getElementById('modalCloseBtn2').onclick = closeModal;
+  }
+
+  document.getElementById('detailModalBackdrop').classList.add('show');
+}
+
+function closeModal() {
+  document.getElementById('detailModalBackdrop').classList.remove('show');
+  currentDetailId = null;
+}
+
+// ─── 초기화 ──────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', async () => {
+  await initFestivalSelect();
+
+  document.querySelectorAll('.status-tab').forEach(tab => {
+    tab.addEventListener('click', async () => {
+      document.querySelectorAll('.status-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      currentStatus = tab.dataset.status;
+      // 해당 탭 데이터를 API에서 새로 로드
+      await loadInquiries(currentStatus);
+      renderTable();
+    });
+  });
+
+  document.getElementById('detailModalBackdrop').addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeModal();
+  });
+  document.getElementById('modalCloseBtn').addEventListener('click', closeModal);
+});
+</script>
+</body>
+</html>
+
+
+/* ═══════════════════════════════════════════════════════
+   MOCK DATA — partner_inquiry 테이블 구조 기반
+   festival_id: 연결된 행사 외래키
+   status: PENDING | APPROVED | REJECTED
+   inquiry_type: EVENT | FOODTRUCK | GOODS
+   ─────────────────────────────────────────────────────
+   TODO: 백엔드 연동 시
+     GET  /api/admin/partner/inquiries?festival_id={id}&status={status}
+     PUT  /api/admin/partner/inquiries/{id}/status  body: { status }
+   ═══════════════════════════════════════════════════════ */
+
+const MOCK_FESTIVALS = [
+  { id: 1, name: '2026 워터밤 서울' },
+  { id: 2, name: '2026 서울재즈페스티벌' },
+  { id: 3, name: '2026 부산 불꽃축제' },
+];
+
+let MOCK_INQUIRIES = [
+  { id:1, festival_id:1, inquiry_type:'FOODTRUCK', company_name:'마포 닭강정 푸드트럭', manager_name:'홍길동', phone:'010-1234-5678', email:'hong@food.com', content:'워터밤 행사 현장 내 10㎡ 구역에서 닭강정 및 음료 판매를 희망합니다. 사업자등록증 첨부드립니다.', applied_at:'2026-05-26', status:'PENDING' },
+  { id:2, festival_id:1, inquiry_type:'FOODTRUCK', company_name:'우주선 타코야끼', manager_name:'김철수', phone:'010-9876-5432', email:'kim@tako.com', content:'타코야끼 및 크레페 전문 푸드트럭입니다. 5년 경력 위생 관리 우수 업체입니다.', applied_at:'2026-05-26', status:'PENDING' },
+  { id:3, festival_id:1, inquiry_type:'GOODS', company_name:'페스티벌 썬글라스 & 굿즈', manager_name:'이영희', phone:'010-5555-1234', email:'lee@goods.com', content:'UV차단 썬글라스, 워터밤 MD 팔찌 등 굿즈 셀러 입점을 희망합니다. 연간 10개 이상 페스티벌 참여 이력 보유.', applied_at:'2026-05-25', status:'PENDING' },
+  { id:4, festival_id:1, inquiry_type:'EVENT', company_name:'스타벅스 팝업', manager_name:'박민준', phone:'010-7777-8888', email:'park@starbucks.com', content:'워터밤 현장 내 스타벅스 팝업 스토어 운영 제안드립니다. 음료 및 MD 판매 병행.', applied_at:'2026-05-24', status:'APPROVED' },
+  { id:5, festival_id:2, inquiry_type:'FOODTRUCK', company_name:'재즈밤 버거', manager_name:'최재훈', phone:'010-2222-3333', email:'choi@burger.com', content:'수제버거 전문 푸드트럭. 재즈페스티벌 분위기에 맞는 감성 메뉴 구성 예정.', applied_at:'2026-05-22', status:'PENDING' },
+  { id:6, festival_id:2, inquiry_type:'GOODS', company_name:'비닐레코드 굿즈샵', manager_name:'정수빈', phone:'010-4444-5555', email:'jung@vinyl.com', content:'LP판 및 재즈 아티스트 관련 굿즈 판매 목적 입점 신청. 음반 전문 MD 경력 8년.', applied_at:'2026-05-21', status:'REJECTED' },
+  { id:7, festival_id:3, inquiry_type:'FOODTRUCK', company_name:'야경 포차', manager_name:'오수연', phone:'010-6666-7777', email:'oh@pocha.com', content:'부산 불꽃축제 현장에서 포장마차 콘셉트의 야식 메뉴 운영 희망. 해산물 특화.', applied_at:'2026-05-20', status:'PENDING' },
+];
+
+// ─── 상태 변수 ───────────────────────────────────────────
+let currentFestivalId = MOCK_FESTIVALS[0].id;
+let currentStatus     = 'PENDING';
+let currentDetailId   = null;
+
+// ─── 행사 드롭다운 초기화 ────────────────────────────────
+function initFestivalSelect() {
+  const sel = document.getElementById('festivalSelect');
+  MOCK_FESTIVALS.forEach(f => {
+    const opt = document.createElement('option');
+    opt.value = f.id;
+    opt.textContent = f.name;
+    sel.appendChild(opt);
+  });
+  sel.addEventListener('change', () => {
+    currentFestivalId = Number(sel.value);
+    renderTable();
+    updateSummary();
+    updateTabCounts();
+  });
+}
+
+// ─── 필터된 데이터 조회 ──────────────────────────────────
+function getFiltered(status) {
+  return MOCK_INQUIRIES.filter(i => i.festival_id === currentFestivalId && i.status === status);
+}
+
+// ─── 요약 카드 업데이트 ──────────────────────────────────
+function updateSummary() {
+  document.getElementById('summaryPending').textContent  = getFiltered('PENDING').length  + ' 건';
+  document.getElementById('summaryApproved').textContent = getFiltered('APPROVED').length + ' 건';
+  document.getElementById('summaryRejected').textContent = getFiltered('REJECTED').length + ' 건';
+}
+
+// ─── 탭 카운트 업데이트 ──────────────────────────────────
+function updateTabCounts() {
+  document.getElementById('tabCountPending').textContent  = getFiltered('PENDING').length;
+  document.getElementById('tabCountApproved').textContent = getFiltered('APPROVED').length;
+  document.getElementById('tabCountRejected').textContent = getFiltered('REJECTED').length;
+}
+
+// ─── 유형 뱃지 HTML ──────────────────────────────────────
+function typeBadge(t) {
+  if (t === 'FOODTRUCK') return `<span class="badge-type-food">🍔 푸드트럭</span>`;
+  if (t === 'GOODS')     return `<span class="badge-type-goods">🛍 굿즈/셀러</span>`;
+  return `<span class="badge-type-event">🎪 행사/제휴</span>`;
+}
+
+// ─── 상태 뱃지 HTML ──────────────────────────────────────
+function statusBadge(s) {
+  if (s === 'PENDING')  return `<span class="badge bg-warning text-dark">대기중</span>`;
+  if (s === 'APPROVED') return `<span class="badge bg-success">승인됨</span>`;
+  return `<span class="badge bg-danger">반려됨</span>`;
+}
+
+// ─── 테이블 렌더링 ───────────────────────────────────────
+function renderTable() {
+  const titleMap = { PENDING:'대기중 신청서', APPROVED:'승인된 신청서', REJECTED:'반려된 신청서' };
+  document.getElementById('tableHeadTitle').textContent = titleMap[currentStatus];
+
+  const list = getFiltered(currentStatus);
+  const tbody = document.getElementById('appTableBody');
+
+  if (list.length === 0) {
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="7"><i class="bx bx-inbox fs-2 d-block mb-2"></i>해당 조건의 신청서가 없습니다.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = list.map(item => `
+    <tr data-id="${item.id}" style="cursor:pointer;">
+      <td>${typeBadge(item.inquiry_type)}</td>
+      <td><strong>${item.company_name}</strong></td>
+      <td>${item.manager_name}</td>
+      <td>${item.phone}</td>
+      <td>${item.applied_at}</td>
+      <td>${statusBadge(item.status)}</td>
+      <td>
+        <button class="btn btn-sm btn-outline-secondary detail-btn" data-id="${item.id}">
+          <i class="bx bx-show me-1"></i>상세
+        </button>
+        ${item.status === 'PENDING' ? `
+          <button class="btn btn-sm btn-success ms-1 action-btn" data-id="${item.id}" data-action="APPROVED">승인</button>
+          <button class="btn btn-sm btn-danger ms-1 action-btn" data-id="${item.id}" data-action="REJECTED">반려</button>
+        ` : ''}
+      </td>
+    </tr>
+  `).join('');
+
+  // 이벤트 바인딩
+  tbody.querySelectorAll('.detail-btn').forEach(btn => {
+    btn.addEventListener('click', e => { e.stopPropagation(); openModal(Number(btn.dataset.id)); });
+  });
+  tbody.querySelectorAll('.action-btn').forEach(btn => {
+    btn.addEventListener('click', e => { e.stopPropagation(); changeStatus(Number(btn.dataset.id), btn.dataset.action); });
+  });
+  tbody.querySelectorAll('tr[data-id]').forEach(row => {
+    row.addEventListener('click', () => openModal(Number(row.dataset.id)));
+  });
+}
+
+// ─── 상태 변경 ───────────────────────────────────────────
+async function changeStatus(id, newStatus) {
+  const item = MOCK_INQUIRIES.find(i => i.id === id);
+  if (!item) return;
+
+  const label = newStatus === 'APPROVED' ? '승인' : '반려';
+  if (!confirm(`[${item.company_name}] 을(를) ${label} 처리하시겠습니까?`)) return;
+
+  /*
+   * ──────────────────────────────────────────────────────────
+   * TODO: 백엔드 연동 시 아래 주석 해제
+   * PUT /api/admin/partner/inquiries/{id}/status
+   * body: { status: newStatus }
+   * ──────────────────────────────────────────────────────────
+   * const res = await fetch(`/api/admin/partner/inquiries/${id}/status`, {
+   *   method: 'PUT',
+   *   headers: { 'Content-Type': 'application/json' },
+   *   body: JSON.stringify({ status: newStatus })
+   * });
+   * if (!res.ok) { alert('처리 중 오류 발생'); return; }
+   */
+
+  // Mock 처리
+  item.status = newStatus;
+  closeModal();
+  renderTable();
+  updateSummary();
+  updateTabCounts();
+
+  const msg = newStatus === 'APPROVED'
+    ? `✅ [${item.company_name}] 승인 완료. 담당자에게 승인 알림이 발송됩니다.`
+    : `🚫 [${item.company_name}] 반려 처리. 담당자에게 반려 알림이 발송됩니다.`;
+  alert(msg);
+}
+
+// ─── 상세 모달 열기 ──────────────────────────────────────
+function openModal(id) {
+  const item = MOCK_INQUIRIES.find(i => i.id === id);
+  if (!item) return;
+  currentDetailId = id;
+
+  document.getElementById('modalTitle').textContent = `📋 ${item.company_name} 신청서 상세`;
+  document.getElementById('modalBody').innerHTML = `
+    <div class="detail-row"><span class="dl">문의 유형</span><span class="dd">${typeBadge(item.inquiry_type)}</span></div>
+    <div class="detail-row"><span class="dl">업체명</span><span class="dd"><strong>${item.company_name}</strong></span></div>
+    <div class="detail-row"><span class="dl">담당자</span><span class="dd">${item.manager_name}</span></div>
+    <div class="detail-row"><span class="dl">연락처</span><span class="dd">${item.phone}</span></div>
+    <div class="detail-row"><span class="dl">이메일</span><span class="dd">${item.email}</span></div>
+    <div class="detail-row"><span class="dl">신청일</span><span class="dd">${item.applied_at}</span></div>
+    <div class="detail-row"><span class="dl">현재 상태</span><span class="dd">${statusBadge(item.status)}</span></div>
+    <div class="detail-row" style="flex-direction:column;"><span class="dl" style="margin-bottom:6px;">상세 문의 내용</span><div class="detail-content-box">${item.content}</div></div>
+  `;
+
+  const actionWrap = document.getElementById('modalActionWrap');
+  if (item.status === 'PENDING') {
+    actionWrap.innerHTML = `
+      <button class="btn btn-danger" id="modalRejectBtn">반려</button>
+      <button class="btn btn-success" id="modalApproveBtn">승인</button>
+    `;
+    document.getElementById('modalApproveBtn').onclick = () => changeStatus(id, 'APPROVED');
+    document.getElementById('modalRejectBtn').onclick  = () => changeStatus(id, 'REJECTED');
+  } else {
+    actionWrap.innerHTML = `<button class="btn btn-outline-secondary" id="modalCloseBtn2">닫기</button>`;
+    document.getElementById('modalCloseBtn2').onclick = closeModal;
+  }
+
+  document.getElementById('detailModalBackdrop').classList.add('show');
+}
+
+// ─── 상세 모달 닫기 ──────────────────────────────────────
+function closeModal() {
+  document.getElementById('detailModalBackdrop').classList.remove('show');
+  currentDetailId = null;
+}
+
+// ─── 초기화 ──────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  initFestivalSelect();
+  updateSummary();
+  updateTabCounts();
+  renderTable();
+
+  // 탭 클릭
+  document.querySelectorAll('.status-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.status-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      currentStatus = tab.dataset.status;
+      renderTable();
+    });
+  });
+
+  // 모달 백드롭 닫기
+  document.getElementById('detailModalBackdrop').addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeModal();
+  });
+  document.getElementById('modalCloseBtn').addEventListener('click', closeModal);
+});
+</script>
+</body>
 </html>

@@ -60,4 +60,20 @@ public class FestivalService {
         
         festivalRepository.deleteById(id);
     }
+
+    /**
+     * 특정 페스티벌의 심사 상태 및 운영 단계를 변경합니다.
+     */
+    @Transactional
+    public FestivalVo updateStatus(Long id, String reviewStatus, String operationalStatus) {
+        FestivalVo festival = festivalRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 페스티벌 ID입니다: " + id));
+        if (reviewStatus != null) {
+            festival.setReviewStatus(reviewStatus);
+        }
+        if (operationalStatus != null) {
+            festival.setOperationalStatus(operationalStatus);
+        }
+        return festival;
+    }
 }

@@ -10,13 +10,13 @@ public class OrderEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id; // 식별번호
 
-    @Column(name = "product_type", nullable = false, length = 20)
+    @Column(name = "product_type", length = 20)
     private String productType; // 상품유형 (예: GOODS, FOOD)
 
-    @Column(name = "product_name", nullable = false)
+    @Column(name = "product_name")
     private String productName; // 상품명
 
-    @Column(nullable = false)
+    @Column
     private Integer price; // 판매가
 
     @Column(name = "current_stock")
