@@ -873,22 +873,11 @@ function renderSeatMapScreen() {
   `;
 
   // Render Seating grid
-  renderSeatMap("seat-map-renderer-container", (seatId) => {
-    // Quick checkout link when clicked
-    switchView("ticketing");
-    const selector = document.getElementById("ticket-seat-select");
-    if (selector) selector.value = seatId;
-  });
+  renderSeatMap("seat-map-renderer-container", null);
 
   // Bind Realtime Sync
   setupRealtimeSeatSync();
-  window.activeSeatClickHandler = (seatId) => {
-    switchView("ticketing");
-    setTimeout(() => {
-      const selector = document.getElementById("ticket-seat-select");
-      if (selector) selector.value = seatId;
-    }, 100);
-  };
+  window.activeSeatClickHandler = null;
 
 
 }

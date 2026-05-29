@@ -1,9 +1,3 @@
-/**
- * @file sidePanel.js
- * @description 모든 페이지에서 공통으로 사용되는 좌측/우측 햄버거 메뉴(Side Panel) 마크업을 동적으로 삽입하는 컴포넌트입니다.
- * 하드코딩된 HTML 중복을 제거하기 위해 자바스크립트를 통해 DOM에 렌더링됩니다.
- */
-const SIDE_PANEL_HTML = `
   <!-- ══ 사이드 오버레이 ═══════════════════════════════════════ -->
   <div class="side-overlay" id="sideOverlay" aria-hidden="true"></div>
 
@@ -88,14 +82,15 @@ const SIDE_PANEL_HTML = `
 
     <!-- 정보 섹션 -->
     <div class="side-section">
-      <button class="side-cat-item side-guide-btn" data-submenu="sub-guide">
-        <div class="side-guide-btn-inner">
+      <button class="side-cat-item" data-submenu="sub-guide"
+        style="font-size: 0.9375rem; font-weight: 500; color: rgba(0, 0, 0, 0.7);">
+        <div style="display: flex; align-items: center; gap: var(--sp-3); white-space: nowrap;">
           <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
             stroke-linecap="round" stroke-linejoin="round">
             <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
             <polyline points="14 2 14 8 20 8" />
           </svg>
-          <span class="text-nowrap">이용안내</span>
+          <span style="white-space: nowrap;">이용안내</span>
         </div>
         <svg class="icon side-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
           stroke-linecap="round" stroke-linejoin="round">
@@ -166,39 +161,48 @@ const SIDE_PANEL_HTML = `
     </div>
 
     <!-- 최근 본 상품 -->
-    <div class="side-section side-section-recent">
+    <div class="side-section" style="border-bottom: none; padding-bottom: 30px;">
       <div class="side-section-title">최근 본 상품</div>
 
-      <div class="recent-carousel-container">
-        <div class="recent-carousel recent-carousel-wrap">
-          <button class="recent-prev recent-btn">
+      <div style="padding: 0 20px;">
+        <div class="recent-carousel"
+          style="background: #333; padding: 20px 5px; display: flex; align-items: center; justify-content: space-between; text-align: center; position: relative; border-radius: 8px;">
+          <button class="recent-prev"
+            style="background: none; border: none; color: #777; cursor: pointer; padding: 0; flex-shrink: 0;">
             <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2"
               stroke-linecap="round" stroke-linejoin="round">
               <polyline points="15 18 9 12 15 6"></polyline>
             </svg>
           </button>
 
-          <div class="recent-carousel-content recent-carousel-inner">
-            <div class="recent-carousel-track recent-track-override">
+          <div class="recent-carousel-content"
+            style="flex: 1; overflow: hidden; position: relative; min-width: 0; min-height: 160px;">
+            <div class="recent-carousel-track"
+              style="display: flex; height: 100%; transition: transform 0.4s ease-in-out; will-change: transform;">
               <!-- 아이템 1 -->
-              <div class="recent-item recent-item-override">
-                <div class="recent-notice-label">공지사항</div>
-                <a href="#" class="recent-notice-link">뮤지컬
+              <div class="recent-item"
+                style="flex: 0 0 100%; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center;">
+                <div style="color: #e96d2b; font-size: 14px; font-weight: bold; margin-bottom: 15px;">공지사항</div>
+                <a href="#"
+                  style="display: block; color: #fff; font-size: 15px; line-height: 1.4; margin-bottom: 20px; word-break: break-word; text-decoration: underline; text-underline-offset: 4px;">뮤지컬
                   &lt;겨울왕국&gt; 한국 초<br>연 -<br></a>
-                <div class="recent-page-indicator"><strong class="text-white">1</strong> / 2</div>
+                <div style="color: #777; font-size: 13px;"><strong style="color: #fff;">1</strong> / 2</div>
               </div>
 
               <!-- 아이템 2 -->
-              <div class="recent-item recent-item-override">
-                <div class="recent-poster-wrap">
-                  <img src="https://picsum.photos/200/267?20" alt="포스터" class="recent-poster-img">
+              <div class="recent-item"
+                style="flex: 0 0 100%; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center;">
+                <div style="display: flex; justify-content: center; margin-bottom: 15px;">
+                  <img src="https://picsum.photos/200/267?20" alt="포스터"
+                    style="width: 100px; height: 133px; object-fit: cover; border-radius: 4px;">
                 </div>
-                <div class="recent-page-indicator"><strong class="text-white">2</strong> / 2</div>
+                <div style="color: #777; font-size: 13px;"><strong style="color: #fff;">2</strong> / 2</div>
               </div>
             </div>
           </div>
 
-          <button class="recent-next recent-btn">
+          <button class="recent-next"
+            style="background: none; border: none; color: #777; cursor: pointer; padding: 0; flex-shrink: 0;">
             <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2"
               stroke-linecap="round" stroke-linejoin="round">
               <polyline points="9 18 15 12 9 6"></polyline>
@@ -210,5 +214,3 @@ const SIDE_PANEL_HTML = `
     </div>
     </div>
   </nav>
-`;
-document.write(SIDE_PANEL_HTML);

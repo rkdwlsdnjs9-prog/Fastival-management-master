@@ -130,10 +130,14 @@ export function renderSeatMap(containerId, onSeatClick) {
 
       // Click binding
       if (seatData.status === "AVAILABLE") {
-        seatEl.style.cursor = "pointer";
-        seatEl.addEventListener("click", () => {
-          if (onSeatClick) onSeatClick(seatId);
-        });
+        if (onSeatClick) {
+          seatEl.style.cursor = "pointer";
+          seatEl.addEventListener("click", () => {
+            onSeatClick(seatId);
+          });
+        } else {
+          seatEl.style.cursor = "default";
+        }
       } else {
         seatEl.style.cursor = "not-allowed";
       }
@@ -168,15 +172,16 @@ export function setupRealtimeSeatSync() {
 
       // Update pointer/actions
       if (data.status === "AVAILABLE") {
-        seatEl.style.cursor = "pointer";
+        const clickHandler = window.activeSeatClickHandler;
+        seatEl.style.cursor = clickHandler ? "pointer" : "default";
         // To prevent multiple bindings, clone and replace
         const newSeatEl = seatEl.cloneNode(true);
-        newSeatEl.style.cursor = "pointer";
-        newSeatEl.addEventListener("click", () => {
-          // Trigger the active click event handler
-          const clickHandler = window.activeSeatClickHandler;
-          if (clickHandler) clickHandler(data.seatId);
-        });
+        newSeatEl.style.cursor = clickHandler ? "pointer" : "default";
+        if (clickHandler) {
+          newSeatEl.addEventListener("click", () => {
+            clickHandler(data.seatId);
+          });
+        }
         seatEl.parentNode.replaceChild(newSeatEl, seatEl);
       } else {
         seatEl.style.cursor = "not-allowed";

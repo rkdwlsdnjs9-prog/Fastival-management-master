@@ -371,7 +371,6 @@ function renderOtherLists() {
    4. 실시간 동적 QR 제어 (30초 만료 갱신)
    ═══════════════════════════════════════════════════════════ */
 function showTicketQr(token) {
-  // 모달을 열고 해당 토큰 전달
   openQrModal(token, '입장 확인용 일회용 안전 QR');
 }
 
@@ -380,11 +379,9 @@ function showFoodQr(token) {
 }
 
 function openQrModal(token, title) {
-  // 기존 모달이 없으므로, QR 갱신 영역으로 화면 포커싱
   const qrCodeContainer = document.getElementById('qr-code-container');
   if (qrCodeContainer) {
     qrCodeContainer.innerHTML = '';
-    // QR Code 렌더링
     new QRCode(qrCodeContainer, {
       text: token,
       width: 140,
@@ -397,14 +394,11 @@ function openQrModal(token, title) {
     const barcodeText = document.getElementById('qr-barcode-number');
     if (barcodeText) barcodeText.textContent = token;
 
-    // 타이머 가동
     startQRRefreshCycle();
 
-    // QR 안내 라벨 표시
     const maskedName = document.querySelector('.qr-masked-name');
     if (maskedName) maskedName.textContent = title;
 
-    // QR 영역으로 스크롤 이동
     const heroSection = document.querySelector('.mypage-hero');
     if (heroSection) {
       heroSection.scrollIntoView({ behavior: 'smooth' });
@@ -422,7 +416,6 @@ function startQRRefreshCycle() {
   clearInterval(_qrCountTimer);
 
   _qrTimer = setInterval(() => {
-    // 만료 시 가상으로 신규 토큰 생성 및 리프레시
     const randomToken = 'FEST-NEW-' + Math.random().toString(36).substring(2, 8).toUpperCase();
     const qrCodeContainer = document.getElementById('qr-code-container');
     if (qrCodeContainer) {
@@ -490,7 +483,7 @@ function renderInquiryList() {
         <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
           <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
         </svg>
-        <p class="mypage-empty-title">문의 내역이 없습니다</p>
+        <p class="mypage-empty-title">내역이 없습니다</p>
         <p class="mypage-empty-desc">궁금한 점은 1:1 문의를 이용해 주세요.</p>
       </div>
     `;
@@ -635,11 +628,9 @@ function initTabs() {
       const tabId = tab.dataset.tab;
       if (!tabId) return;
 
-      // 액티브 클래스 초기화
       document.querySelectorAll('.mypage-sidenav-item, .mypage-tab').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
 
-      // 클릭한 탭 동기화 활성화
       document.querySelectorAll(`[data-tab="${tabId}"]`).forEach(t => t.classList.add('active'));
       const activePane = document.getElementById(tabId);
       if (activePane) activePane.classList.add('active');
@@ -662,7 +653,6 @@ function initLogout() {
       btn.addEventListener('click', (e) => {
         e.preventDefault();
         
-        // 인증데이터 삭제
         localStorage.removeItem('userToken');
         localStorage.removeItem('userName');
         localStorage.removeItem('userRole');
@@ -690,7 +680,6 @@ function startFaceCamera() {
   const video = document.getElementById('face-video');
   if (!video) return;
 
-  // 가상 카메라 로딩 및 안면 등록 성공 시뮬레이션
   _isFaceDetected = true;
   if (window.Toast) window.Toast.info('카메라 스트림을 준비 중입니다...');
   
@@ -723,27 +712,22 @@ function initFaceModal() {
    10. 초기 로드 리스너 (DOMContentLoaded)
    ═══════════════════════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded', async () => {
-  // 인증 체크
   if (!checkAuth()) return;
 
-  // 유저 정보 가져오기 및 바인딩
   await loadUserInfo();
   renderProfile();
 
-  // 티켓 & 푸드트럭 렌더링
   renderStats();
   renderReservationList();
   renderOtherLists();
   renderInquiryList();
 
-  // 이벤트 바인딩
   initTabs();
   initInquiryForm();
   initProfileEditSave();
   initLogout();
   initFaceModal();
 
-  // QR 초기 활성화 (티켓이 있을 때 가상 토큰 삽입)
   if (MOCK_TICKETS.length > 0) {
     openQrModal(MOCK_TICKETS[0].qrToken, '입장 확인용 일회용 안전 QR');
   }
