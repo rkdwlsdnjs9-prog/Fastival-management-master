@@ -82,7 +82,6 @@ function _setupSharedUI() {
   if (toggleSidebarBtn) {
     toggleSidebarBtn.onclick = () => {
       sidebar.classList.toggle("collapsed");
-      toggleSidebarBtn.innerHTML = sidebar.classList.contains("collapsed") ? "≫" : "≪";
     };
   }
 
@@ -1530,7 +1529,6 @@ function renderGoodsInventoryScreen() {
         <table class="table-rigid">
           <thead>
             <tr>
-              <th>ID</th>
               <th>상품명</th>
               <th>가격</th>
               <th>현재 재고</th>
@@ -1586,6 +1584,10 @@ function renderGoodsInventoryScreen() {
 
   const modal = document.getElementById("goods-modal-overlay");
   document.getElementById("btn-open-goods-modal").onclick = () => {
+    document.getElementById("new-goods-form").reset();
+    document.getElementById("new-goods-form").removeAttribute("data-edit-id");
+    document.querySelector("#goods-modal-overlay .registration-modal-header span").innerText = "굿즈 신규 등록";
+    document.querySelector("#new-goods-form button[type='submit']").innerText = "등록";
     modal.style.display = "flex";
   };
   
@@ -1595,24 +1597,39 @@ function renderGoodsInventoryScreen() {
 
   document.getElementById("new-goods-form").onsubmit = (e) => {
     e.preventDefault();
+    const form = document.getElementById("new-goods-form");
+    const editId = form.getAttribute("data-edit-id");
     const fileInput = document.getElementById("new-g-image-file");
     const name = document.getElementById("new-g-name").value.trim();
     const price = document.getElementById("new-g-price").value;
     const stock = document.getElementById("new-g-stock").value;
 
+    const formData = new FormData();
+    formData.append("productName", name);
+    formData.append("price", price);
+    formData.append("initialStock", stock);
     if (fileInput.files && fileInput.files[0]) {
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        registerGoods(name, price, stock, ev.target.result);
-        alert("신규 굿즈가 성공적으로 등록되었습니다.");
-        renderGoodsInventoryScreen();
-      };
-      reader.readAsDataURL(fileInput.files[0]);
-    } else {
-      registerGoods(name, price, stock, "");
-      alert("신규 굿즈가 성공적으로 등록되었습니다.");
-      renderGoodsInventoryScreen();
+      formData.append("productImage", fileInput.files[0]);
     }
+
+    const url = editId ? `/api/goods/${editId}` : `/api/goods/register`;
+    const method = editId ? 'PUT' : 'POST';
+
+    fetch(url, {
+      method: method,
+      body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+      alert(data.message || (editId ? "굿즈가 수정되었습니다." : "신규 굿즈가 성공적으로 등록되었습니다."));
+      closeModal();
+      // 로컬 화면 갱신 (추후 서버 조회 로직으로 대체 권장)
+      renderGoodsInventoryScreen();
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert("굿즈 등록에 실패했습니다.");
+    });
   };
 }
 
@@ -1633,7 +1650,6 @@ function renderFnbInventoryScreen() {
         <table class="table-rigid">
           <thead>
             <tr>
-              <th>ID</th>
               <th>식음료 메뉴명</th>
               <th>가격</th>
               <th>상태 지표</th>
@@ -1682,6 +1698,10 @@ function renderFnbInventoryScreen() {
 
   const modal = document.getElementById("food-modal-overlay");
   document.getElementById("btn-open-food-modal").onclick = () => {
+    document.getElementById("new-food-form").reset();
+    document.getElementById("new-food-form").removeAttribute("data-edit-id");
+    document.querySelector("#food-modal-overlay .registration-modal-header span").innerText = "F&B 신규 등록";
+    document.querySelector("#new-food-form button[type='submit']").innerText = "등록";
     modal.style.display = "flex";
   };
   
@@ -1691,109 +1711,213 @@ function renderFnbInventoryScreen() {
 
   document.getElementById("new-food-form").onsubmit = (e) => {
     e.preventDefault();
+    const form = document.getElementById("new-food-form");
+    const editId = form.getAttribute("data-edit-id");
     const fileInput = document.getElementById("new-f-image-file");
     const name = document.getElementById("new-f-name").value.trim();
     const price = document.getElementById("new-f-price").value;
 
+    const formData = new FormData();
+    formData.append("foodName", name);
+    formData.append("price", price);
     if (fileInput.files && fileInput.files[0]) {
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        registerFood(name, price, ev.target.result);
-        alert("신규 F&B 메뉴가 등록되었습니다.");
-        renderFnbInventoryScreen();
-      };
-      reader.readAsDataURL(fileInput.files[0]);
-    } else {
-      registerFood(name, price, "");
-      alert("신규 F&B 메뉴가 등록되었습니다.");
-      renderFnbInventoryScreen();
+      formData.append("foodImage", fileInput.files[0]);
     }
+
+    const url = editId ? `/api/fnb/${editId}` : `/api/fnb/register`;
+    const method = editId ? 'PUT' : 'POST';
+
+    fetch(url, {
+      method: method,
+      body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+      alert(data.message || (editId ? "F&B 메뉴가 수정되었습니다." : "신규 F&B 메뉴가 등록되었습니다."));
+      closeModal();
+      // 로컬 화면 갱신 (추후 서버 조회 로직으로 대체 권장)
+      renderFnbInventoryScreen();
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert("F&B 메뉴 등록에 실패했습니다.");
+    });
   };
 }
 
 
 function renderAdminGoodsList() {
   const tbody = document.getElementById("admin-goods-tbody");
-  tbody.innerHTML = "";
+  tbody.innerHTML = "<tr><td colspan='8'>데이터를 불러오는 중...</td></tr>";
 
-  DB.goods.forEach(g => {
-    const avail = g.currentStock - g.preAllocated;
-    
-    // Auto Sold Out label logic
-    let statusText = `<span class="badge badge-green">판매중</span>`;
-    if (avail <= 0) {
-      statusText = `<span class="badge badge-red">품절(SOLD OUT)</span>`;
-    }
+  fetch('/api/goods/list')
+    .then(res => res.json())
+    .then(data => {
+      tbody.innerHTML = "";
+      data.forEach(g => {
+        const avail = g.availableStock || 0;
+        
+        let statusText = `<span class="badge badge-green">판매중</span>`;
+        if (avail <= 0) {
+          statusText = `<span class="badge badge-red">품절(SOLD OUT)</span>`;
+        }
 
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${g.id}</td>
-      <td style="display: flex; align-items: center; gap: 10px;">
-        ${g.image ? `<img src="${g.image}" style="width: 40px; height: 40px; border-radius: 4px; object-fit: cover;">` : `<div style="width: 40px; height: 40px; border-radius: 4px; background: #2d3748; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #a0aec0;">NO IMG</div>`}
-        <strong>${g.name}</strong>
-      </td>
-      <td>${g.price.toLocaleString()}원</td>
-      <td>
-        <input type="number" class="input-rigid input-small change-g-stock" data-id="${g.id}" value="${g.currentStock}" style="width:70px;">
-      </td>
-      <td><span style="color:#8b5cf6;">${g.preAllocated}</span></td>
-      <td><strong>${avail}</strong></td>
-      <td>${statusText}</td>
-      <td class="text-right">
-        <button class="btn btn-rigid btn-small btn-blue btn-save-g-stock" data-id="${g.id}">저장</button>
-      </td>
-    `;
-    tbody.appendChild(tr);
-  });
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td style="display: flex; align-items: center; gap: 10px;">
+            ${g.imageUrl ? `<img src="${g.imageUrl}" style="width: 40px; height: 40px; border-radius: 4px; object-fit: cover;">` : `<div style="width: 40px; height: 40px; border-radius: 4px; background: #2d3748; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #a0aec0;">NO IMG</div>`}
+            <strong>${g.productName}</strong>
+          </td>
+          <td>${(g.price || 0).toLocaleString()}원</td>
+          <td>${g.currentStock}</td>
+          <td><span style="color:#8b5cf6;">${g.preAllocatedStock || 0}</span></td>
+          <td><strong>${avail}</strong></td>
+          <td>${statusText}</td>
+          <td class="text-right">
+            <button class="btn btn-rigid btn-small btn-orange btn-force-soldout-g" data-id="${g.id}" ${avail <= 0 ? 'disabled' : ''}>품절</button>
+            <button class="btn btn-rigid btn-small btn-gray btn-edit-g" data-id="${g.id}" data-name="${g.productName}" data-price="${g.price || 0}" data-stock="${g.currentStock}">수정</button>
+            <button class="btn btn-rigid btn-small btn-red btn-delete-g" data-id="${g.id}">삭제</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
 
-  // Save stock change binding
-  document.querySelectorAll(".btn-save-g-stock").forEach(btn => {
-    btn.onclick = () => {
-      const id = btn.getAttribute("data-id");
-      const input = document.querySelector(`.change-g-stock[data-id="${id}"]`);
-      const newVal = parseInt(input.value) || 0;
-      updateGoodsStock(id, newVal);
-      alert("재고 수량이 업데이트되었습니다.");
-      renderGoodsInventoryScreen();
-    };
-  });
+      // Force Sold Out binding
+      document.querySelectorAll(".btn-force-soldout-g").forEach(btn => {
+        btn.onclick = () => {
+          if(confirm("해당 굿즈의 재고를 0으로 만들어 품절 처리하시겠습니까?")) {
+            const id = btn.getAttribute("data-id");
+            const formData = new FormData();
+            formData.append("initialStock", 0); // 수량을 0으로 덮어씀
+
+            fetch('/api/goods/' + id, { method: 'PUT', body: formData })
+              .then(res => res.json())
+              .then(() => {
+                alert("품절 처리되었습니다.");
+                renderAdminGoodsList();
+              });
+          }
+        };
+      });
+
+      // Edit binding
+      document.querySelectorAll(".btn-edit-g").forEach(btn => {
+        btn.onclick = () => {
+          const id = btn.getAttribute("data-id");
+          document.getElementById("new-g-name").value = btn.getAttribute("data-name");
+          document.getElementById("new-g-price").value = btn.getAttribute("data-price");
+          document.getElementById("new-g-stock").value = btn.getAttribute("data-stock");
+          
+          document.getElementById("new-goods-form").setAttribute("data-edit-id", id);
+          document.querySelector("#goods-modal-overlay .registration-modal-header span").innerText = "굿즈 수정";
+          document.querySelector("#new-goods-form button[type='submit']").innerText = "수정하기";
+          
+          document.getElementById("goods-modal-overlay").style.display = "flex";
+        };
+      });
+
+      // Delete binding
+      document.querySelectorAll(".btn-delete-g").forEach(btn => {
+        btn.onclick = () => {
+          if(confirm("정말 삭제하시겠습니까?")) {
+            const id = btn.getAttribute("data-id");
+            fetch('/api/goods/' + id, { method: 'DELETE' })
+              .then(res => res.json())
+              .then(() => {
+                alert("삭제 완료");
+                renderAdminGoodsList();
+              });
+          }
+        };
+      });
+    })
+    .catch(err => {
+      console.error(err);
+      tbody.innerHTML = "<tr><td colspan='8'>데이터를 불러오지 못했습니다.</td></tr>";
+    });
 }
 
 function renderAdminFoodList() {
   const tbody = document.getElementById("admin-food-tbody");
-  tbody.innerHTML = "";
+  tbody.innerHTML = "<tr><td colspan='5'>데이터를 불러오는 중...</td></tr>";
 
-  DB.food.forEach(f => {
-    const statusText = f.outOfStock 
-      ? `<span class="badge badge-red animate-pulse">재료소진(SOLD OUT)</span>` 
-      : `<span class="badge badge-green">판매가능</span>`;
+  fetch('/api/fnb/list')
+    .then(res => res.json())
+    .then(data => {
+      tbody.innerHTML = "";
+      data.forEach(f => {
+        // 백엔드 DB의 status 컬럼 값을 기준으로 품절 여부 판단
+        const isOutOfStock = f.status === 'SOLD_OUT';
+        const statusText = isOutOfStock 
+          ? `<span class="badge badge-red animate-pulse">재료소진(SOLD OUT)</span>` 
+          : `<span class="badge badge-green">판매가능</span>`;
 
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${f.id}</td>
-      <td style="display: flex; align-items: center; gap: 10px;">
-        ${f.image ? `<img src="${f.image}" style="width: 40px; height: 40px; border-radius: 4px; object-fit: cover;">` : `<div style="width: 40px; height: 40px; border-radius: 4px; background: #2d3748; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #a0aec0;">NO IMG</div>`}
-        <strong>${f.name}</strong>
-      </td>
-      <td>${f.price.toLocaleString()}원</td>
-      <td>${statusText}</td>
-      <td class="text-right">
-        <button class="btn btn-rigid btn-small ${f.outOfStock ? 'btn-green' : 'btn-red'} btn-toggle-f-status" data-id="${f.id}">
-          ${f.outOfStock ? '재료소진 해제' : '재료소진 설정'}
-        </button>
-      </td>
-    `;
-    tbody.appendChild(tr);
-  });
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td style="display: flex; align-items: center; gap: 10px;">
+            ${f.imageUrl ? `<img src="${f.imageUrl}" style="width: 40px; height: 40px; border-radius: 4px; object-fit: cover;">` : `<div style="width: 40px; height: 40px; border-radius: 4px; background: #2d3748; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #a0aec0;">NO IMG</div>`}
+            <strong>${f.productName}</strong>
+          </td>
+          <td>${(f.price || 0).toLocaleString()}원</td>
+          <td>${statusText}</td>
+          <td class="text-right">
+            <button class="btn btn-rigid btn-small ${isOutOfStock ? 'btn-green' : 'btn-red'} btn-toggle-f-status" data-id="${f.id}">
+              ${isOutOfStock ? '재료소진 해제' : '재료소진'}
+            </button>
+            <button class="btn btn-rigid btn-small btn-gray btn-edit-f" data-id="${f.id}" data-name="${f.productName}" data-price="${f.price || 0}">수정</button>
+            <button class="btn btn-rigid btn-small btn-red btn-delete-f" data-id="${f.id}">삭제</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
 
-  // Toggle Ingredient Out binding
-  document.querySelectorAll(".btn-toggle-f-status").forEach(btn => {
-    btn.onclick = () => {
-      const id = btn.getAttribute("data-id");
-      toggleFoodIngredientOut(id);
-      renderFnbInventoryScreen();
-    };
-  });
+      // Toggle Ingredient Out binding
+      document.querySelectorAll(".btn-toggle-f-status").forEach(btn => {
+        btn.onclick = () => {
+          const id = btn.getAttribute("data-id");
+          fetch('/api/fnb/' + id + '/toggle-status', { method: 'PUT' })
+            .then(res => res.json())
+            .then(data => {
+              renderAdminFoodList(); // 목록 새로고침 (수정된 상태 반영)
+            })
+            .catch(err => console.error(err));
+        };
+      });
+
+      // Edit binding
+      document.querySelectorAll(".btn-edit-f").forEach(btn => {
+        btn.onclick = () => {
+          const id = btn.getAttribute("data-id");
+          document.getElementById("new-f-name").value = btn.getAttribute("data-name");
+          document.getElementById("new-f-price").value = btn.getAttribute("data-price");
+          
+          document.getElementById("new-food-form").setAttribute("data-edit-id", id);
+          document.querySelector("#food-modal-overlay .registration-modal-header span").innerText = "F&B 수정";
+          document.querySelector("#new-food-form button[type='submit']").innerText = "수정하기";
+          
+          document.getElementById("food-modal-overlay").style.display = "flex";
+        };
+      });
+
+      // Delete binding
+      document.querySelectorAll(".btn-delete-f").forEach(btn => {
+        btn.onclick = () => {
+          if(confirm("정말 삭제하시겠습니까?")) {
+            const id = btn.getAttribute("data-id");
+            fetch('/api/fnb/' + id, { method: 'DELETE' })
+              .then(res => res.json())
+              .then(() => {
+                alert("삭제 완료");
+                renderAdminFoodList();
+              });
+          }
+        };
+      });
+    })
+    .catch(err => {
+      console.error(err);
+      tbody.innerHTML = "<tr><td colspan='5'>데이터를 불러오지 못했습니다.</td></tr>";
+    });
 }
 
 

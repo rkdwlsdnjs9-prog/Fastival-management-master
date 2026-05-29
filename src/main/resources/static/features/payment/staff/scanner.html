@@ -12,10 +12,9 @@
   <div id="app-shell">
 
     <!-- Sidebar -->
-    <aside id="sidebar">
+    <aside id="sidebar" class="collapsed">
       <div class="sidebar-header">
         <span class="sidebar-title">OPERATIONS CONTROL</span>
-        <button id="toggle-sidebar-btn">≪</button>
       </div>
       <ul class="sidebar-menu">
         <!-- Loaded dynamically from /features/user/staff/menu_aside.html -->
@@ -25,6 +24,7 @@
     <!-- Main Workspace -->
     <main id="main-container">
       <header id="header">
+        <button id="toggle-sidebar-btn" class="header-menu-btn">≡</button>
         <div id="header-checkpoint">[ 로딩 중... ]</div>
         <div class="header-actions">
           <div class="bell-container">
