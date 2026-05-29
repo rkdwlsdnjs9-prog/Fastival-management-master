@@ -1771,57 +1771,57 @@ svg {
   color: rgba(0, 0, 0, 0.4);
 }
 
-.gen-style-1 {
+.review-date-empty {
   padding: 8px 0;
   font-size: 0.75rem;
   color: rgba(255, 255, 255, 0.3);
 }
 
-.gen-style-2 {
+.icon-sm {
   width: 14px;
   height: 14px
 }
 
-.gen-style-3 {
+.detail-header-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px
 }
 
-.gen-style-4 {
+.detail-divider {
   height: 1px;
   background: var(--border-subtle);
   margin: 0 var(--sp-4) var(--sp-4)
 }
 
-.gen-style-5 {
+.progress-0 {
   width: 0%
 }
 
-.gen-style-6 {
+.detail-section-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: var(--sp-4)
 }
 
-.gen-style-7 {
+.text-accent-color {
   color: var(--color-accent)
 }
 
-.gen-style-8 {
+.coupon-row {
   display: flex;
   align-items: center;
   gap: 8px
 }
 
-.gen-style-9 {
+.icon-md {
   width: 24px;
   height: 24px
 }
 
-.gen-style-10 {
+.pay-section-title {
   font-size: 0.8125rem;
   font-weight: 700;
   color: var(--text-secondary);
@@ -1830,32 +1830,32 @@ svg {
   margin-bottom: var(--sp-3)
 }
 
-.gen-style-11 {
+.icon-xs {
   width: 11px;
   height: 11px
 }
 
-.gen-style-12 {
+.progress-30 {
   width: 30%
 }
 
-.gen-style-13 {
+.empty-state-padded {
   padding: var(--sp-8)
 }
 
-.gen-style-14 {
+.textarea-resize-y {
   resize: vertical
 }
 
-.gen-style-15 {
+.grid-padded {
   padding: var(--sp-4)
 }
 
-.gen-style-16 {
+.input-readonly {
   opacity: 0.6
 }
 
-.gen-style-17 {
+.settings-card-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1865,19 +1865,382 @@ svg {
   border-radius: var(--radius-md)
 }
 
-.gen-style-18 {
+.settings-card-title {
   font-size: 0.875rem;
   font-weight: 600;
   color: var(--text-primary)
 }
 
-.gen-style-19 {
+.btn-logout-outline {
   color: var(--color-error);
   border-color: var(--color-error)
 }
 
-.gen-style-20 {
+.modal-body-col {
   display: flex;
   flex-direction: column;
   gap: var(--sp-4)
+}
+
+/* ── SIDE PANEL EXTRACTED STYLES ───────────────────────────── */
+.side-guide-btn {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.7);
+}
+
+.side-guide-btn-inner {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  white-space: nowrap;
+}
+
+.text-nowrap {
+  white-space: nowrap;
+}
+
+.side-section-recent {
+  border-bottom: none;
+  padding-bottom: 30px;
+}
+
+.recent-carousel-container {
+  padding: 0 20px;
+}
+
+.recent-carousel-wrap {
+  background: #333;
+  padding: 20px 5px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-align: center;
+  position: relative;
+  border-radius: 8px;
+}
+
+.recent-btn {
+  background: none;
+  border: none;
+  color: #777;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.recent-carousel-inner {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+  min-width: 0;
+  min-height: 160px;
+}
+
+.recent-track-override {
+  display: flex;
+  height: 100%;
+  transition: transform 0.4s ease-in-out;
+  will-change: transform;
+}
+
+.recent-item-override {
+  flex: 0 0 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.recent-notice-label {
+  color: #e96d2b;
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 15px;
+}
+
+.recent-notice-link {
+  display: block;
+  color: #fff;
+  font-size: 15px;
+  line-height: 1.4;
+  margin-bottom: 20px;
+  word-break: break-word;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.recent-page-indicator {
+  color: #777;
+  font-size: 13px;
+}
+
+.text-white {
+  color: #fff;
+}
+
+.recent-poster-wrap {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 15px;
+}
+
+.recent-poster-img {
+  width: 100px;
+  height: 133px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+/* ── FOOTER STYLES ───────────────────────────────── */
+.app-footer {
+  margin-top: auto;
+}
+
+.footer-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 40px;
+  padding: 0 20px;
+  justify-content: center;
+}
+
+.footer-section {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  flex: 1;
+  min-width: 300px;
+  max-width: 500px;
+}
+
+.footer-icon-wrap {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 1px solid #ddd;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.footer-icon {
+  width: 32px;
+  height: 32px;
+  color: #666;
+}
+
+.footer-content {
+  flex: 1;
+}
+
+.footer-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #e96d2b;
+  display: inline-block;
+}
+
+.footer-title-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 12px;
+  border-bottom: 2px solid #e96d2b;
+  padding-bottom: 10px;
+}
+
+.footer-title-row .footer-title {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.btn-inquiry {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #e96d2b;
+  color: #e96d2b;
+  background: #fff;
+  padding: 4px 12px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 4px;
+}
+
+.footer-text {
+  font-size: 0.875rem;
+  color: #555;
+  line-height: 1.6;
+  margin-bottom: 4px;
+  word-break: keep-all;
+}
+
+.footer-subtext {
+  color: #888;
+}
+
+.footer-highlight-wrap {
+  font-size: 0.875rem;
+  color: #555;
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.footer-highlight-box {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: #e96d2b;
+  font-weight: 700;
+}
+
+.footer-highlight-icon {
+  width: 22px;
+  height: 22px;
+}
+
+.footer-highlight-text {
+  border-bottom: 2px solid #e96d2b;
+  line-height: 1.1;
+  padding-bottom: 1px;
+}
+
+/* 푸터 하단 회사 정보 */
+.footer-corp-wrap {
+  margin-top: 40px;
+  border-top: 1px solid #eaeaea;
+  padding-bottom: 20px;
+}
+
+.footer-corp-menu {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  border-bottom: 1px solid #eaeaea;
+}
+
+.corp-menu-list {
+  display: flex;
+  gap: 20px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.corp-menu-list li a {
+  text-decoration: none;
+  color: #555;
+  font-size: 14px;
+}
+
+.corp-menu-list li a.bold {
+  font-weight: 700;
+}
+
+.family-site select {
+  padding: 5px 30px 5px 10px;
+  border: 1px solid #ccc;
+  color: #666;
+  font-size: 13px;
+  background: #fff;
+  outline: none;
+}
+
+.footer-corp-info {
+  max-width: 1200px;
+  margin: 30px auto 0;
+  padding: 0 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.corp-logo {
+  width: 150px;
+}
+
+.corp-text-wrap {
+  flex: 1;
+}
+
+.corp-name {
+  font-weight: 700;
+  color: #555;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.corp-text {
+  font-size: 13px;
+  color: #777;
+  margin-bottom: 5px;
+  line-height: 1.5;
+  margin-top: 0;
+}
+
+.corp-link {
+  color: #555;
+  text-decoration: none;
+  margin-left: 5px;
+}
+
+.corp-link:hover {
+  text-decoration: underline;
+}
+
+.corp-copyright {
+  font-size: 13px;
+  color: #999;
+  margin-top: 15px;
+}
+
+.corp-sgi {
+  width: 280px;
+}
+
+.sgi-title {
+  font-size: 13px;
+  font-weight: bold;
+  color: #555;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+}
+
+.sgi-text {
+  font-size: 12px;
+  color: #888;
+  line-height: 1.6;
+  text-align: right;
+  margin: 0;
+}
+
+.corp-text-inline-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 5px;
+}
+
+.corp-divider {
+  color: #ddd;
+  font-size: 10px;
 }
