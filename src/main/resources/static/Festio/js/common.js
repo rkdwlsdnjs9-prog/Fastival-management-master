@@ -88,10 +88,25 @@ const CAT_SUBNAV = {
 /* ── 인증 상태 ─────────────────────────────────────────────── */
 const Auth = {
   KEY: 'festio_user',
-  save(d) { try { sessionStorage.setItem(this.KEY, JSON.stringify(d)); } catch (e) { } },
+  save(d) {
+    try {
+      sessionStorage.setItem(this.KEY, JSON.stringify(d));
+      if (d) {
+        localStorage.setItem('userToken', 'mock-token-123');
+        localStorage.setItem('isLoggedIn', 'true');
+      }
+    } catch (e) { }
+  },
   get() { try { return JSON.parse(sessionStorage.getItem(this.KEY)); } catch (e) { return null; } },
-  isLoggedIn() { return !!this.get(); },
-  clear() { sessionStorage.removeItem(this.KEY); },
+  isLoggedIn() {
+    const localLoggedIn = localStorage.getItem('isLoggedIn') === 'true' || !!localStorage.getItem('userToken');
+    return localLoggedIn || !!this.get();
+  },
+  clear() {
+    sessionStorage.removeItem(this.KEY);
+    localStorage.removeItem('userToken');
+    localStorage.removeItem('isLoggedIn');
+  },
   seedMock() {
     if (!this.isLoggedIn() && window.MOCK_DATA) this.save(window.MOCK_DATA?.member || null);
   },
@@ -478,7 +493,87 @@ document.addEventListener('DOMContentLoaded', () => {
   initBackButton();
   initDesktopSearchToggle();
   initHeaderScroll();
+  updateAuthUI(); // <-- 로그인 상태에 따른 UI 조건부 렌더링 호출
 });
+
+/* ── 로그인 상태에 따른 UI 조건부 렌더링 ─────────────────────── */
+function updateAuthUI() {
+  const isLoggedIn = Auth.isLoggedIn();
+  const userRole = localStorage.getItem('userRole');
+  const userEmail = localStorage.getItem('userEmail') || localStorage.getItem('email');
+  const isAdmin = isLoggedIn && userRole === 'ADMIN' && userEmail === 'admin@gmail.com';
+
+  const adminBtn = document.getElementById('headerAdminBtn');
+  if (adminBtn) {
+    adminBtn.style.display = isAdmin ? 'inline-flex' : 'none';
+  }
+
+  // 데스크톱 헤더의 맨 우측 사람 모양 아이콘 버튼만 타겟팅 (MY티켓 버튼 제외)
+  const desktopMyPageBtn = document.querySelector('header .header-actions a.header-icon-btn[aria-label="마이페이지"], header .header-actions a.header-icon-btn[aria-label="로그인"]');
+  
+  // 모바일 하단 네비의 마이페이지/로그인 버튼
+  const mobileMyPageBtn = document.querySelector('.bottom-nav a[href="mypage.html"], .bottom-nav a[href="login.html"]');
+
+  if (!isLoggedIn) {
+    // ── 비로그인 상태: 'Login' 텍스트 렌더링 ──
+    if (desktopMyPageBtn) {
+      desktopMyPageBtn.setAttribute('href', 'login.html');
+      desktopMyPageBtn.className = 'header-text-btn';
+      desktopMyPageBtn.setAttribute('aria-label', '로그인');
+      desktopMyPageBtn.innerHTML = `Login`;
+    }
+    if (mobileMyPageBtn) {
+      mobileMyPageBtn.setAttribute('href', 'login.html');
+      mobileMyPageBtn.setAttribute('aria-label', '로그인');
+      mobileMyPageBtn.innerHTML = `
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+          <polyline points="10 17 15 12 10 7" />
+          <line x1="15" y1="12" x2="3" y2="12" />
+        </svg>
+        Login
+      `;
+    }
+  } else {
+    // ── 로그인 상태: 프로필 아이콘 렌더링 ──
+    if (desktopMyPageBtn) {
+      desktopMyPageBtn.setAttribute('href', 'mypage.html');
+      desktopMyPageBtn.className = 'header-icon-btn';
+      desktopMyPageBtn.setAttribute('aria-label', '마이페이지');
+      desktopMyPageBtn.innerHTML = `
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+          <circle cx="12" cy="7" r="4" />
+        </svg>
+      `;
+    }
+    if (mobileMyPageBtn) {
+      mobileMyPageBtn.setAttribute('href', 'mypage.html');
+      mobileMyPageBtn.setAttribute('aria-label', '마이페이지');
+      mobileMyPageBtn.innerHTML = `
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+          <circle cx="12" cy="7" r="4" />
+        </svg>
+        마이
+      `;
+    }
+  }
+}
+
+/* ── 가상 로그인/로그아웃 테스트용 전역 유틸리티 함수 ─────────── */
+window.simulatedLogin = function() {
+  localStorage.setItem('userToken', 'mock-token-123');
+  localStorage.setItem('isLoggedIn', 'true');
+  updateAuthUI();
+  Toast.success('테스트용 로그인 완료! UI가 마이페이지 상태로 전환되었습니다.');
+};
+
+window.simulatedLogout = function() {
+  Auth.clear();
+  updateAuthUI();
+  Toast.warning('테스트용 로그아웃 완료! UI가 로그인 상태로 전환되었습니다.');
+};
 
 /* ── 전역 노출 ──────────────────────────────────────────────── */
 window.$ = $; window.$$ = $$; window.on = on; window.off = off;
@@ -498,3 +593,4 @@ window.Auth = Auth;
 window.RecentViewed = RecentViewed;
 window.SidePanel = SidePanel;
 window.renderDesktopSubnav = renderDesktopSubnav;
+window.updateAuthUI = updateAuthUI;

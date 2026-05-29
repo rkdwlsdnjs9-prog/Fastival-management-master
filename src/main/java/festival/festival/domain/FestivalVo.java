@@ -40,6 +40,23 @@ public class FestivalVo {
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    @Column(nullable = true, length = 100)
+    private String category; // '콘서트/뮤지컬', '지역축제', '대학축제', '박람회', '스포츠'
+    @Column(nullable = true, length = 255)
+    private String venue; // DCC 대전컨벤션센터 등
+    @Column(name = "start_time")
+    private String startTime; // ex: "18:00:00"
+    @Column(name = "end_time")
+    private String endTime; // ex: "23:00:00"
+    @Column(name = "min_price")
+    private Long minPrice; // 최소 티켓 가격 (ex: 55000)
+    @Column(name = "thumbnail_url", columnDefinition = "TEXT")
+    private String thumbnailUrl; // 행사 대표 포스터 썸네일 이미지
+    @Column(name = "badge_label", length = 50)
+    private String badgeLabel; // 'HOT', '신규', '타임세일' 등
+    @Column(name = "is_hot")
+    private Boolean isHot = false;
+
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();

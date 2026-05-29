@@ -14,6 +14,7 @@
 | **email** | `VARCHAR(100)` | N | - | N | - | 로그인용 이메일 (중복 불가) |
 | **password** | `VARCHAR(255)` | N | - | N | - | 암호화되어 저장될 비밀번호 |
 | **name** | `VARCHAR(50)` | N | - | N | - | 사용자 본명 또는 닉네임 |
+| **phone** | `VARCHAR(20)` | N | - | Y | - | 📞 휴대폰 번호 |
 | **role** | `VARCHAR(20)` | N | - | N | ROLE_USER | 시스템 권한 (ROLE_USER, ROLE_STAFF, ROLE_ADMIN) |
 | **membership_grade** | `VARCHAR(20)` | N | - | N | BRONZE | 멤버십 등급 (BRONZE, SILVER, GOLD, VIP) |
 | **balance** | `INT` | N | - | N | 0 | 💸 페스티벌 페이 잔액 (chk_balance_positive 제약조건 적용) |

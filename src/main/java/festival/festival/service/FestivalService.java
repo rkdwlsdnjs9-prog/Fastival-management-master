@@ -45,12 +45,19 @@ public class FestivalService {
 
     /**
      * 특정 페스티벌 데이터를 영구적으로 삭제합니다.
+     * 외래 키 제약 조건(FK) 충돌을 미연에 방지하기 위해 관련 자식 테이블 데이터를 순차적으로 먼저 정돈합니다.
      */
     @Transactional
     public void deleteFestival(Long id) {
         if (!festivalRepository.existsById(id)) {
             throw new IllegalArgumentException("존재하지 않는 페스티벌 ID입니다: " + id);
         }
+        
+        festivalRepository.deleteReviewsByFestivalId(id);
+        festivalRepository.deleteWishlistsByFestivalId(id);
+        festivalRepository.deleteOrdersByFestivalId(id);
+        festivalRepository.deleteFestivalZonesByFestivalId(id);
+        
         festivalRepository.deleteById(id);
     }
 }

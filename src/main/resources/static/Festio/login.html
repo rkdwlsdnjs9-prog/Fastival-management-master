@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <title>FESTIO | 로그인</title>
+  <link rel="stylesheet" href="css/common.css">
+  <link rel="stylesheet" href="css/login.css">
+</head>
+
+<body>
+
+  <script src="js/components/sidePanel.js"></script>
+
+  <!-- ══ 헤더 ═══════════════════════════════════════════════════ -->
+  <header class="app-header">
+    <!-- 햄버거 -->
+    <button class="header-hamburger" id="hamburgerBtn" aria-label="전체 메뉴 열기" aria-expanded="false">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+        stroke-linejoin="round">
+        <line x1="3" y1="6" x2="21" y2="6" />
+        <line x1="3" y1="12" x2="21" y2="12" />
+        <line x1="3" y1="18" x2="21" y2="18" />
+      </svg>
+    </button>
+
+    <!-- 로고 -->
+    <a href="index.html" class="header-logo" aria-label="FESTIO 홈">
+      <span class="header-logo-text">FESTIO</span>
+    </a>
+
+    <!-- 데스크톱 카테고리 네비 -->
+    <nav class="header-cat-nav" aria-label="주요 카테고리">
+      <button class="header-cat-item" data-cat="concert">콘서트
+        <svg class="icon cat-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+          stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+        <div class="cat-dropdown">
+          <a class="cat-dropdown-item" data-cat="concert" data-sub="all"><span>전체보기</span></a>
+          <a class="cat-dropdown-item" data-cat="concert" data-sub="domestic"><span>국내뮤지션</span></a>
+          <a class="cat-dropdown-item" data-cat="concert" data-sub="overseas"><span>해외뮤지션</span></a>
+          <a class="cat-dropdown-item" data-cat="concert" data-sub="festival"><span>페스티벌</span></a>
+        </div>
+      </button>
+      <button class="header-cat-item" data-cat="musical">뮤지컬</button>
+      <button class="header-cat-item" data-cat="play">연극</button>
+      <button class="header-cat-item" data-cat="classic">클래식/무용
+        <svg class="icon cat-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+          stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+        <div class="cat-dropdown">
+          <a class="cat-dropdown-item" data-cat="classic" data-sub="all"><span>전체보기</span></a>
+          <a class="cat-dropdown-item" data-cat="classic" data-sub="classic"><span>클래식</span></a>
+          <a class="cat-dropdown-item" data-cat="classic" data-sub="ballet"><span>발레/무용</span></a>
+          <a class="cat-dropdown-item" data-cat="classic" data-sub="gukak"><span>국악</span></a>
+        </div>
+      </button>
+      <button class="header-cat-item" data-cat="exhibition">전시/스포츠
+        <svg class="icon cat-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+          stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+        <div class="cat-dropdown">
+          <a class="cat-dropdown-item" data-cat="exhibition" data-sub="all"><span>전체보기</span></a>
+          <a class="cat-dropdown-item" data-cat="exhibition" data-sub="exhibition"><span>전시</span></a>
+          <a class="cat-dropdown-item" data-cat="exhibition" data-sub="experience"><span>체험/행사</span></a>
+          <a class="cat-dropdown-item" data-cat="exhibition" data-sub="sports"><span>스포츠</span></a>
+        </div>
+      </button>
+      <button class="header-cat-item" data-cat="family">가족/어린이</button>
+      <button class="header-cat-item" data-cat="local">지역축제</button>
+      <button class="header-cat-item" data-cat="univ">대학축제</button>
+      <button class="header-cat-item" data-cat="expo">박람회</button>
+    </nav>
+
+    <div class="header-spacer"></div>
+
+    <!-- 액션 버튼 -->
+    <div class="header-actions">
+      <a href="mypage.html" class="header-text-btn" aria-label="MY티켓">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round">
+          <path d="M20 12v6a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h6" />
+          <path d="M14 4h6v6" />
+          <path d="M10 14L20 4" />
+        </svg>
+        MY티켓
+      </a>
+      <!-- 데스크톱 검색 -->
+      <div class="header-search-bar" role="search">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+        <input type="search" class="header-search-input" id="headerSearch" placeholder="행사명, 아티스트 검색" autocomplete="off"
+          aria-label="검색">
+      </div>
+      <!-- 모바일 검색 -->
+      <button class="header-icon-btn mobile-search-btn" aria-label="검색">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+      </button>
+      <!-- 알림 -->
+      <button class="header-icon-btn" aria-label="알림">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round">
+          <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
+          <path d="M13.73 21a2 2 0 01-3.46 0" />
+        </svg>
+      </button>
+      <!-- 마이페이지 / 로그인 스와핑 타겟 -->
+      <a href="mypage.html" class="header-icon-btn" aria-label="마이페이지">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round">
+          <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+          <circle cx="12" cy="7" r="4" />
+        </svg>
+      </a>
+    </div>
+  </header>
+
+  <!-- 메인 로그인 컨텐츠 영역 (공통 page-body와 연결) -->
+  <main class="page-body login-page-body">
+    <div class="login-container">
+      <div class="back-btn-wrap">
+        <a href="index.html" class="back-link">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+          메인으로 돌아가기
+        </a>
+      </div>
+
+      <div class="login-card">
+        <div class="login-header">
+          <h1 class="login-logo">FESTIO</h1>
+          <p class="login-subtitle">통합 회원 로그인 및 예매</p>
+        </div>
+
+        <form id="loginForm" novalidate>
+          <div class="form-group">
+            <label class="form-label" for="loginEmail">이메일 주소</label>
+            <input type="email" id="loginEmail" class="form-input" placeholder="example@festio.com" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="loginPassword">비밀번호</label>
+            <input type="password" id="loginPassword" class="form-input" placeholder="••••••••" required>
+          </div>
+
+          <button type="submit" class="btn-login">로그인</button>
+        </form>
+
+        <div class="login-footer">
+          아직 회원이 아니신가요? <a href="register.html">회원가입</a>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ══ 하단 네비 (모바일) ════════════════════════════════════ -->
+  <nav class="bottom-nav" aria-label="하단 메뉴">
+    <a href="index.html" class="bottom-nav-item" aria-label="홈">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+        stroke-linejoin="round">
+        <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+        <polyline points="9 22 9 12 15 12 15 22" />
+      </svg>
+      홈
+    </a>
+    <a href="list.html" class="bottom-nav-item" aria-label="전체행사">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+        stroke-linejoin="round">
+        <rect x="3" y="3" width="7" height="7" />
+        <rect x="14" y="3" width="7" height="7" />
+        <rect x="3" y="14" width="7" height="7" />
+        <rect x="14" y="14" width="7" height="7" />
+      </svg>
+      전체행사
+    </a>
+    <button class="bottom-nav-item" aria-label="검색">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+        stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8" />
+        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+      </svg>
+      검색
+    </button>
+    <button class="bottom-nav-item" aria-label="찜목록">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+        stroke-linejoin="round">
+        <path
+          d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
+      </svg>
+      찜
+    </button>
+    <a href="mypage.html" class="bottom-nav-item active" aria-label="마이페이지">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+        stroke-linejoin="round">
+        <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+        <circle cx="12" cy="7" r="4" />
+      </svg>
+      마이
+    </a>
+  </nav>
+
+  <!-- Toast 알림 라이브러리 및 공통 JS 로드 -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/api.js"></script>
+  <script src="js/common.js"></script>
+  <script src="js/login.js"></script>
+</body>
+
+</html>
