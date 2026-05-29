@@ -87,17 +87,22 @@ function renderHeroSlides() {
       <div class="hero-slide-bg">
         ${s.thumbnailUrl ? `<img src="${s.thumbnailUrl}" alt="" loading="${i === 0 ? 'eager' : 'lazy'}">` : ''}
       </div>
-      <div class="hero-slide-content">
-        <span class="hero-slide-cat">${s.category || ''}</span>
-        <h2 class="hero-slide-title">${s.title}</h2>
-        <div class="hero-slide-meta">
-          <span>
-            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;display:inline-block"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-            ${s.date}
-          </span>
-          <span>${s.venue}</span>
+      <div class="hero-slide-container">
+        <div class="hero-slide-poster">
+          ${s.thumbnailUrl ? `<img src="${s.thumbnailUrl}" alt="${s.title}" loading="${i === 0 ? 'eager' : 'lazy'}">` : ''}
         </div>
-        <span class="hero-slide-badge">${s.badge}</span>
+        <div class="hero-slide-content">
+          <span class="hero-slide-cat">${s.category || ''}</span>
+          <h2 class="hero-slide-title">${s.title}</h2>
+          <div class="hero-slide-meta">
+            <span>
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;display:inline-block"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              ${s.date}
+            </span>
+            <span>${s.venue}</span>
+          </div>
+          <span class="hero-slide-badge">${s.badge}</span>
+        </div>
       </div>
     </div>`).join('');
 
