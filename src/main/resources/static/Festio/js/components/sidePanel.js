@@ -146,14 +146,14 @@ const SIDE_PANEL_HTML = `
     <!-- 바로가기 섹션 -->
     <div class="side-section">
       <div class="side-section-title">바로가기</div>
-      <button class="side-link-item" id="sideWishlistBtn">
+      <a href="mypage.html#tab-wishlist" class="side-link-item" id="sideWishlistBtn">
         <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
           stroke-linejoin="round">
           <path
             d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
         </svg>
         찜
-      </button>
+      </a>
       <button class="side-link-item">
         <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
           stroke-linejoin="round">
@@ -180,21 +180,6 @@ const SIDE_PANEL_HTML = `
 
           <div class="recent-carousel-content recent-carousel-inner">
             <div class="recent-carousel-track recent-track-override">
-              <!-- 아이템 1 -->
-              <div class="recent-item recent-item-override">
-                <div class="recent-notice-label">공지사항</div>
-                <a href="#" class="recent-notice-link">뮤지컬
-                  &lt;겨울왕국&gt; 한국 초<br>연 -<br></a>
-                <div class="recent-page-indicator"><strong class="text-white">1</strong> / 2</div>
-              </div>
-
-              <!-- 아이템 2 -->
-              <div class="recent-item recent-item-override">
-                <div class="recent-poster-wrap">
-                  <img src="https://picsum.photos/200/267?20" alt="포스터" class="recent-poster-img">
-                </div>
-                <div class="recent-page-indicator"><strong class="text-white">2</strong> / 2</div>
-              </div>
             </div>
           </div>
 

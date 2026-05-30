@@ -2,7 +2,7 @@
    Festival O2O — index.css
    메인 페이지 전용
    모바일: Queens Smile 앱 스타일
-   데스크톱: yes24 포스터 포탈 스타일
+   데스크톱: festio 포스터 포탈 스타일
    ============================================================ */
 
 /* ── 모바일 히어로 슬라이더 ─────────────────────────────────── */
@@ -1497,18 +1497,37 @@
   }
 
   .whats-hot-title {
-    text-align: center;
-    font-size: 32px;
-    font-family: var(--font-display);
+    font-size: 24px;
     font-weight: 800;
-    margin-bottom: 30px;
-    color: var(--text-base);
+    margin-bottom: 24px;
+    color: #111;
+    font-family: var(--font-display);
     letter-spacing: -0.5px;
+    text-align: center;
   }
 
   .hot-text {
-    color: #e50914;
-    /* Red color for HOT */
+    color: #ff3300;
+    display: inline-block;
+    position: relative;
+    animation: fire-flicker 1.2s infinite alternate;
+  }
+
+  @keyframes fire-flicker {
+    0% {
+      text-shadow: 0 -1px 4px #FF3, 0 -2px 10px #F90, 0 -4px 20px #F30;
+      transform: translateY(0);
+    }
+
+    50% {
+      text-shadow: 0 -2px 8px #FF3, 0 -4px 15px #F90, 0 -6px 25px #F30;
+      transform: translateY(-2px);
+    }
+
+    100% {
+      text-shadow: 0 -1px 4px #FF3, 0 -2px 10px #F90, 0 -4px 20px #F30;
+      transform: translateY(0);
+    }
   }
 
   .whats-hot-grid {
@@ -1986,7 +2005,7 @@
    제휴·입점 문의 섹션 (partner-section)
    ─────────────────────────────────────────────────────────────── */
 .partner-section {
-  background: #f8f9fb;
+  background: #ffffff;
   border-top: 1px solid #eaeaea;
   padding: 72px 0 80px;
 }
@@ -2236,6 +2255,13 @@
   opacity: 0.65;
   cursor: not-allowed;
   transform: none;
+}
+
+/* 제출 버튼 내 SVG 아이콘 크기 */
+.partner-submit-icon {
+  width: 17px;
+  height: 17px;
+  vertical-align: middle;
 }
 
 /* 결과 메시지 */

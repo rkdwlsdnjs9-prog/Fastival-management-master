@@ -202,7 +202,7 @@ function renderWhatsHot() {
     const infoHtml = isLarge ? `
       <div class="whats-hot-info">
         <div class="whats-hot-item-title">${ev.eventName || ev.name}</div>
-        <div class="whats-hot-item-desc">${ev.eventDate || '2026. 07. 16.'} ${ev.venue || 'YES24 LIVE HALL'} / <span>단독판매</span></div>
+        <div class="whats-hot-item-desc">${ev.eventDate || '2026. 07. 16.'} ${ev.venue || 'FESTIO LIVE HALL'} / <span>단독판매</span></div>
       </div>
     ` : '';
 
@@ -439,7 +439,11 @@ async function handleWish(btn) {
 
   try {
     await wishlistApi.toggleWishlist(no, isWished);
-    if (newWish) { _wishlist.push(no); Toast.success('찜 목록에 추가했습니다.'); }
+    if (newWish) {
+      _wishlist.push(no);
+      Toast.success('찜 목록에 추가했습니다. 마이페이지로 이동합니다.');
+      setTimeout(() => { window.location.href = 'mypage.html#tab-wishlist'; }, 900);
+    }
     else { _wishlist = _wishlist.filter(n => n !== no); Toast.info('찜 목록에서 제거했습니다.'); }
   } catch {
     btn.dataset.wished = String(isWished);

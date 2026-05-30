@@ -31,6 +31,7 @@
         background-color: #ffffff;
         border-top: 1px solid #eaeaea;
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        flex-shrink: 0;
       }
 
       /* ── 상단 링크 메뉴 바 ── */
@@ -50,17 +51,11 @@
       .ft-top-links {
         display: flex;
         align-items: center;
-        gap: 0;
+        gap: 20px;
         list-style: none;
         margin: 0;
         padding: 0;
         flex-wrap: wrap;
-      }
-      .ft-top-links li + li::before {
-        content: '|';
-        color: #d4d4d4;
-        padding: 0 10px;
-        font-size: 11px;
       }
       .ft-top-links a {
         text-decoration: none;
@@ -141,6 +136,7 @@
 
       /* 구분선 공통 */
       .ft-divider {
+        display: none;
         width: 1px;
         align-self: stretch;
         background: #eaeaea;
@@ -299,8 +295,8 @@
         <div class="ft-top-inner">
           <ul class="ft-top-links">
             <li><a href="#">회사소개</a></li>
-            <li><a href="#">이용약관</a></li>
-            <li><a href="#" class="bold">개인정보처리방침</a></li>
+            <li><a href="terms.html">이용약관</a></li>
+            <li><a href="privacy.html" class="bold">개인정보처리방침</a></li>
             <li><a href="#" id="btn-youth-policy">청소년보호정책</a></li>
             <li><a href="guide.html">이용안내</a></li>
             <li><a href="guide.html?tab=tab-partner">티켓판매안내</a></li>
@@ -432,15 +428,16 @@
         </div>
       </div>
     </div>
+
   `;
 
   document.write(footerHtml);
 
   // 청소년보호정책 모달 이벤트 처리
   window.addEventListener('DOMContentLoaded', function () {
-    const btnYouthPolicy    = document.getElementById('btn-youth-policy');
-    const modalYouthPolicy  = document.getElementById('youth-policy-modal');
-    const btnCloseYouth     = document.getElementById('btn-close-youth-policy');
+    const btnYouthPolicy = document.getElementById('btn-youth-policy');
+    const modalYouthPolicy = document.getElementById('youth-policy-modal');
+    const btnCloseYouth = document.getElementById('btn-close-youth-policy');
 
     if (btnYouthPolicy && modalYouthPolicy && btnCloseYouth) {
       btnYouthPolicy.addEventListener('click', function (e) {
@@ -450,11 +447,13 @@
       btnCloseYouth.addEventListener('click', function () {
         modalYouthPolicy.classList.remove('active');
       });
+      // 배경 클릭 시 닫기
       modalYouthPolicy.addEventListener('click', function (e) {
         if (e.target === modalYouthPolicy) {
           modalYouthPolicy.classList.remove('active');
         }
       });
     }
+
   });
 })();

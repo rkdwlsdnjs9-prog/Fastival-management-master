@@ -12,216 +12,7 @@
 
 <body>
 
-  <!-- ══ 사이드 오버레이 ═══════════════════════════════════════ -->
-  <div class="side-overlay" id="sideOverlay" aria-hidden="true"></div>
-
-  <!-- ══ 사이드 패널 ═══════════════════════════════════════════ -->
-  <nav class="side-panel" id="sidePanel" aria-label="전체 메뉴">
-    <div class="side-panel-header">
-      <span class="side-panel-logo">FESTIO</span>
-      <button class="side-close-btn" id="sideClose" aria-label="메뉴 닫기">
-        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-          stroke-linecap="round" stroke-linejoin="round">
-          <line x1="18" y1="6" x2="6" y2="18" />
-          <line x1="6" y1="6" x2="18" y2="18" />
-        </svg>
-      </button>
-    </div>
-
-    <!-- 카테고리 섹션 -->
-    <div class="side-section">
-      <!-- 콘서트 -->
-      <button class="side-cat-item" data-submenu="sub-concert" data-cat="concert">
-        콘서트
-        <svg class="icon side-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-          stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="6 9 12 15 18 9" />
-        </svg>
-      </button>
-      <div class="side-submenu" id="sub-concert">
-        <button class="side-subitem" data-cat="concert" data-sub="all">전체보기</button>
-        <button class="side-subitem" data-cat="concert" data-sub="domestic">국내뮤지션</button>
-        <button class="side-subitem" data-cat="concert" data-sub="overseas">해외뮤지션</button>
-        <button class="side-subitem" data-cat="concert" data-sub="festival">페스티벌</button>
-      </div>
-
-      <!-- 뮤지컬 -->
-      <button class="side-cat-item" data-cat="musical">뮤지컬</button>
-
-      <!-- 연극 -->
-      <button class="side-cat-item" data-cat="play">연극</button>
-
-      <!-- 클래식/무용 -->
-      <button class="side-cat-item" data-submenu="sub-classic" data-cat="classic">
-        클래식/무용
-        <svg class="icon side-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-          stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="6 9 12 15 18 9" />
-        </svg>
-      </button>
-      <div class="side-submenu" id="sub-classic">
-        <button class="side-subitem" data-cat="classic" data-sub="all">전체보기</button>
-        <button class="side-subitem" data-cat="classic" data-sub="classic">클래식</button>
-        <button class="side-subitem" data-cat="classic" data-sub="ballet">발레/무용</button>
-        <button class="side-subitem" data-cat="classic" data-sub="gukak">국악</button>
-      </div>
-
-      <!-- 전시/스포츠 -->
-      <button class="side-cat-item" data-submenu="sub-exhibition" data-cat="exhibition">
-        전시/스포츠
-        <svg class="icon side-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-          stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="6 9 12 15 18 9" />
-        </svg>
-      </button>
-      <div class="side-submenu" id="sub-exhibition">
-        <button class="side-subitem" data-cat="exhibition" data-sub="all">전체보기</button>
-        <button class="side-subitem" data-cat="exhibition" data-sub="exhibition">전시</button>
-        <button class="side-subitem" data-cat="exhibition" data-sub="experience">체험/행사</button>
-        <button class="side-subitem" data-cat="exhibition" data-sub="sports">스포츠</button>
-      </div>
-
-      <!-- 가족/어린이 -->
-      <button class="side-cat-item" data-cat="family">가족/어린이</button>
-
-      <!-- 지역축제 -->
-      <button class="side-cat-item" data-cat="local">지역축제</button>
-
-      <!-- 대학축제 -->
-      <button class="side-cat-item" data-cat="univ">대학축제</button>
-
-      <!-- 박람회 -->
-      <button class="side-cat-item" data-cat="expo">박람회</button>
-    </div>
-
-    <!-- 정보 섹션 -->
-    <div class="side-section">
-      <button class="side-cat-item" data-submenu="sub-guide"
-        style="font-size: 0.9375rem; font-weight: 500; color: rgba(0, 0, 0, 0.7);">
-        <div style="display: flex; align-items: center; gap: var(--sp-3); white-space: nowrap;">
-          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-            stroke-linecap="round" stroke-linejoin="round">
-            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
-            <polyline points="14 2 14 8 20 8" />
-          </svg>
-          <span style="white-space: nowrap;">이용안내</span>
-        </div>
-        <svg class="icon side-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-          stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="6 9 12 15 18 9" />
-        </svg>
-      </button>
-      <div class="side-submenu" id="sub-guide">
-        <a href="guide.html?tab=tab-book" class="side-subitem">예매방법</a>
-        <a href="guide.html?tab=tab-pay" class="side-subitem">결제방법</a>
-        <a href="guide.html?tab=tab-fee" class="side-subitem">수수료</a>
-        <a href="guide.html?tab=tab-cancel" class="side-subitem">취소/환불</a>
-        <a href="guide.html?tab=tab-receive" class="side-subitem">티켓수령</a>
-        <a href="guide.html?tab=tab-faq" class="side-subitem">FAQ</a>
-        <a href="guide.html?tab=tab-partner" class="side-subitem">티켓판매/제휴문의</a>
-      </div>
-      <button class="side-link-item">
-        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-          stroke-linejoin="round">
-          <polygon
-            points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-        </svg>
-        이벤트
-      </button>
-    </div>
-
-    <!-- MY 섹션 -->
-    <div class="side-section">
-      <div class="side-section-title">MY</div>
-      <button class="side-cat-item" data-submenu="sub-my">
-        MY티켓
-        <svg class="icon side-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-          stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="6 9 12 15 18 9" />
-        </svg>
-      </button>
-      <div class="side-submenu" id="sub-my">
-        <a href="mypage.html" class="side-subitem">예매확인/취소</a>
-      </div>
-      <a href="mypage.html#tab-inquiries" class="side-link-item">
-        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-          stroke-linejoin="round">
-          <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
-        </svg>
-        1:1 문의하기
-      </a>
-    </div>
-
-    <!-- 바로가기 섹션 -->
-    <div class="side-section">
-      <div class="side-section-title">바로가기</div>
-      <button class="side-link-item" id="sideWishlistBtn">
-        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-          stroke-linejoin="round">
-          <path
-            d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
-        </svg>
-        찜
-      </button>
-      <button class="side-link-item">
-        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-          stroke-linejoin="round">
-          <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
-          <line x1="3" y1="6" x2="21" y2="6" />
-          <path d="M16 10a4 4 0 01-8 0" />
-        </svg>
-        장바구니
-      </button>
-    </div>
-
-    <!-- 최근 본 상품 -->
-    <div class="side-section" style="border-bottom: none; padding-bottom: 30px;">
-      <div style="background: #333; padding: 20px;">
-        <div style="color: #fff; font-size: 15px; font-weight: bold; margin-bottom: 15px;">최근 본 상품</div>
-
-        <div class="recent-carousel"
-          style="background: #222; padding: 20px 5px; display: flex; align-items: center; justify-content: space-between; text-align: center; position: relative;">
-          <button class="recent-prev" style="background: none; border: none; color: #777; cursor: pointer; padding: 0;">
-            <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2"
-              stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="15 18 9 12 15 6"></polyline>
-            </svg>
-          </button>
-
-          <div class="recent-carousel-content" style="flex: 1; overflow: hidden; position: relative; min-width: 0;">
-
-            <!-- 아이템 1 -->
-            <div class="recent-item active" style="display: block; animation: fadeIn 0.3s;">
-              <div style="color: #e96d2b; font-size: 14px; font-weight: bold; margin-bottom: 15px;">공지사항</div>
-              <a href="#"
-                style="display: block; color: #fff; font-size: 15px; line-height: 1.4; margin-bottom: 20px; word-break: break-word; text-decoration: underline; text-underline-offset: 4px;">뮤지컬
-                &lt;겨울왕국&gt; 한국 초<br>연 -<br>YES24DAY</a>
-              <div style="color: #777; font-size: 13px;"><strong style="color: #fff;">1</strong> / 2</div>
-            </div>
-
-            <!-- 아이템 2 -->
-            <div class="recent-item" style="display: none; animation: fadeIn 0.3s;">
-              <div style="color: #e96d2b; font-size: 14px; font-weight: bold; margin-bottom: 15px;">뮤지컬</div>
-              <a href="#"
-                style="display: block; color: #fff; font-size: 15px; line-height: 1.4; margin-bottom: 20px; word-break: break-word; text-decoration: underline; text-underline-offset: 4px;">뮤지컬
-                &lt;오페라의 유령&gt;<br>티켓오픈 안내</a>
-              <div style="color: #777; font-size: 13px;"><strong style="color: #fff;">2</strong> / 2</div>
-            </div>
-
-          </div>
-
-          <button class="recent-next" style="background: none; border: none; color: #777; cursor: pointer; padding: 0;">
-            <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2"
-              stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="9 18 15 12 9 6"></polyline>
-            </svg>
-          </button>
-        </div>
-      </div>
-    </div>
-    </div>
-    </div>
-  </nav>
+  <script src="js/components/sidePanel.js"></script>
 
   <!-- ══ 헤더 ═══════════════════════════════════════════════════ -->
   <script src="js/components/appHeader.js"></script>
@@ -546,7 +337,11 @@
                   <div class="custom-file-input" id="wrapperEvent">
                     <input type="file" id="fileEvent" name="file_event" accept=".ppt,.pptx,.pdf,.doc,.docx">
                     <div class="file-dummy">
-                      <span class="file-icon">📁</span>
+                      <span class="file-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                          stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                          style="width:16px;height:16px;">
+                          <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+                        </svg></span>
                       <span class="file-text">클릭하여 기획서(PPT, PDF, DOC) 첨부</span>
                     </div>
                   </div>
@@ -563,7 +358,15 @@
                       <input type="file" id="fileFoodtruckLicense" name="file_foodtruck_license"
                         accept=".jpg,.jpeg,.png,.pdf">
                       <div class="file-dummy">
-                        <span class="file-icon">📄</span>
+                        <span class="file-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            style="width:16px;height:16px;">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                            <polyline points="14 2 14 8 20 8" />
+                            <line x1="16" y1="13" x2="8" y2="13" />
+                            <line x1="16" y1="17" x2="8" y2="17" />
+                            <polyline points="10 9 9 9 8 9" />
+                          </svg></span>
                         <span class="file-text">사업자등록증 첨부</span>
                       </div>
                     </div>
@@ -574,7 +377,13 @@
                     <div class="custom-file-input" id="wrapperFoodtruckMenu">
                       <input type="file" id="fileFoodtruckMenu" name="file_foodtruck_menu" accept="image/*">
                       <div class="file-dummy">
-                        <span class="file-icon">📸</span>
+                        <span class="file-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            style="width:16px;height:16px;">
+                            <path
+                              d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                            <circle cx="12" cy="13" r="4" />
+                          </svg></span>
                         <span class="file-text">대표 이미지 첨부</span>
                       </div>
                     </div>
@@ -591,7 +400,15 @@
                     <div class="custom-file-input" id="wrapperGoodsLicense">
                       <input type="file" id="fileGoodsLicense" name="file_goods_license" accept=".jpg,.jpeg,.png,.pdf">
                       <div class="file-dummy">
-                        <span class="file-icon">📄</span>
+                        <span class="file-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            style="width:16px;height:16px;">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                            <polyline points="14 2 14 8 20 8" />
+                            <line x1="16" y1="13" x2="8" y2="13" />
+                            <line x1="16" y1="17" x2="8" y2="17" />
+                            <polyline points="10 9 9 9 8 9" />
+                          </svg></span>
                         <span class="file-text">사업자등록증 첨부</span>
                       </div>
                     </div>
@@ -602,7 +419,13 @@
                     <div class="custom-file-input" id="wrapperGoodsMenu">
                       <input type="file" id="fileGoodsMenu" name="file_goods_menu" accept="image/*">
                       <div class="file-dummy">
-                        <span class="file-icon">🛍️</span>
+                        <span class="file-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            style="width:16px;height:16px;">
+                            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+                            <line x1="3" y1="6" x2="21" y2="6" />
+                            <path d="M16 10a4 4 0 0 1-8 0" />
+                          </svg></span>
                         <span class="file-text">대표 이미지 첨부</span>
                       </div>
                     </div>
@@ -631,7 +454,7 @@
           <div class="partner-submit-wrap">
             <button type="submit" class="partner-submit-btn" id="partnerSubmitBtn">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                stroke-linejoin="round" style="width:17px;height:17px;">
+                stroke-linejoin="round" class="partner-submit-icon">
                 <line x1="22" y1="2" x2="11" y2="13" />
                 <polygon points="22 2 15 22 11 13 2 9 22 2" />
               </svg>
@@ -645,293 +468,9 @@
       </div>
     </section>
 
-    <!-- 제휴 문의 폼 스크립트 -->
-    <script>
-      (function () {
-        'use strict';
+    <!-- 제휴 문의 폼 스크립트 (외부 파일) -->
+    <script src="js/partner-form.js"></script>
 
-        const chips = document.querySelectorAll('.partner-chip');
-        const hiddenType = document.getElementById('inquiryType');
-        const festivalSelectField = document.getElementById('festivalSelectField');
-        const festivalSelect = document.getElementById('festivalSelect');
-
-        // 파일 그룹 요소들
-        const fileGroupEvent = document.getElementById('fileGroupEvent');
-        const fileGroupFoodtruck = document.getElementById('fileGroupFoodtruck');
-        const fileGroupGoods = document.getElementById('fileGroupGoods');
-
-        // 파일 입력 요소들
-        const fileEvent = document.getElementById('fileEvent');
-        const fileFoodtruckLicense = document.getElementById('fileFoodtruckLicense');
-        const fileFoodtruckMenu = document.getElementById('fileFoodtruckMenu');
-        const fileGoodsLicense = document.getElementById('fileGoodsLicense');
-        const fileGoodsMenu = document.getElementById('fileGoodsMenu');
-
-        /* ── 실제 DB 축제 목록 API 호출 ─────────────────────────── */
-        async function loadFestivals() {
-          try {
-            const response = await fetch('/api/festival');
-            if (!response.ok) throw new Error('API 응답 에러');
-            const list = await response.json();
-
-            if (!list || list.length === 0) {
-              festivalSelect.innerHTML = '<option value="">등록된 활성 축제가 없습니다.</option>';
-              return;
-            }
-
-            festivalSelect.innerHTML = '<option value="">참여를 원하는 축제를 선택해 주세요.</option>';
-            list.forEach(function (f) {
-              const opt = document.createElement('option');
-              opt.value = f.id;
-              opt.textContent = f.name;
-              festivalSelect.appendChild(opt);
-            });
-          } catch (err) {
-            console.error('[축제 로드 실패]', err);
-            festivalSelect.innerHTML = '<option value="">축제 목록을 불러오지 못했습니다.</option>';
-          }
-        }
-
-        // 페이지 로드 시 즉시 축제 목록 로드
-        document.addEventListener('DOMContentLoaded', loadFestivals);
-
-        /* ── 파일 선택 시 UI 변경 함수 (has-file 스타일링 및 텍스트 업데이트) ── */
-        function setupFilePlaceholder(inputEl, wrapperId, defaultText) {
-          inputEl.addEventListener('change', function () {
-            const wrapper = document.getElementById(wrapperId);
-            const textEl = wrapper.querySelector('.file-text');
-            if (this.files && this.files.length > 0) {
-              textEl.textContent = this.files[0].name;
-              wrapper.classList.add('has-file');
-            } else {
-              textEl.textContent = defaultText;
-              wrapper.classList.remove('has-file');
-            }
-          });
-        }
-
-        setupFilePlaceholder(fileEvent, 'wrapperEvent', '클릭하여 기획서(PPT, PDF, DOC) 첨부');
-        setupFilePlaceholder(fileFoodtruckLicense, 'wrapperFoodtruckLicense', '사업자등록증 첨부');
-        setupFilePlaceholder(fileFoodtruckMenu, 'wrapperFoodtruckMenu', '대표 이미지 첨부');
-        setupFilePlaceholder(fileGoodsLicense, 'wrapperGoodsLicense', '사업자등록증 첨부');
-        setupFilePlaceholder(fileGoodsMenu, 'wrapperGoodsMenu', '대표 이미지 첨부');
-
-        /* ── 유형 칩 선택 및 행사/파일 영역 조건부 노출 로직 ─────── */
-        chips.forEach(function (chip) {
-          chip.addEventListener('click', function () {
-            chips.forEach(function (c) { c.classList.remove('active'); });
-            chip.classList.add('active');
-
-            const type = chip.dataset.type;
-            hiddenType.value = type;
-
-            // 1. 참여 희망 행사 영역 토글
-            if (type === 'EVENT') {
-              festivalSelectField.classList.add('hidden');
-              festivalSelect.required = false;
-              festivalSelect.value = '';
-            } else {
-              festivalSelectField.classList.remove('hidden');
-              festivalSelect.required = true;
-            }
-
-            // 2. 카테고리별 동적 파일 그룹 토글
-            fileGroupEvent.classList.add('hidden');
-            fileGroupFoodtruck.classList.add('hidden');
-            fileGroupGoods.classList.add('hidden');
-
-            if (type === 'EVENT') {
-              fileGroupEvent.classList.remove('hidden');
-            } else if (type === 'FOODTRUCK') {
-              fileGroupFoodtruck.classList.remove('hidden');
-            } else if (type === 'GOODS') {
-              fileGroupGoods.classList.remove('hidden');
-            }
-          });
-        });
-
-        /* ── 연락처 자동 포맷 ── */
-        const phoneInput = document.getElementById('phone');
-        phoneInput.addEventListener('input', function () {
-          let digits = this.value.replace(/\D/g, '');
-          if (digits.length > 11) digits = digits.slice(0, 11);
-          if (digits.length <= 3) {
-            this.value = digits;
-          } else if (digits.length <= 7) {
-            this.value = digits.slice(0, 3) + '-' + digits.slice(3);
-          } else {
-            this.value = digits.slice(0, 3) + '-' + digits.slice(3, 7) + '-' + digits.slice(7);
-          }
-        });
-
-        /* ── 글자 수 카운터 ── */
-        const contentArea = document.getElementById('content');
-        const contentCount = document.getElementById('contentCount');
-        contentArea.addEventListener('input', function () {
-          contentCount.textContent = this.value.length;
-        });
-
-        /* ── 유효성 검증 함수 (서류 검증 포함) ── */
-        function validateForm(data) {
-          if (!data.companyName.trim()) { alert('업체명 / 브랜드명을 입력해 주세요.'); return false; }
-          if (!data.managerName.trim()) { alert('담당자 성함을 입력해 주세요.'); return false; }
-          if (!/^\d{3}-\d{3,4}-\d{4}$/.test(data.phone.trim())) {
-            alert('올바른 연락처 형식을 입력해 주세요.\n예) 010-1234-5678');
-            return false;
-          }
-          if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email.trim())) {
-            alert('올바른 이메일 주소 형식을 입력해 주세요.\n예) contact@festio.com');
-            return false;
-          }
-          // 입점 문의 시 축제 선택 필수 검증
-          if (data.inquiryType !== 'EVENT' && !data.festivalId) {
-            alert('참여 희망 축제를 선택해 주세요.');
-            return false;
-          }
-
-          // 카테고리별 필수 첨부파일 검증 구현
-          if (data.inquiryType === 'EVENT') {
-            if (!fileEvent.files || fileEvent.files.length === 0) {
-              alert('필수 첨부 서류를 등록해주세요 (행사 기획서 및 회사 소개서).');
-              return false;
-            }
-          } else if (data.inquiryType === 'FOODTRUCK') {
-            if (!fileFoodtruckLicense.files || fileFoodtruckLicense.files.length === 0) {
-              alert('필수 첨부 서류를 등록해주세요 (사업자등록증).');
-              return false;
-            }
-            if (!fileFoodtruckMenu.files || fileFoodtruckMenu.files.length === 0) {
-              alert('필수 첨부 서류를 등록해주세요 (음식 메뉴 및 차량 사진).');
-              return false;
-            }
-          } else if (data.inquiryType === 'GOODS') {
-            if (!fileGoodsLicense.files || fileGoodsLicense.files.length === 0) {
-              alert('필수 첨부 서류를 등록해주세요 (사업자등록증).');
-              return false;
-            }
-            if (!fileGoodsMenu.files || fileGoodsMenu.files.length === 0) {
-              alert('필수 첨부 서류를 등록해주세요 (판매 물품 포트폴리오 및 상품 사진).');
-              return false;
-            }
-          }
-
-          if (!data.content.trim() || data.content.trim().length < 10) {
-            alert('상세 문의 내용을 10자 이상 입력해 주세요.');
-            return false;
-          }
-          if (!document.getElementById('agreePrivacy').checked) {
-            alert('개인정보 수집 및 이용에 동의해 주세요.');
-            return false;
-          }
-          return true;
-        }
-
-        /* ── 결과 메시지 표시 ── */
-        function showResult(type, message) {
-          var el = document.getElementById('partnerResult');
-          el.className = 'partner-result ' + type;
-          el.textContent = message;
-        }
-
-        /* ── 메인 제출 핸들러 (실제 백엔드 API 연동 - Multipart 전송 방식) ── */
-        document.getElementById('partnerForm').addEventListener('submit', async function (e) {
-          e.preventDefault();
-
-          const currentType = hiddenType.value;
-          const currentFestivalVal = festivalSelect.value;
-
-          var textData = {
-            inquiryType: currentType,
-            companyName: document.getElementById('companyName').value,
-            managerName: document.getElementById('managerName').value,
-            phone: document.getElementById('phone').value,
-            email: document.getElementById('email').value,
-            content: document.getElementById('content').value,
-            festivalId: currentType === 'EVENT' ? null : (currentFestivalVal ? Number(currentFestivalVal) : null)
-          };
-
-          // 텍스트 필드와 파일 검증 통합 실행
-          if (!validateForm(textData)) return;
-
-          var btn = document.getElementById('partnerSubmitBtn');
-          btn.disabled = true;
-          btn.textContent = '전송 중...';
-
-          // ── Multipart/Form-Data 객체 빌드 시작 (파일 첨부 완벽 대응) ──
-          const formData = new FormData();
-          formData.append('inquiryType', textData.inquiryType);
-          formData.append('companyName', textData.companyName);
-          formData.append('managerName', textData.managerName);
-          formData.append('phone', textData.phone);
-          formData.append('email', textData.email);
-          formData.append('content', textData.content);
-          if (textData.festivalId !== null) {
-            formData.append('festivalId', textData.festivalId);
-          }
-
-          // 카테고리별 실제 첨부파일 데이터 추가
-          if (currentType === 'EVENT') {
-            formData.append('fileEvent', fileEvent.files[0]);
-          } else if (currentType === 'FOODTRUCK') {
-            formData.append('fileFoodtruckLicense', fileFoodtruckLicense.files[0]);
-            formData.append('fileFoodtruckMenu', fileFoodtruckMenu.files[0]);
-          } else if (currentType === 'GOODS') {
-            formData.append('fileGoodsLicense', fileGoodsLicense.files[0]);
-            formData.append('fileGoodsMenu', fileGoodsMenu.files[0]);
-          }
-
-          try {
-            /*
-             * ──────────────────────────────────────────────────────────────────────────
-             * [백엔드 Multipart 업로드 API 통신 연동]
-             * - Content-Type 헤더는 수동으로 지정하지 않습니다. (지정 시 Boundary가 손실되어 에러 발생)
-             * - Spring Boot Controller 구현 시 @ModelAttribute 또는 각각 @RequestPart로 수신 가능합니다.
-             * ──────────────────────────────────────────────────────────────────────────
-             */
-            const response = await fetch('/api/partner/inquiry', {
-              method: 'POST',
-              body: formData // 브라우저가 boundary를 자동으로 할당하여 Multipart 송신합니다.
-            });
-
-            if (!response.ok) throw new Error('서버 에러가 발생했습니다.');
-            const result = await response.json();
-
-            showResult('success', '✅ 문의가 성공적으로 접수되었습니다! 영업일 기준 2-3일 이내로 담당자가 연락드리겠습니다.');
-
-            // 양식 초기화 및 UI 리셋
-            document.getElementById('partnerForm').reset();
-            contentCount.textContent = '0';
-
-            // 파일 업로드 인풋 스타일 제거
-            document.querySelectorAll('.custom-file-input').forEach(function (el) {
-              el.classList.remove('has-file');
-            });
-            document.getElementById('wrapperEvent').querySelector('.file-text').textContent = '클릭하여 기획서(PPT, PDF, DOC) 첨부';
-            document.getElementById('wrapperFoodtruckLicense').querySelector('.file-text').textContent = '사업자등록증 첨부';
-            document.getElementById('wrapperFoodtruckMenu').querySelector('.file-text').textContent = '대표 이미지 첨부';
-            document.getElementById('wrapperGoodsLicense').querySelector('.file-text').textContent = '사업자등록증 첨부';
-            document.getElementById('wrapperGoodsMenu').querySelector('.file-text').textContent = '대표 이미지 첨부';
-
-            chips.forEach(function (c) { c.classList.remove('active'); });
-            document.querySelector('[data-type="EVENT"]').classList.add('active');
-            hiddenType.value = 'EVENT';
-            festivalSelectField.classList.add('hidden');
-
-            // 기본 이벤트 그룹만 표시
-            fileGroupEvent.classList.remove('hidden');
-            fileGroupFoodtruck.classList.add('hidden');
-            fileGroupGoods.classList.add('hidden');
-
-          } catch (err) {
-            console.error('[제휴 문의 API Multipart 전송 오류]', err);
-            showResult('error', '❌ 전송 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
-          } finally {
-            btn.disabled = false;
-            btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px;"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> 제휴 신청하기';
-          }
-        });
-      })();
-    </script>
 
   </main>
 

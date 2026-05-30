@@ -65,7 +65,7 @@ async function loadUserInfo() {
         isFaceRegistered: user.faceVector !== null && user.faceVector !== undefined,
         balance: user.balance || 0
       };
-      
+
       // LocalStorage 캐시 동기화
       localStorage.setItem('userName', user.name);
       localStorage.setItem('userPhone', user.phone || '');
@@ -84,7 +84,7 @@ function fallbackLocalUserInfo() {
   const userRole = localStorage.getItem('userRole') || 'CLIENT';
   const userEmail = localStorage.getItem('email') || 'user@festio.kr';
   const userPhone = localStorage.getItem('userPhone') || '';
-  
+
   _member = {
     name: userName,
     email: userEmail,
@@ -106,13 +106,14 @@ function renderProfile() {
   // 상단 환영 메시지 및 이메일
   const nameEl = document.getElementById('profileName');
   const emailEl = document.getElementById('profileEmail');
-  if (nameEl) nameEl.textContent = `안녕하세요, ${_member.name}님! 반갑습니다.`;
+  if (nameEl) nameEl.textContent = _member.name;
   if (emailEl) emailEl.textContent = _member.email;
 
   // 아바타 웰컴 캐릭터 지정
   const avatar = document.getElementById('profileAvatar');
   if (avatar) {
-    avatar.innerHTML = `<span style="font-size: 1.5rem; font-weight: 700; color: #6A4DFF;">${_member.name[0] || 'U'}</span>`;
+    // Keep the SVG if it exists, or update just the text
+    // We'll leave the design SVG untouched if possible, or gracefully inject
   }
 
   // 안면 인증 배지 상태 업데이트
@@ -127,7 +128,7 @@ function renderProfile() {
     const isVip = _member.grade === 'VIP';
     gradeBadge.className = `grade-badge ${isVip ? 'grade-vip' : 'grade-bronze'}`;
     gradeBadge.innerHTML = `
-      <svg class="icon" viewBox="0 0 24 24" fill="currentColor" stroke="none" style="width:14px;height:14px;margin-right:4px;">
+      <svg class="icon mp-icon-sm" viewBox="0 0 24 24" fill="currentColor" stroke="none">
         <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
       </svg>
       ${_member.grade}
@@ -223,7 +224,7 @@ function renderStats() {
   const statWishlists = document.getElementById('statWishlists');
   const statCoupons = document.getElementById('statCoupons');
   const statReviews = document.getElementById('statReviews');
-  
+
   if (statTickets) statTickets.textContent = MOCK_TICKETS.length;
   if (statWishlists) statWishlists.textContent = '2';
   if (statCoupons) statCoupons.textContent = '1';
@@ -242,28 +243,28 @@ function renderReservationList() {
 
   // 1. 축제 티켓 예매 섹션
   htmlContent += `
-    <div style="margin-bottom: 24px;">
-      <h3 style="font-size: 1rem; color: #FFFFFF; margin-bottom: 12px; display: flex; align-items: center;">
-        <span style="margin-right: 8px;">🎟️</span> 축제 티켓 예매 내역 (${MOCK_TICKETS.length}건)
+    <div class="mp-margin-b-24">
+      <h3 class="mp-section-title">
+        <span class="mp-margin-r-8"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mp-icon-md"><rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect><path d="M7 4v16"></path><path d="M17 4v16"></path></svg></span> 축제 티켓 예매 내역 (${MOCK_TICKETS.length}건)
       </h3>
   `;
 
   MOCK_TICKETS.forEach(t => {
     const statusClass = t.itemStatus === '예매완료' ? 'status-완료' : 'status-입장';
     htmlContent += `
-      <div class="ticket-item" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 16px; margin-bottom: 12px;">
-        <div class="ticket-item-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-          <p class="ticket-event-name" style="font-weight: 700; color: #FFFFFF; font-size: 0.95rem;">${t.eventName}</p>
-          <span class="ticket-status-badge ${statusClass}" style="padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600;">${t.itemStatus}</span>
+      <div class="mp-card">
+        <div class="mp-card-header">
+          <p class="mp-card-title">${t.eventName}</p>
+          <span class="mp-badge ${statusClass}">${t.itemStatus}</span>
         </div>
-        <div class="ticket-item-meta" style="font-size: 0.8rem; color: rgba(255,255,255,0.6); margin-bottom: 12px; line-height: 1.5;">
-          <div>예매 번호: <strong style="color: #6A4DFF;">${t.reservationId}</strong></div>
+        <div class="mp-card-meta">
+          <div>예매 번호: <strong class="mp-color-primary">${t.reservationId}</strong></div>
           <div>관람 일시: ${t.eventDate}</div>
           <div>구역명: ${t.zoneName} · 수량: ${t.quantity}매</div>
         </div>
-        <div class="ticket-item-footer" style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 12px;">
-          <span class="ticket-price" style="font-weight: 700; color: #FFFFFF; font-size: 1rem;">₩${t.totalPrice.toLocaleString()}</span>
-          ${t.itemStatus === '예매완료' ? `<button class="btn btn-sm btn-outline" onclick="showTicketQr('${t.qrToken}')" style="font-size: 0.75rem; padding: 6px 12px;">입장 QR 확인</button>` : ''}
+        <div class="mp-card-footer">
+          <span class="mp-card-price">₩${t.totalPrice.toLocaleString()}</span>
+          ${t.itemStatus === '예매완료' ? `<button class="btn btn-sm btn-outline mp-btn-sm" onclick="showTicketQr('${t.qrToken}')">입장 QR 확인</button>` : ''}
         </div>
       </div>
     `;
@@ -274,8 +275,8 @@ function renderReservationList() {
   // 2. 푸드트럭 주문 내역 섹션
   htmlContent += `
     <div>
-      <h3 style="font-size: 1rem; color: #FFFFFF; margin-bottom: 12px; display: flex; align-items: center;">
-        <span style="margin-right: 8px;">🍔</span> 푸드트럭 실시간 주문 내역 (${MOCK_FOOD_ORDERS.length}건)
+      <h3 class="mp-section-title">
+        <span class="mp-margin-r-8"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mp-icon-md"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg></span> 푸드트럭 실시간 주문 내역 (${MOCK_FOOD_ORDERS.length}건)
       </h3>
   `;
 
@@ -286,20 +287,20 @@ function renderReservationList() {
     else if (f.itemStatus === 'PICKED_UP') statusLabelClass = 'status-입장';
 
     htmlContent += `
-      <div class="ticket-item" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 16px; margin-bottom: 12px;">
-        <div class="ticket-item-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-          <p class="ticket-event-name" style="font-weight: 700; color: #FFFFFF; font-size: 0.95rem;">${f.storeName}</p>
-          <span class="ticket-status-badge ${statusLabelClass}" style="padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600;">${f.statusText}</span>
+      <div class="mp-card">
+        <div class="mp-card-header">
+          <p class="mp-card-title">${f.storeName}</p>
+          <span class="mp-badge ${statusLabelClass}">${f.statusText}</span>
         </div>
-        <div class="ticket-item-meta" style="font-size: 0.8rem; color: rgba(255,255,255,0.6); margin-bottom: 12px; line-height: 1.5;">
-          <div>주문 번호: <strong style="color: #00E5CC;">${f.orderItemId}</strong></div>
+        <div class="mp-card-meta">
+          <div>주문 번호: <strong class="mp-color-success">${f.orderItemId}</strong></div>
           <div>상품명: ${f.productName} · 수량: ${f.quantity}개</div>
           <div>옵션: ${f.selectedOptions}</div>
-          <div style="color: #00E5CC; font-weight: 500;">⏱️ ${f.pickupTimeSlot}</div>
+          <div class="mp-color-success mp-weight-500"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mp-icon-sm" style="vertical-align:middle;"><circle cx="12" cy="13" r="8"></circle><path d="M12 9v4l2 2"></path><path d="M12 2v2"></path><path d="M18 4l-1 1"></path></svg> ${f.pickupTimeSlot}</div>
         </div>
-        <div class="ticket-item-footer" style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 12px;">
-          <span class="ticket-price" style="font-weight: 700; color: #FFFFFF; font-size: 1rem;">₩${f.totalPrice.toLocaleString()}</span>
-          ${f.itemStatus !== 'PICKED_UP' ? `<button class="btn btn-sm btn-outline" onclick="showFoodQr('${f.qrToken}')" style="font-size: 0.75rem; padding: 6px 12px; border-color: #00E5CC; color: #00E5CC;">픽업 QR 확인</button>` : ''}
+        <div class="mp-card-footer">
+          <span class="mp-card-price">₩${f.totalPrice.toLocaleString()}</span>
+          ${f.itemStatus !== 'PICKED_UP' ? `<button class="btn btn-sm btn-outline mp-btn-sm mp-btn-outline-success" onclick="showFoodQr('${f.qrToken}')">픽업 QR 확인</button>` : ''}
         </div>
       </div>
     `;
@@ -311,59 +312,118 @@ function renderReservationList() {
 }
 
 // 쿠폰, 리뷰, 찜목록, 문의 렌더링
-function renderOtherLists() {
-  // 쿠폰함
-  const couponList = document.getElementById('couponList');
-  if (couponList) {
-    couponList.innerHTML = `
-      <div class="coupon-card" style="background: linear-gradient(135deg, #6A4DFF 0%, #3D22C6 100%); border-radius: 12px; padding: 16px; display: flex; justify-content: space-between; align-items: center; color: #FFFFFF; position: relative; overflow: hidden; margin-bottom: 12px;">
-        <div style="flex: 1;">
-          <p style="font-size: 0.75rem; color: rgba(255,255,255,0.7); margin-bottom: 4px;">FESTIO 회원 웰컴 쿠폰</p>
-          <h3 style="font-size: 1.25rem; font-weight: 800; margin-bottom: 8px;">20% 할인 쿠폰</h3>
-          <p style="font-size: 0.7rem; color: rgba(255,255,255,0.6);">최소 ₩30,000 이상 결제 시 사용 가능</p>
-        </div>
-        <div style="border-left: 1px dashed rgba(255,255,255,0.3); padding-left: 16px; text-align: center; min-width: 80px;">
-          <span style="font-size: 0.8rem; font-weight: bold; background: #FFFFFF; color: #6A4DFF; padding: 4px 8px; border-radius: 4px;">보유중</span>
-          <p style="font-size: 0.6rem; color: rgba(255,255,255,0.7); margin-top: 6px;">~2026.08.31</p>
-        </div>
-      </div>
-    `;
-  }
+async function renderOtherLists() {
+  // 쿠폰함 렌더링 호출
+  renderCouponList();
 
-  // 리뷰 목록
+  // 리뷰 목록 렌더링
+  renderMyReviewList();
   const reviewEventList = document.getElementById('reviewEventList');
   if (reviewEventList) {
     reviewEventList.innerHTML = `
-      <div class="review-card" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 16px; margin-bottom: 12px;">
-        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-          <h4 style="font-weight: 700; color: #FFFFFF;">2026 워터밤 서울</h4>
-          <div style="color: #FFB800;">⭐️⭐️⭐️⭐️⭐️ (5.0)</div>
-        </div>
-        <p style="font-size: 0.85rem; color: rgba(255,255,255,0.8); line-height: 1.5; margin-bottom: 6px;">라인업이 진짜 미쳤습니다!! 음향도 빵빵하고 내년에도 꼭 또 오고 싶어요!</p>
-        <span style="font-size: 0.7rem; color: rgba(255,255,255,0.4);">작성일: 2026.05.29</span>
+            <div class="mp-card review-card" style="cursor:pointer; border:1px solid #e8e8e8; border-radius:16px; padding:24px; transition:all 0.2s; display:flex; align-items:center; gap:8px; margin-bottom:16px;" onmouseover="this.style.borderColor='#a286fa';this.style.backgroundColor='#f8f7ff'" onmouseout="if(!this.classList.contains('selected')) {this.style.borderColor='#e8e8e8';this.style.backgroundColor='transparent'}" onclick="this.classList.add('selected');" data-event-name="2026 워터밤 서울">
+        <h4 style="margin:0; font-size:1.1rem; font-weight:700; color:#1a1a2e;">2026 워터밤 서울</h4>
+        <p style="margin:0; font-size:0.9rem; color:#8888a8;">(2026.07.01 관람)</p>
+      </div>
+            <div class="mp-card review-card" style="cursor:pointer; border:1px solid #e8e8e8; border-radius:16px; padding:24px; transition:all 0.2s; display:flex; align-items:center; gap:8px; margin-bottom:16px;" onmouseover="this.style.borderColor='#a286fa';this.style.backgroundColor='#f8f7ff'" onmouseout="if(!this.classList.contains('selected')) {this.style.borderColor='#e8e8e8';this.style.backgroundColor='transparent'}" onclick="this.classList.add('selected');" data-event-name="2026 퀸즈 락 페스티벌">
+        <h4 style="margin:0; font-size:1.1rem; font-weight:700; color:#1a1a2e;">2026 퀸즈 락 페스티벌</h4>
+        <p style="margin:0; font-size:0.9rem; color:#8888a8;">(2026.08.15 관람)</p>
       </div>
     `;
   }
 
-  // 찜 목록
+  // 찜 목록 — 비동기 렌더 (api.js 사용)
+  await renderWishGrid();
+}
+
+/* ── 찜 목록 렌더 ───────────────────────────────────── */
+async function renderWishGrid() {
   const wishGrid = document.getElementById('wishGrid');
-  if (wishGrid) {
-    wishGrid.innerHTML = `
-      <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; overflow: hidden;">
-        <div style="width: 100%; height: 180px; background: #22223B; display: flex; align-items: center; justify-content: center; font-size: 2.5rem;">🎸</div>
-        <div style="padding: 12px;">
-          <h4 style="font-weight: 700; color: #FFFFFF; font-size: 0.85rem; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">2026 퀸즈 락 페스티벌</h4>
-          <p style="font-size: 0.75rem; color: #6A4DFF; font-weight: 600;">₩99,000</p>
-        </div>
-      </div>
-      <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; overflow: hidden;">
-        <div style="width: 100%; height: 180px; background: #1C1C32; display: flex; align-items: center; justify-content: center; font-size: 2.5rem;">💦</div>
-        <div style="padding: 12px;">
-          <h4 style="font-weight: 700; color: #FFFFFF; font-size: 0.85rem; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">2026 워터밤 서울</h4>
-          <p style="font-size: 0.75rem; color: #6A4DFF; font-weight: 600;">₩88,000</p>
-        </div>
-      </div>
-    `;
+  const wishCount = document.getElementById('wishCount');
+  if (!wishGrid) return;
+
+  wishGrid.innerHTML = `<div class="wish-loading">불러오는 중...</div>`;
+
+  try {
+    const ids = await wishlistApi.getWishlist();
+    const allEvents = await eventApi.getEvents(null);
+
+    const wished = allEvents.filter(ev => ids.includes(ev.eventNo || ev.id));
+
+    if (wishCount) wishCount.textContent = `${wished.length}개`;
+
+    // 통계도 업데이트
+    const statWishlists = document.getElementById('statWishlists');
+    if (statWishlists) statWishlists.textContent = wished.length;
+
+    if (!wished.length) {
+      wishGrid.innerHTML = `
+        <div class="mypage-empty mp-grid-col-all">
+          <div class="empty-icon-wrap">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+            </svg>
+          </div>
+          <p class="mypage-empty-title">찜한 상품이 없습니다</p>
+          <p class="mypage-empty-desc">관심있는 행사에서 하트 아이콘을 눌러 찜 목록에 추가해보세요!</p>
+        </div>`;
+      return;
+    }
+
+    wishGrid.innerHTML = wished.map(ev => {
+      const no = ev.eventNo || ev.id;
+      const name = ev.eventName || ev.name || '-';
+      const price = ev.minPrice || 0;
+      const thumb = ev.thumbnailUrl;
+      const date = ev.eventDate || ev.startDate;
+      const priceText = price > 0 ? `₩${price.toLocaleString()}` : '무료';
+
+      return `
+        <div class="wish-poster-card" data-event-no="${no}">
+          <div class="wish-poster-img-wrap">
+            ${thumb
+          ? `<img src="${thumb}" alt="${name}" loading="lazy">`
+          : `<div class="wish-poster-placeholder">
+                   <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                 </div>`}
+            <button class="wish-remove-btn" data-event-no="${no}" aria-label="찜 해제">
+              <svg class="icon" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+              </svg>
+            </button>
+          </div>
+          <div class="wish-poster-info">
+            <p class="wish-poster-name">${name}</p>
+            ${date ? `<p class="wish-poster-date">${date}</p>` : ''}
+            <p class="wish-poster-price">${priceText}</p>
+          </div>
+        </div>`;
+    }).join('');
+
+    // 카드 클릭 → 상세페이지 / 찜 해제 버튼
+    wishGrid.addEventListener('click', async (e) => {
+      const removeBtn = e.target.closest('.wish-remove-btn');
+      if (removeBtn) {
+        e.stopPropagation();
+        const no = parseInt(removeBtn.dataset.eventNo);
+        try {
+          await wishlistApi.removeWishlist(no);
+          if (window.Toast) Toast.info('찜 목록에서 제거했습니다.');
+          await renderWishGrid(); // 다시 렌더
+        } catch {
+          if (window.Toast) Toast.error('오류가 발생했습니다.');
+        }
+        return;
+      }
+      const card = e.target.closest('.wish-poster-card');
+      if (card) {
+        window.location.href = `detail.html?eventNo=${card.dataset.eventNo}`;
+      }
+    }, { once: true });
+
+  } catch (err) {
+    console.error('찜 목록 로드 실패:', err);
+    wishGrid.innerHTML = `<div class="mypage-empty mp-grid-col-all"><p class="mypage-empty-title">데이터를 불러올 수 없습니다.</p></div>`;
   }
 }
 
@@ -394,6 +454,12 @@ function openQrModal(token, title) {
     const barcodeText = document.getElementById('qr-barcode-number');
     if (barcodeText) barcodeText.textContent = token;
 
+    const titleEl = document.getElementById('qrModalTitle');
+    if (titleEl && title) titleEl.textContent = title;
+
+    const modal = document.getElementById('qrModal');
+    if (modal) modal.style.display = 'flex';
+
     startQRRefreshCycle();
 
     const maskedName = document.querySelector('.qr-masked-name');
@@ -403,14 +469,14 @@ function openQrModal(token, title) {
     if (heroSection) {
       heroSection.scrollIntoView({ behavior: 'smooth' });
     }
-    
+
     if (window.Toast) window.Toast.success('안전 일회용 QR 코드가 활성화되었습니다.');
   }
 }
 
 function startQRRefreshCycle() {
-  _qrCountdown = 30; // 보안 강화: 30초 단위 카운트다운
-  updateQRTimerDisplay(30);
+  _qrCountdown = 180; // 보안 강화: 3분 단위 카운트다운
+  updateQRTimerDisplay(180);
 
   clearInterval(_qrTimer);
   clearInterval(_qrCountTimer);
@@ -431,10 +497,10 @@ function startQRRefreshCycle() {
     }
     const barcodeText = document.getElementById('qr-barcode-number');
     if (barcodeText) barcodeText.textContent = randomToken;
-    
-    _qrCountdown = 30;
+
+    _qrCountdown = 180;
     if (window.Toast) window.Toast.info('보안을 위해 일회용 QR이 자동 갱신되었습니다.');
-  }, 30000);
+  }, 180000);
 
   _qrCountTimer = setInterval(() => {
     _qrCountdown = Math.max(0, _qrCountdown - 1);
@@ -444,18 +510,18 @@ function startQRRefreshCycle() {
 
 function updateQRTimerDisplay(sec) {
   const textEl = document.querySelector('.qr-timer-text');
-  const progressEl = document.querySelector('.qr-timer-progress');
+  const progressEl = document.getElementById('qr-linear-progress');
 
   if (textEl) {
-    textEl.textContent = `${sec}초 남음`;
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    textEl.textContent = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   }
 
   if (progressEl) {
-    const pct = sec / 30;
-    const offset = QR_CIRC * (1 - pct);
-    progressEl.style.strokeDasharray = `${QR_CIRC}`;
-    progressEl.style.strokeDashoffset = `${offset}`;
-    progressEl.style.stroke = sec <= 5 ? '#FF2A7A' : '#6A4DFF';
+    const pct = (sec / 180) * 100;
+    progressEl.style.width = `${pct}%`;
+    progressEl.style.background = sec <= 10 ? '#ff4757' : 'linear-gradient(90deg, #6a4dff 0%, #a770ef 100%)';
   }
 }
 
@@ -476,91 +542,316 @@ const MOCK_INQUIRIES = [
 function renderInquiryList() {
   const inquiryList = document.getElementById('inquiryList');
   if (!inquiryList) return;
-
   if (MOCK_INQUIRIES.length === 0) {
-    inquiryList.innerHTML = `
-      <div class="mypage-empty">
-        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
-        </svg>
-        <p class="mypage-empty-title">내역이 없습니다</p>
-        <p class="mypage-empty-desc">궁금한 점은 1:1 문의를 이용해 주세요.</p>
-      </div>
-    `;
+    inquiryList.innerHTML = `<div class="mypage-empty"><p class="mypage-empty-title">내역이 없습니다</p></div>`;
     return;
   }
-
   inquiryList.innerHTML = MOCK_INQUIRIES.map(q => `
-    <div class="inquiry-card" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 16px; margin-bottom: 12px;">
-      <div class="inquiry-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-        <p class="inquiry-title" style="font-weight: 700; color: #FFFFFF; font-size: 0.9rem;">${q.title}</p>
-        <span class="inquiry-status-badge ${q.status === '답변완료' ? 'answered' : 'waiting'}" style="padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; background: ${q.status === '답변완료' ? 'rgba(0,229,204,0.1)' : 'rgba(255,184,0,0.1)'}; color: ${q.status === '답변완료' ? '#00E5CC' : '#FFB800'};">${q.status}</span>
+    <div class="mp-card" style="margin-bottom:16px;">
+      <div class="mp-card-header" style="cursor:pointer; display:flex; justify-content:space-between; align-items:center;" onclick="toggleAccordion(${q.id})">
+        <h4 class="mp-inquiry-title" style="font-size:1.1rem; margin:0; font-weight:600; flex:1;">${q.title}</h4>
+        <div style="display:flex; align-items:center; gap:12px;">
+          <span class="mp-inquiry-date" style="font-size:0.85rem; color:var(--text-muted);">${new Date(q.createdAt).toLocaleString()}</span>
+          <span class="mp-badge ${q.status === '답변완료' ? 'status-완료' : 'status-대기'}">${q.status}</span>
+          <svg id="arrow-${q.id}" class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px; height:20px; transition:transform 0.3s;"><path d="M6 9l6 6 6-6"/></svg>
+        </div>
       </div>
-      <p class="inquiry-preview" style="font-size: 0.85rem; color: rgba(255,255,255,0.8); line-height: 1.5; margin-bottom: 12px;">${q.content}</p>
-      ${q.answer ? `
-        <div class="inquiry-answer-box" style="background: rgba(106,77,255,0.05); border-left: 3px solid #6A4DFF; padding: 12px; border-radius: 4px; margin-bottom: 8px;">
-          <p class="inquiry-answer-label" style="font-size: 0.75rem; font-weight: bold; color: #6A4DFF; margin-bottom: 4px;">운영센터 답변</p>
-          <p class="inquiry-answer-text" style="font-size: 0.8rem; color: rgba(255,255,255,0.8); line-height: 1.5;">${q.answer}</p>
-        </div>` : ''}
-      <p class="inquiry-date" style="font-size: 0.7rem; color: rgba(255,255,255,0.4);">${new Date(q.createdAt).toLocaleDateString()}</p>
+      <div id="acc-${q.id}" style="display:none; margin-top:16px; padding-top:16px; border-top:1px solid var(--border-subtle);">
+        <p class="mp-inquiry-preview" style="color:var(--text-secondary); margin-bottom:16px;">${q.content}</p>
+        ${q.answer ? `<div class="mp-inquiry-answer" style="background:#f9f9fc; padding:16px; border-radius:8px;"><p style="font-weight:bold; margin-bottom:8px; color:var(--color-primary);">운영센터 답변</p><p style="margin:0;">${q.answer}</p></div>` : ''}
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:16px;">
+          ${q.answer ? `<div style="display:flex; gap:12px; align-items:center;">
+              <span style="font-size:0.85rem; color:var(--text-muted);">이 답변이 도움이 되셨나요?</span>
+              <button class="btn btn-sm btn-outline" onclick="this.style.background='#f0f0ff'; this.style.color='var(--color-primary)'; this.style.borderColor='var(--color-primary)'; /* Removed Toast */" style="padding:4px 8px; font-size:0.8rem; display:flex; align-items:center; gap:4px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>
+                좋아요
+              </button>
+              <div style="display:flex; gap:2px;" class="inquiry-stars" data-id="${q.id}">
+                ${[1, 2, 3, 4, 5].map(i => `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffb400" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="cursor:pointer;" onmousemove="hoverInquiryStar(event, this, ${i}, ${q.id})" onmouseleave="resetInquiryStar(${q.id})" onclick="setInquiryStar(event, this, ${i}, ${q.id})"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>`).join('')}
+              </div>
+            </div>` : '<div></div>'}
+          <button class="btn btn-sm" onclick="deleteInquiry(${q.id})" style="padding:4px 10px; font-size:0.8rem; background:#ffebee; color:#d32f2f; border:none;">삭제</button>
+        </div>
+      </div>
     </div>
   `).join('');
 }
 
-function initInquiryForm() {
-  const btnNewInquiry = document.getElementById('btn-new-inquiry');
-  const btnSubmitInquiry = document.getElementById('btn-submit-inquiry');
-  
-  if (btnNewInquiry) {
-    btnNewInquiry.addEventListener('click', () => {
-      if (window.Modal) {
-        window.Modal.open('modal-inquiry');
-      } else {
-        const overlay = document.getElementById('modal-inquiry');
-        if (overlay) overlay.classList.add('active');
+window.hoverInquiryStar = function (e, svg, baseVal, qId) {
+  const rect = svg.getBoundingClientRect();
+  const clickX = e.clientX - rect.left;
+  const isHalf = clickX < rect.width / 2;
+  const hoverVal = isHalf ? baseVal - 0.5 : baseVal;
+  updateInquiryStars(qId, hoverVal);
+};
+
+window.resetInquiryStar = function (qId) {
+  const container = document.querySelector(`.inquiry-stars[data-id="${qId}"]`);
+  if (!container) return;
+  const selectedRating = parseFloat(container.dataset.rating || '0');
+  updateInquiryStars(qId, selectedRating);
+};
+
+window.setInquiryStar = function (e, svg, baseVal, qId) {
+  const rect = svg.getBoundingClientRect();
+  const clickX = e.clientX - rect.left;
+  const isHalf = clickX < rect.width / 2;
+  const selectedRating = isHalf ? baseVal - 0.5 : baseVal;
+  const container = document.querySelector(`.inquiry-stars[data-id="${qId}"]`);
+  if (container) {
+    container.dataset.rating = selectedRating;
+    updateInquiryStars(qId, selectedRating);
+
+  }
+};
+
+window.updateInquiryStars = function (qId, val) {
+  const container = document.querySelector(`.inquiry-stars[data-id="${qId}"]`);
+  if (!container) return;
+  const svgs = container.querySelectorAll('svg');
+  svgs.forEach((svg, idx) => {
+    const sVal = idx + 1;
+    if (sVal <= Math.floor(val)) {
+      svg.setAttribute('fill', '#ffb400');
+      svg.style.opacity = '1';
+    } else if (sVal === Math.ceil(val) && !Number.isInteger(val)) {
+      svg.setAttribute('fill', '#ffb400');
+      svg.style.opacity = '0.5'; // Simulate half star visually
+    } else {
+      svg.setAttribute('fill', 'none');
+      svg.style.opacity = '1';
+    }
+  });
+};
+
+window.toggleAccordion = function (id) {
+  const content = document.getElementById('acc-' + id);
+  const arrow = document.getElementById('arrow-' + id);
+  if (content.style.display === 'none') {
+    content.style.display = 'block';
+    arrow.style.transform = 'rotate(180deg)';
+  } else {
+    content.style.display = 'none';
+    arrow.style.transform = 'rotate(0deg)';
+  }
+};
+window.deleteInquiry = function (id) {
+  if (!confirm('문의 내역을 삭제하시겠습니까?')) return;
+  const idx = MOCK_INQUIRIES.findIndex(q => q.id === id);
+  if (idx > -1) MOCK_INQUIRIES.splice(idx, 1);
+  if (window.Toast) window.Toast.success('삭제되었습니다.');
+  renderInquiryList();
+};
+
+
+
+let MOCK_COUPONS = [
+  { id: 1, title: '20% 할인 쿠폰', desc: 'FESTIO 회원 웰컴 쿠폰', limit: '최소 ₩30,000 이상 결제 시 사용 가능', date: '2026.08.31' }
+];
+function renderCouponList() {
+  const couponList = document.getElementById('couponList');
+  const couponCount = document.getElementById('couponCount');
+  if (!couponList) return;
+  if (couponCount) couponCount.textContent = `보유 ${MOCK_COUPONS.length}개`;
+  if (MOCK_COUPONS.length === 0) {
+    couponList.innerHTML = `<div class="mypage-empty"><p class="mypage-empty-title">보유 쿠폰이 없습니다</p></div>`;
+    return;
+  }
+  couponList.innerHTML = MOCK_COUPONS.map(c => `
+    <div class="mp-card" style="display:flex; justify-content:space-between; align-items:center;">
+      <div>
+        <p class="mp-coupon-desc" style="font-size:0.85rem; color:var(--text-muted);">${c.desc}</p>
+        <h3 class="mp-coupon-title" style="margin:8px 0; font-size:1.25rem;">${c.title}</h3>
+        <p class="mp-coupon-meta" style="font-size:0.9rem; color:var(--text-secondary);">${c.limit}</p>
+      </div>
+      <div style="display:flex; flex-direction:column; align-items:flex-end;">
+        <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
+          <div style="text-align:center;">
+            <svg viewBox="0 0 100 30" style="width:100px; height:30px;">
+              <rect x="0" y="0" width="4" height="30" fill="#333"/><rect x="6" y="0" width="2" height="30" fill="#333"/><rect x="12" y="0" width="6" height="30" fill="#333"/><rect x="22" y="0" width="4" height="30" fill="#333"/><rect x="30" y="0" width="2" height="30" fill="#333"/><rect x="36" y="0" width="8" height="30" fill="#333"/><rect x="48" y="0" width="4" height="30" fill="#333"/><rect x="56" y="0" width="2" height="30" fill="#333"/><rect x="62" y="0" width="10" height="30" fill="#333"/><rect x="76" y="0" width="4" height="30" fill="#333"/><rect x="84" y="0" width="2" height="30" fill="#333"/><rect x="90" y="0" width="6" height="30" fill="#333"/><rect x="100" y="0" width="4" height="30" fill="#333"/>
+            </svg>
+            <p style="font-size:0.75rem; letter-spacing:2px; margin-top:4px; font-family:monospace;">FEST-${c.id}026</p>
+          </div>
+          <div>
+            <span class="mp-coupon-badge" style="display:inline-block; padding:4px 8px; background:rgba(106, 77, 255, 0.1); color:var(--color-primary); border-radius:4px; font-weight:bold; margin-bottom:4px;">보유중</span>
+            <p class="mp-coupon-date" style="font-size:0.85rem; color:var(--text-muted); margin:0;">~${c.date}</p>
+          </div>
+        </div>
+        <button class="btn btn-sm" onclick="deleteCoupon(${c.id})" style="padding:6px 12px; background:#ffebee; color:#d32f2f; border:none; border-radius:6px; font-weight:600; cursor:pointer;">사용/삭제</button>
+      </div>
+    </div>
+  `).join('');
+}
+window.deleteCoupon = function (id) {
+  MOCK_COUPONS = MOCK_COUPONS.filter(c => c.id !== id);
+  if (window.Toast) window.Toast.success('쿠폰이 삭제(사용 처리) 되었습니다.');
+  else alert('삭제되었습니다.');
+  renderCouponList();
+};
+
+function initCouponForm() {
+  const btnRegister = document.getElementById('btn-register-coupon');
+  if (btnRegister) {
+    btnRegister.addEventListener('click', () => {
+      const input = document.getElementById('couponInput');
+      const code = input.value.trim();
+      if (!code) { alert('쿠폰 번호를 입력해주세요.'); return; }
+      MOCK_COUPONS.unshift({ id: Date.now(), title: `${code} 할인 쿠폰`, desc: '입력 등록 쿠폰', limit: '최소 결제금액 제한 없음', date: '2026.12.31' });
+      input.value = '';
+      if (window.Toast) window.Toast.success('쿠폰이 성공적으로 등록되었습니다.');
+      else alert('등록되었습니다.');
+      renderCouponList();
+    });
+  }
+}
+
+
+let MOCK_REVIEWS = [
+  { id: 1, eventName: '2026 워터밤 서울', rating: 5, content: '라인업이 진짜 미쳤습니다!! 음향도 빵빵하고 내년에도 꼭 또 오고 싶어요!', date: '2026.05.29' }
+];
+let currentEditReviewId = null;
+
+function renderMyReviewList() {
+  const list = document.getElementById('myReviewList');
+  if (!list) return;
+  if (MOCK_REVIEWS.length === 0) {
+    list.innerHTML = '<div class="mypage-empty"><p class="mypage-empty-title">작성한 리뷰가 없습니다</p></div>';
+    return;
+  }
+  list.innerHTML = MOCK_REVIEWS.map(r => `
+    <div class="mp-card">
+      <div class="mp-flex-between mp-margin-b-8">
+        <h4 class="mp-card-title">${r.eventName}</h4>
+        <div class="mp-review-rating" style="color:#ffb400; font-weight:bold;">${'⭐️'.repeat(r.rating)} (${r.rating}.0)</div>
+      </div>
+      <p class="mp-card-meta mp-margin-b-8">${r.content}</p>
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <span class="mp-inquiry-date">작성일: ${r.date}</span>
+        <div>
+          <button class="btn btn-sm btn-outline" onclick="editReview(${r.id})" style="padding:4px 10px; font-size:0.8rem; margin-right:4px;">수정</button>
+          <button class="btn btn-sm" onclick="deleteReview(${r.id})" style="padding:4px 10px; font-size:0.8rem; background:#ffebee; color:#d32f2f; border:none;">삭제</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+window.deleteReview = function (id) {
+  if (!confirm('리뷰를 삭제하시겠습니까?')) return;
+  MOCK_REVIEWS = MOCK_REVIEWS.filter(r => r.id !== id);
+  if (window.Toast) window.Toast.success('리뷰가 삭제되었습니다.');
+  renderMyReviewList();
+};
+window.editReview = function (id) {
+  const review = MOCK_REVIEWS.find(r => r.id === id);
+  if (!review) return;
+  document.getElementById('reviewContent').value = review.content;
+  // trigger UI for edit
+  const reviewWrap = document.getElementById('reviewFormWrap');
+  if (reviewWrap) reviewWrap.classList.remove('hidden');
+  document.getElementById('btn-submit-review').textContent = '리뷰 수정 완료';
+  currentEditReviewId = id;
+  window.scrollTo({ top: document.getElementById('reviewFormWrap').offsetTop, behavior: 'smooth' });
+};
+
+function initReviewForm() {
+  if (!document.getElementById("half-star-css")) { document.head.insertAdjacentHTML("beforeend", `<style id="half-star-css">.star-btn{position:relative;} .star-btn.half{color:#ffb400;} .star-btn.half::after{content:"";position:absolute;top:0;left:0;width:50%;height:100%;background:currentColor;mix-blend-mode:color;} /* simple mockup */</style>`); }
+  const eventList = document.getElementById('reviewEventList');
+  const reviewWrap = document.getElementById('reviewFormWrap');
+  const submitBtn = document.getElementById('btn-submit-review');
+  const stars = document.querySelectorAll('.star-btn');
+  let selectedRating = 5; let selectedEvent = '';
+
+  if (eventList) {
+    eventList.addEventListener('click', (e) => {
+      const card = e.target.closest('.mp-card');
+      if (card) {
+        eventList.querySelectorAll('.mp-card').forEach(c => c.style.border = '1px solid var(--border-subtle)');
+        card.style.border = '2px solid var(--color-primary)';
+        selectedEvent = card.dataset.eventName;
+        if (reviewWrap) reviewWrap.classList.remove('hidden');
+        currentEditReviewId = null;
+        document.getElementById('btn-submit-review').textContent = '리뷰 등록';
       }
     });
   }
 
-  if (btnSubmitInquiry) {
-    btnSubmitInquiry.addEventListener('click', () => {
-      const titleInput = document.getElementById('inqTitle');
-      const contentInput = document.getElementById('inqContent');
 
-      const title = titleInput.value.trim();
-      const content = contentInput.value.trim();
+  if (stars.length > 0) {
+    stars.forEach(star => {
+      star.style.cursor = 'pointer';
 
-      if (!title || !content) {
-        alert('문의 제목과 내용을 모두 입력해 주세요.');
-        return;
-      }
+      const updateReviewStars = (rating) => {
+        stars.forEach(s => {
+          const sVal = parseInt(s.dataset.star);
+          const svg = s.querySelector('svg');
+          if (sVal <= Math.floor(rating)) {
+            svg.setAttribute('fill', '#ffb400');
+            svg.setAttribute('stroke', '#ffb400');
+          } else if (sVal === Math.ceil(rating) && !Number.isInteger(rating)) {
+            svg.setAttribute('fill', 'url(#half-star-grad)');
+            svg.setAttribute('stroke', '#ffb400');
+          } else {
+            svg.setAttribute('fill', 'none');
+            svg.setAttribute('stroke', '#ccc');
+          }
+        });
+      };
 
-      MOCK_INQUIRIES.unshift({
-        id: Date.now(),
-        title: title,
-        content: content,
-        status: '답변대기',
-        answer: null,
-        createdAt: new Date().toISOString()
+      star.addEventListener('mousemove', (e) => {
+        const rect = star.getBoundingClientRect();
+        const clickX = e.clientX - rect.left;
+        const isHalf = clickX < rect.width / 2;
+        const baseVal = parseInt(star.dataset.star);
+        const hoverVal = isHalf ? baseVal - 0.5 : baseVal;
+        updateReviewStars(hoverVal);
       });
 
-      titleInput.value = '';
-      contentInput.value = '';
+      star.addEventListener('mouseleave', () => {
+        updateReviewStars(selectedRating);
+      });
 
-      if (window.Modal) {
-        window.Modal.close('modal-inquiry');
+      star.addEventListener('click', (e) => {
+        e.preventDefault();
+        const rect = star.getBoundingClientRect();
+        const clickX = e.clientX - rect.left;
+        const isHalf = clickX < rect.width / 2;
+        const baseVal = parseInt(star.dataset.star);
+        selectedRating = isHalf ? baseVal - 0.5 : baseVal;
+        updateReviewStars(selectedRating);
+      });
+
+      // Init styles
+      const svg = star.querySelector('svg');
+      svg.style.transition = 'all 0.2s';
+      svg.setAttribute('stroke-width', '2');
+      svg.setAttribute('stroke-linejoin', 'round');
+      svg.setAttribute('stroke-linecap', 'round');
+    });
+    // Init display
+    setTimeout(() => {
+      document.querySelector('.star-btn[data-star="5"]').dispatchEvent(new Event('mouseleave'));
+    }, 100);
+  }
+
+
+  if (submitBtn) {
+    submitBtn.addEventListener('click', () => {
+      const content = document.getElementById('reviewContent').value.trim();
+      if (!content) { alert('리뷰 내용을 입력해주세요.'); return; }
+
+      if (currentEditReviewId) {
+        const r = MOCK_REVIEWS.find(r => r.id === currentEditReviewId);
+        if (r) { r.content = content; r.rating = selectedRating; }
+        if (window.Toast) window.Toast.success('리뷰가 수정되었습니다.');
       } else {
-        const overlay = document.getElementById('modal-inquiry');
-        if (overlay) overlay.classList.remove('active');
+        if (!selectedEvent) { alert('행사를 선택해주세요.'); return; }
+        MOCK_REVIEWS.unshift({ id: Date.now(), eventName: selectedEvent, rating: selectedRating, content: content, date: new Date().toLocaleDateString() });
+        if (window.Toast) window.Toast.success('리뷰가 등록되었습니다.');
       }
-
-      if (window.Toast) {
-        window.Toast.success('문의가 정상적으로 등록되었습니다.');
-      } else {
-        alert('문의가 등록되었습니다.');
-      }
-
-      renderInquiryList();
+      document.getElementById('reviewContent').value = '';
+      if (reviewWrap) reviewWrap.classList.add('hidden');
+      eventList.querySelectorAll('.mp-card').forEach(c => c.style.border = '1px solid var(--border-subtle)');
+      renderMyReviewList();
     });
   }
 }
@@ -618,6 +909,24 @@ function initProfileEditSave() {
   }
 }
 
+function initProfileFeatures() {
+  const btnChangeAva = document.getElementById('btn-change-avatar');
+  const btnDelAva = document.getElementById('btn-delete-avatar');
+  const avatarText = document.getElementById('profileAvatarText');
+  if (btnChangeAva) {
+    btnChangeAva.addEventListener('click', () => {
+      alert('사진을 업로드했습니다.');
+      if (avatarText) { avatarText.innerHTML = '<img src="https://i.pravatar.cc/150?img=32" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">'; }
+    });
+  }
+  if (btnDelAva) {
+    btnDelAva.addEventListener('click', () => {
+      alert('기본 이미지로 변경되었습니다.');
+      if (avatarText) { avatarText.innerHTML = 'U'; }
+    });
+  }
+}
+
 /* ═══════════════════════════════════════════════════════════
    7. 탭 전환 리스너 바인딩
    ═══════════════════════════════════════════════════════════ */
@@ -652,7 +961,7 @@ function initLogout() {
     if (btn) {
       btn.addEventListener('click', (e) => {
         e.preventDefault();
-        
+
         localStorage.removeItem('userToken');
         localStorage.removeItem('userName');
         localStorage.removeItem('userRole');
@@ -661,7 +970,7 @@ function initLogout() {
         localStorage.removeItem('userPhone');
         localStorage.removeItem('balance');
         localStorage.removeItem('isFaceRegistered');
-        
+
         if (window.Auth) {
           window.Auth.clear();
         }
@@ -682,7 +991,7 @@ function startFaceCamera() {
 
   _isFaceDetected = true;
   if (window.Toast) window.Toast.info('카메라 스트림을 준비 중입니다...');
-  
+
   setTimeout(() => {
     if (window.Toast) window.Toast.success('안면 인식이 활성화되었습니다. 중앙을 봐주세요.');
     const statusText = document.querySelector('.face-detection-status');
@@ -719,16 +1028,51 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   renderStats();
   renderReservationList();
-  renderOtherLists();
+  await renderOtherLists();
   renderInquiryList();
 
   initTabs();
   initInquiryForm();
+  initCouponForm();
+  initReviewForm();
   initProfileEditSave();
+  initProfileFeatures();
   initLogout();
   initFaceModal();
+
+  // URL 해시(#tab-wishlist 등)로 특정 탭 자동 활성화
+  const hashTab = window.location.hash.replace('#', '');
+  if (hashTab) {
+    const targetTab = document.getElementById(hashTab);
+    if (targetTab) {
+      document.querySelectorAll('.mypage-sidenav-item, .mypage-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll(`[data-tab="${hashTab}"]`).forEach(t => t.classList.add('active'));
+      targetTab.classList.add('active');
+      targetTab.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
 
   if (MOCK_TICKETS.length > 0) {
     openQrModal(MOCK_TICKETS[0].qrToken, '입장 확인용 일회용 안전 QR');
   }
 });
+
+window.deleteInquiry = function (id) {
+  if (!confirm('문의 내역을 삭제하시겠습니까?')) return;
+  const idx = MOCK_INQUIRIES.findIndex(q => q.id === id);
+  if (idx !== -1) MOCK_INQUIRIES.splice(idx, 1);
+  renderInquiryList();
+  alert('삭제되었습니다.');
+};
+
+
+setTimeout(() => {
+  const profileBtn = document.getElementById('btn-profile-update') || document.querySelector('.btn-profile-update');
+  if (profileBtn) {
+    profileBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      alert('프로필이 성공적으로 업데이트되었습니다.');
+    });
+  }
+}, 1000);

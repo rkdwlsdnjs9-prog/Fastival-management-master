@@ -14,7 +14,7 @@ let _currentCat = 'all';
 let _wishlist = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
-  // Parse query string for category
+  // 카테고리를 위한 쿼리 문자열 파싱
   const urlParams = new URLSearchParams(window.location.search);
   const catParam = urlParams.get('category');
   if (catParam && CATEGORIES.some(c => c.key === catParam)) {
@@ -91,7 +91,7 @@ function renderCategoryTabs() {
     if (cat === _currentCat) return;
     _currentCat = cat;
 
-    // Update URL without reload
+    // 페이지 새로고침 없이 URL 업데이트
     const url = new URL(window.location);
     url.searchParams.set('category', cat);
     window.history.pushState({}, '', url);
@@ -182,14 +182,21 @@ function renderBentoGrid() {
 }
 
 async function toggleWish(btn) {
-  const eventNo = btn.dataset.eventNo;
+  const eventNo = parseInt(btn.dataset.eventNo);
   const isActive = btn.classList.contains('active');
 
   if (isActive) {
     const success = await wishlistApi.removeWishlist(eventNo);
-    if (success) btn.classList.remove('active');
+    if (success) {
+      btn.classList.remove('active');
+      if (window.Toast) Toast.info('찜 목록에서 제거했습니다.');
+    }
   } else {
     const success = await wishlistApi.addWishlist(eventNo);
-    if (success) btn.classList.add('active');
+    if (success) {
+      btn.classList.add('active');
+      if (window.Toast) Toast.success('찜 목록에 추가했습니다. 마이페이지로 이동합니다.');
+      setTimeout(() => { window.location.href = 'mypage.html#tab-wishlist'; }, 900);
+    }
   }
 }

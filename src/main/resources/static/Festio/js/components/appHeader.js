@@ -47,8 +47,8 @@
   let headerHtml = '';
 
   // 4. 로그인 및 권한 상태 확인
-  const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true' || !!localStorage.getItem('userToken');
-  const userRole = localStorage.getItem('userRole') || 'CLIENT';
+  const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true' || sessionStorage.getItem('isLoggedIn') === 'true' || !!localStorage.getItem('userToken') || !!sessionStorage.getItem('userToken');
+  const userRole = localStorage.getItem('userRole') || sessionStorage.getItem('userRole') || 'CLIENT';
 
   // 5. 페이지 유형에 따른 헤더 분기 렌더링
   if (isDetail) {

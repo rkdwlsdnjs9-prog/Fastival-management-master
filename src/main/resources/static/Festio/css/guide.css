@@ -92,6 +92,11 @@ body {
   font-size: 13px;
   color: #666;
   line-height: 1.6;
+  word-break: keep-all;
+}
+
+.cs-desc-indent {
+  padding-left: 65px;
 }
 
 .cs-desc.highlight {
@@ -125,6 +130,22 @@ body {
   .cs-box-right {
     padding-top: 0;
   }
+
+  .cs-desc-indent {
+    padding-left: 0;
+  }
+
+  .pc-br {
+    display: none;
+  }
+
+  .m-br {
+    display: block;
+  }
+}
+
+.m-br {
+  display: none;
 }
 
 /* ── 탭 메뉴 ──────────────────────────────────────────── */
@@ -181,7 +202,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 60px;
-  padding-top: 20px;
+  padding: 40px 20px;
 }
 
 .partner-section {
@@ -343,6 +364,10 @@ body {
   font-weight: bold;
   color: #222;
   margin-bottom: 20px;
+}
+
+.tab-desc-text p {
+  word-break: keep-all;
 }
 
 .tab-desc-text ul {

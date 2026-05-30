@@ -32,6 +32,7 @@ public class FestivalVo {
     private LocalDate endDate;
 
     @Column(name = "is_active", nullable = false)
+    @Builder.Default
     private Boolean isActive = true;
 
     @Column(name = "map_image_url", columnDefinition = "TEXT")
@@ -55,12 +56,15 @@ public class FestivalVo {
     @Column(name = "badge_label", length = 50)
     private String badgeLabel; // 'HOT', '신규', '타임세일' 등
     @Column(name = "is_hot", nullable = true)
+    @Builder.Default
     private Boolean isHot = false;
 
     @Column(name = "review_status", length = 50)
+    @Builder.Default
     private String reviewStatus = "PENDING"; // 'PENDING', 'APPROVED', 'REJECTED'
 
     @Column(name = "operational_status", length = 50)
+    @Builder.Default
     private String operationalStatus = "UPCOMING"; // 'UPCOMING', 'ONGOING', 'COMPLETED'
 
     @Column(name = "agency", length = 255)

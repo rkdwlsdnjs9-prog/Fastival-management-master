@@ -189,7 +189,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     </svg>
                 </span>
             </span>
-            <span class="app-brand-text demo menu-text fw-bold ms-2">FASTIVAL O2O</span>
+            <span class="app-brand-text demo menu-text fw-bold ms-2" style="font-family: 'Space Grotesk', 'Pretendard Variable', sans-serif; font-size: 1.6rem; font-weight: 800; background: linear-gradient(135deg, #6A4DFF, #00E5CC); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; letter-spacing: -0.03em;">FESTIO</span>
         </a>
         <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto d-block d-xl-none">
             <i class="bx bx-chevron-left bx-sm align-middle"></i>

@@ -113,23 +113,38 @@ const RecentViewed = {
     } catch { }
   },
   render() {
-    const container = document.getElementById('sideRecentScroll');
-    if (!container) return;
+    const track = document.querySelector('.recent-track-override');
+    if (!track) return;
     const list = this.get();
     if (!list.length) {
-      container.innerHTML = '<div style="padding:8px 0;font-size:0.75rem;color:rgba(0,0,0,0.4);">최근 본 상품이 없습니다.</div>';
+      track.innerHTML = `
+      <div class="recent-item recent-item-override">
+        <div class="recent-poster-wrap recent-poster-pad">
+          <div class="recent-empty-poster">
+            <span class="recent-empty-text">최근 본 상품이<br>없습니다.</span>
+          </div>
+        </div>
+      </div>`;
       return;
     }
-    container.innerHTML = list.map(item => `
-      <div class="side-recent-thumb" onclick="location.href='detail.html?eventNo=${item.eventNo}'">
-        <div class="side-recent-thumb-img">
+    const total = list.length;
+    track.innerHTML = list.map((item, index) => `
+      <div class="recent-item recent-item-override">
+        <div class="recent-poster-wrap recent-poster-pad recent-poster-link" data-event-no="${item.eventNo}">
           ${item.thumbnailUrl
-        ? `<img src="${item.thumbnailUrl}" alt="${item.name}" loading="lazy">`
-        : `<div style="width:100%;height:100%;background:rgba(0,0,0,0.05);"></div>`}
+        ? `<img src="${item.thumbnailUrl}" alt="${item.name}" class="recent-poster-img recent-poster-full">`
+        : `<div class="recent-poster-placeholder"></div>`}
         </div>
-        <p class="side-recent-thumb-name">${item.name}</p>
+        <div class="recent-page-indicator"><strong class="recent-page-num">${index + 1}</strong> / ${total}</div>
       </div>
     `).join('');
+
+    // 이벤트 위임으로 카드 클릭 처리 (onclick 인라인 제거)
+    track.querySelectorAll('.recent-poster-link').forEach(el => {
+      el.addEventListener('click', () => {
+        location.href = `detail.html?eventNo=${el.dataset.eventNo}`;
+      });
+    });
   },
 };
 
