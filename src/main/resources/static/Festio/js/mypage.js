@@ -226,9 +226,15 @@ function renderStats() {
   const statReviews = document.getElementById('statReviews');
 
   if (statTickets) statTickets.textContent = MOCK_TICKETS.length;
-  if (statWishlists) statWishlists.textContent = '2';
-  if (statCoupons) statCoupons.textContent = '1';
-  if (statReviews) statReviews.textContent = '1';
+
+  // 찜 목록 - 실제 데이터 사용 (renderWishGrid에서 업데이트됨)
+  if (statWishlists) statWishlists.textContent = '0';
+
+  // 쿠폰 - 목데이터 사용
+  if (statCoupons) statCoupons.textContent = MOCK_COUPONS.length;
+
+  // 리뷰 - 목데이터 사용
+  if (statReviews) statReviews.textContent = '0';
 
   const ticketCount = document.getElementById('ticketCount');
   if (ticketCount) ticketCount.textContent = `${MOCK_TICKETS.length + MOCK_FOOD_ORDERS.length}건`;
@@ -428,78 +434,327 @@ async function renderWishGrid() {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   4. 실시간 동적 QR 제어 (30초 만료 갱신)
+   4. 실시간 동적 QR 제어 (히어로 상시노출 + 3분 자동 갱신 + 모달 크게보기)
    ═══════════════════════════════════════════════════════════ */
+
+/* QR 코드 이미지 URL 생성 (외부 라이브러리 불필요) */
+function getQrImageUrl(text, size) {
+  // 여러 QR API 시도 (순서대로)
+  const apis = [
+    `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(text)}&margin=4&format=png`,
+    `https://quickchart.io/qr?text=${encodeURIComponent(text)}&size=${size}`,
+    `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(text)}&margin=0&format=png`
+  ];
+  return apis[0]; // 첫 번째 API 사용
+}
+
+/* 히어로 QR 카드에 QR 코드를 생성하는 함수 */
+function generateHeroQR(token) {
+  const container = document.getElementById('qr-code-container');
+  if (!container) {
+    console.error('QR 컨테이너를 찾을 수 없음');
+    return;
+  }
+  container.innerHTML = '';
+  console.log('QR 생성 시작, 토큰:', token);
+
+  // 여러 QR API 시도 (폴백 로직)
+  const apis = [
+    `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(token)}&margin=4&format=png`,
+    `https://quickchart.io/qr?text=${encodeURIComponent(token)}&size=180`,
+    `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(token)}&margin=0&format=png`
+  ];
+
+  let currentApiIndex = 0;
+
+  function tryNextApi() {
+    if (currentApiIndex >= apis.length) {
+      console.error('모든 QR API 실패');
+      container.innerHTML = '<div class="qr-error-message">QR 로드 실패</div>';
+      return;
+    }
+
+    const img = document.createElement('img');
+    img.src = apis[currentApiIndex];
+    img.alt = 'QR Code';
+    img.className = 'hero-qr-image';
+    img.crossOrigin = 'anonymous';
+
+    img.onload = function() {
+      console.log(`QR 이미지 로드 성공 (API ${currentApiIndex + 1})`);
+    };
+
+    img.onerror = function() {
+      console.error(`QR API ${currentApiIndex + 1} 실패, 다음 API 시도`);
+      currentApiIndex++;
+      tryNextApi();
+    };
+
+    container.appendChild(img);
+  }
+
+  tryNextApi();
+}
+
+/* QR 모달에 QR 코드 생성 */
+function generateModalQR(token) {
+  const container = document.getElementById('qrModalCanvas');
+  if (!container) {
+    console.error('모달 QR 컨테이너를 찾을 수 없음');
+    return;
+  }
+  container.innerHTML = '';
+  console.log('모달 QR 생성 시작, 토큰:', token);
+
+  // 여러 QR API 시도 (폴백 로직)
+  const apis = [
+    `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(token)}&margin=4&format=png`,
+    `https://quickchart.io/qr?text=${encodeURIComponent(token)}&size=400`,
+    `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(token)}&margin=0&format=png`
+  ];
+
+  let currentApiIndex = 0;
+
+  function tryNextApi() {
+    if (currentApiIndex >= apis.length) {
+      console.error('모든 모달 QR API 실패');
+      container.innerHTML = '<div class="modal-qr-error-message">QR 로드 실패</div>';
+      return;
+    }
+
+    const img = document.createElement('img');
+    img.src = apis[currentApiIndex];
+    img.alt = 'QR Code';
+    img.className = 'modal-qr-image';
+    img.crossOrigin = 'anonymous';
+
+    img.onload = function() {
+      console.log(`모달 QR 이미지 로드 성공 (API ${currentApiIndex + 1})`);
+    };
+
+    img.onerror = function() {
+      console.error(`모달 QR API ${currentApiIndex + 1} 실패, 다음 API 시도`);
+      currentApiIndex++;
+      tryNextApi();
+    };
+
+    container.appendChild(img);
+  }
+
+  tryNextApi();
+}
+
+/* 히어로 QR + 모달 QR 피해 토큰 공유 */
+let _currentQrToken = '';
+
 function showTicketQr(token) {
-  openQrModal(token, '입장 확인용 일회용 안전 QR');
+  openQrModalView(token);
 }
 
 function showFoodQr(token) {
-  openQrModal(token, '푸드 부스 수령용 픽업 QR');
+  openQrModalView(token);
 }
 
-function openQrModal(token, title) {
-  const qrCodeContainer = document.getElementById('qr-code-container');
-  if (qrCodeContainer) {
-    qrCodeContainer.innerHTML = '';
-    new QRCode(qrCodeContainer, {
-      text: token,
-      width: 140,
-      height: 140,
-      colorDark: '#0D0D1E',
-      colorLight: '#FFFFFF',
-      correctLevel: QRCode.CorrectLevel.H
-    });
+/* 모달 열기 (QR 크게보기) */
+function openQrModalView(token) {
+  console.log('openQrModalView 호출됨, 토큰:', token);
+  const overlay = document.getElementById('qrModalOverlay');
+  if (!overlay) {
+    console.error('qrModalOverlay 요소를 찾을 수 없음');
+    return;
+  }
 
-    const barcodeText = document.getElementById('qr-barcode-number');
-    if (barcodeText) barcodeText.textContent = token;
+  // 토큰 기본값
+  const qrToken = token || _currentQrToken || 'FEST-NEW-XYZ123';
+  console.log('사용할 QR 토큰:', qrToken);
 
-    const titleEl = document.getElementById('qrModalTitle');
-    if (titleEl && title) titleEl.textContent = title;
+  // 혁시에 행사명 노출
+  const eventName = (window.MOCK_TICKETS && MOCK_TICKETS[0])
+    ? (MOCK_TICKETS[0].eventName || '2026 워터밤 서울')
+    : '2026 워터밤 서울';
+  const nameEl = document.getElementById('qrModalEventName');
+  if (nameEl) nameEl.textContent = eventName;
 
-    const modal = document.getElementById('qrModal');
-    if (modal) modal.style.display = 'flex';
+  // QR 코드 텍스트
+  const codeEl = document.getElementById('qrModalCode');
+  if (codeEl) codeEl.textContent = qrToken;
 
-    startQRRefreshCycle();
+  // 마스킹 이름
+  const userName = (_member && _member.name) ? _member.name : (localStorage.getItem('userName') || '이용자');
+  const masked = maskUserName(userName);
+  const userEl = document.getElementById('qrModalUser');
+  if (userEl) userEl.textContent = masked;
 
-    const maskedName = document.querySelector('.qr-masked-name');
-    if (maskedName) maskedName.textContent = title;
+  // QR 이미지 생성
+  generateModalQR(qrToken);
 
-    const heroSection = document.querySelector('.mypage-hero');
-    if (heroSection) {
-      heroSection.scrollIntoView({ behavior: 'smooth' });
-    }
+  // 타이머 동기화
+  syncModalTimer();
 
-    if (window.Toast) window.Toast.success('안전 일회용 QR 코드가 활성화되었습니다.');
+  overlay.classList.add('active');
+  document.body.style.overflow = 'hidden';
+  console.log('모달 active 클래스 추가됨');
+}
+
+function closeQrModalView() {
+  const overlay = document.getElementById('qrModalOverlay');
+  if (!overlay) return;
+  overlay.classList.remove('active');
+  document.body.style.overflow = '';
+}
+
+/* 마스킹 이름 변환 */
+function maskUserName(name) {
+  if (!name || name.length < 2) return name;
+  if (name.length === 2) return name[0] + '*';
+  return name[0] + '*'.repeat(name.length - 2) + name[name.length - 1];
+}
+
+/* 모달 내 타이머 동기화 */
+function syncModalTimer() {
+  updateModalTimerBar(_qrCountdown);
+  updateModalTimerText(_qrCountdown);
+}
+
+function updateModalTimerBar(sec) {
+  const modalTimerBar = document.getElementById('qrModalTimerBar');
+  if (modalTimerBar) {
+    const pct = ((180 - sec) / 180) * 100;
+    modalTimerBar.style.width = `${pct}%`;
   }
 }
 
+function updateHeroRing(sec) {
+  const ring = document.getElementById('heroQrRing');
+  if (!ring) return;
+  const CIRC = 69.1;
+  const offset = CIRC * (1 - sec / 180);
+  ring.style.strokeDashoffset = offset;
+  ring.style.stroke = sec <= 10 ? '#ff4757' : '#8930F8';
+}
+
+function updateModalTimerText(sec) {
+  const el = document.getElementById('qrModalTimer');
+  if (!el) return;
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  el.textContent = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  el.style.color = sec <= 10 ? '#ff4757' : '#3b2667';
+}
+
+/* 히어로 + 모달 타이머 통합 디스플레이 */
+function updateQRTimerDisplay(sec) {
+  // 히어로 타이머 텍스트
+  const heroTimer = document.getElementById('heroQrTimer');
+  if (heroTimer) {
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    heroTimer.textContent = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  }
+  // qr-timer-text 클래스 (fallback)
+  const textEls = document.querySelectorAll('.qr-timer-text');
+  textEls.forEach(el => {
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    el.textContent = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  });
+
+  // 히어로 타이머 바 업데이트
+  const heroTimerBar = document.getElementById('heroQrTimerBar');
+  if (heroTimerBar) {
+    const pct = ((180 - sec) / 180) * 100;
+    heroTimerBar.style.width = `${pct}%`;
+  }
+
+  // 모달 내부도 동기화
+  updateModalTimerBar(sec);
+  updateModalTimerText(sec);
+}
+
+/* 히어로 QR 초기화 + 이벤트 바인딩 */
+/* 12자리 대문자+숫자 QR 토큰 생성 (staff-scan-v2.js 호환 형식) */
+function generateQrToken() {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let token = '';
+  for (let i = 0; i < 12; i++) {
+    token += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return token;
+}
+
+function initHeroQr() {
+  // MOCK_TICKETS에 qrToken이 있으면 사용, 없으면 12자리 호환 토큰 생성
+  const mockToken = MOCK_TICKETS && MOCK_TICKETS[0] && MOCK_TICKETS[0].qrToken;
+  const initialToken = mockToken || generateQrToken();
+  _currentQrToken = initialToken;
+
+  console.log('QR 초기화, 토큰:', initialToken);
+
+  // QR 생성 (외부 API 사용)
+  generateHeroQR(initialToken);
+  startQRRefreshCycle();
+
+  // 우측 QR 카드 클릭 → 모달
+  const heroCard = document.getElementById('heroQrCard');
+  if (heroCard) {
+    heroCard.addEventListener('click', () => openQrModalView(_currentQrToken));
+  }
+
+  // 좌측 QR 이미지 클릭 → 모달
+  const qrContainer = document.getElementById('qr-code-container');
+  if (qrContainer) {
+    qrContainer.addEventListener('click', (e) => {
+      e.stopPropagation();
+      console.log('QR 컨테이너 클릭됨, 모달 열기');
+      openQrModalView(_currentQrToken);
+    });
+  } else {
+    console.error('QR 컨테이너를 찾을 수 없음');
+  }
+}
+
+/* QR 모달 닫기 버튼 + 오버레이 클릭 */
+function initQrModal() {
+  const closeBtn = document.getElementById('qrModalCloseBtn');
+  if (closeBtn) closeBtn.addEventListener('click', closeQrModalView);
+
+  const overlay = document.getElementById('qrModalOverlay');
+  if (overlay) {
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) closeQrModalView();
+    });
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeQrModalView();
+  });
+}
+
+/* 3분 QR 자동 갱신 사이클 */
 function startQRRefreshCycle() {
-  _qrCountdown = 180; // 보안 강화: 3분 단위 카운트다운
+  _qrCountdown = 180;
   updateQRTimerDisplay(180);
 
   clearInterval(_qrTimer);
   clearInterval(_qrCountTimer);
 
   _qrTimer = setInterval(() => {
-    const randomToken = 'FEST-NEW-' + Math.random().toString(36).substring(2, 8).toUpperCase();
-    const qrCodeContainer = document.getElementById('qr-code-container');
-    if (qrCodeContainer) {
-      qrCodeContainer.innerHTML = '';
-      new QRCode(qrCodeContainer, {
-        text: randomToken,
-        width: 140,
-        height: 140,
-        colorDark: '#0D0D1E',
-        colorLight: '#FFFFFF',
-        correctLevel: QRCode.CorrectLevel.H
-      });
+    const newToken = generateQrToken();
+    _currentQrToken = newToken;
+
+    // 히어로 QR 갱신
+    generateHeroQR(newToken);
+
+    // 모달이 열려 있으면 모달 QR도 갱신
+    const overlay = document.getElementById('qrModalOverlay');
+    if (overlay && overlay.classList.contains('active')) {
+      generateModalQR(newToken);
+      const codeEl = document.getElementById('qrModalCode');
+      if (codeEl) codeEl.textContent = newToken;
     }
-    const barcodeText = document.getElementById('qr-barcode-number');
-    if (barcodeText) barcodeText.textContent = randomToken;
 
     _qrCountdown = 180;
-    if (window.Toast) window.Toast.info('보안을 위해 일회용 QR이 자동 갱신되었습니다.');
+    if (window.Toast) window.Toast.info('보안을 위해 QR이 자동 갱신되었습니다.');
   }, 180000);
 
   _qrCountTimer = setInterval(() => {
@@ -508,21 +763,43 @@ function startQRRefreshCycle() {
   }, 1000);
 }
 
-function updateQRTimerDisplay(sec) {
-  const textEl = document.querySelector('.qr-timer-text');
-  const progressEl = document.getElementById('qr-linear-progress');
+/* 사이드 메뉴 sticky - 푸터 접촉 시 멈춰 */
+function initSideSticky() {
+  const sideEl = document.getElementById('mypageLeft');
+  if (!sideEl) return;
 
-  if (textEl) {
-    const m = Math.floor(sec / 60);
-    const s = sec % 60;
-    textEl.textContent = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  function adjustSticky() {
+    if (window.innerWidth < 1024) return;
+
+    const footer = document.querySelector('.app-footer, footer, .page-footer');
+    if (!footer) return;
+
+    const footerTop = footer.getBoundingClientRect().top;
+    const windowH = window.innerHeight;
+    const headerH = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--header-h') || '60', 10);
+    const topOffset = headerH + 16;
+
+    if (footerTop < windowH) {
+      // 푸터가 띹앞 들어온 경우: 절대위치로 제한
+      const layoutRect = document.getElementById('mypageLayout')?.getBoundingClientRect();
+      if (layoutRect) {
+        const maxBottom = footerTop - 8;
+        const sideRect = sideEl.getBoundingClientRect();
+        if (sideRect.bottom > maxBottom) {
+          const newTop = maxBottom - sideRect.height;
+          sideEl.style.top = Math.max(topOffset, newTop) + 'px';
+        } else {
+          sideEl.style.top = topOffset + 'px';
+        }
+      }
+    } else {
+      sideEl.style.top = topOffset + 'px';
+    }
   }
 
-  if (progressEl) {
-    const pct = (sec / 180) * 100;
-    progressEl.style.width = `${pct}%`;
-    progressEl.style.background = sec <= 10 ? '#ff4757' : 'linear-gradient(90deg, #6a4dff 0%, #a770ef 100%)';
-  }
+  window.addEventListener('scroll', adjustSticky, { passive: true });
+  window.addEventListener('resize', adjustSticky, { passive: true });
+  adjustSticky();
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -719,16 +996,28 @@ function renderMyReviewList() {
     return;
   }
   list.innerHTML = MOCK_REVIEWS.map(r => `
-    <div class="mp-card">
+    <div class="mp-card" id="review-card-${r.id}">
       <div class="mp-flex-between mp-margin-b-8">
         <h4 class="mp-card-title">${r.eventName}</h4>
         <div class="mp-review-rating" style="color:#ffb400; font-weight:bold;">${'⭐️'.repeat(r.rating)} (${r.rating}.0)</div>
       </div>
-      <p class="mp-card-meta mp-margin-b-8">${r.content}</p>
+      <div class="review-content-wrapper" id="review-content-${r.id}">
+        <p class="mp-card-meta mp-margin-b-8">${r.content}</p>
+      </div>
+      <div class="review-edit-wrapper hidden" id="review-edit-${r.id}">
+        <textarea class="form-input" id="edit-content-${r.id}" rows="3" style="width:100%; margin-bottom:8px;">${r.content}</textarea>
+        <div class="star-rating" id="edit-rating-${r.id}" style="margin-bottom:8px;">
+          ${[1,2,3,4,5].map(star => `
+            <button class="star-btn ${star <= r.rating ? 'active' : ''}" data-star="${star}" onclick="setEditRating(${r.id}, ${star})">⭐</button>
+          `).join('')}
+        </div>
+        <button class="btn btn-sm btn-primary" onclick="saveInlineEdit(${r.id})" style="padding:4px 10px; font-size:0.8rem; margin-right:4px;">저장</button>
+        <button class="btn btn-sm btn-outline" onclick="cancelInlineEdit(${r.id})" style="padding:4px 10px; font-size:0.8rem;">취소</button>
+      </div>
       <div style="display:flex; justify-content:space-between; align-items:center;">
         <span class="mp-inquiry-date">작성일: ${r.date}</span>
-        <div>
-          <button class="btn btn-sm btn-outline" onclick="editReview(${r.id})" style="padding:4px 10px; font-size:0.8rem; margin-right:4px;">수정</button>
+        <div id="review-actions-${r.id}">
+          <button class="btn btn-sm btn-outline" onclick="enableInlineEdit(${r.id})" style="padding:4px 10px; font-size:0.8rem; margin-right:4px;">수정</button>
           <button class="btn btn-sm" onclick="deleteReview(${r.id})" style="padding:4px 10px; font-size:0.8rem; background:#ffebee; color:#d32f2f; border:none;">삭제</button>
         </div>
       </div>
@@ -741,6 +1030,55 @@ window.deleteReview = function (id) {
   if (window.Toast) window.Toast.success('리뷰가 삭제되었습니다.');
   renderMyReviewList();
 };
+
+window.enableInlineEdit = function (id) {
+  const contentWrapper = document.getElementById(`review-content-${id}`);
+  const editWrapper = document.getElementById(`review-edit-${id}`);
+  const actionsWrapper = document.getElementById(`review-actions-${id}`);
+  if (contentWrapper && editWrapper && actionsWrapper) {
+    contentWrapper.classList.add('hidden');
+    editWrapper.classList.remove('hidden');
+    actionsWrapper.classList.add('hidden');
+  }
+};
+
+window.cancelInlineEdit = function (id) {
+  const contentWrapper = document.getElementById(`review-content-${id}`);
+  const editWrapper = document.getElementById(`review-edit-${id}`);
+  const actionsWrapper = document.getElementById(`review-actions-${id}`);
+  if (contentWrapper && editWrapper && actionsWrapper) {
+    contentWrapper.classList.remove('hidden');
+    editWrapper.classList.add('hidden');
+    actionsWrapper.classList.remove('hidden');
+  }
+};
+
+window.saveInlineEdit = function (id) {
+  const content = document.getElementById(`edit-content-${id}`).value;
+  const rating = parseInt(document.querySelector(`#edit-rating-${id} .star-btn.active`)?.dataset.star || 5);
+  const review = MOCK_REVIEWS.find(r => r.id === id);
+  if (review && content) {
+    review.content = content;
+    review.rating = rating;
+    if (window.Toast) window.Toast.success('리뷰가 수정되었습니다.');
+    renderMyReviewList();
+  }
+};
+
+window.setEditRating = function (id, star) {
+  const ratingWrapper = document.getElementById(`edit-rating-${id}`);
+  if (ratingWrapper) {
+    ratingWrapper.querySelectorAll('.star-btn').forEach(btn => {
+      const btnStar = parseInt(btn.dataset.star);
+      if (btnStar <= star) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    });
+  }
+};
+
 window.editReview = function (id) {
   const review = MOCK_REVIEWS.find(r => r.id === id);
   if (!review) return;
@@ -822,10 +1160,12 @@ function initReviewForm() {
 
       // Init styles
       const svg = star.querySelector('svg');
-      svg.style.transition = 'all 0.2s';
-      svg.setAttribute('stroke-width', '2');
-      svg.setAttribute('stroke-linejoin', 'round');
-      svg.setAttribute('stroke-linecap', 'round');
+      if (svg) {
+        svg.style.transition = 'all 0.2s';
+        svg.setAttribute('stroke-width', '2');
+        svg.setAttribute('stroke-linejoin', 'round');
+        svg.setAttribute('stroke-linecap', 'round');
+      }
     });
     // Init display
     setTimeout(() => {
@@ -948,38 +1288,10 @@ function initTabs() {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   8. 로그아웃 리스너 통합 구현
+   8. 로그아웃 리스너 통합 구현 (common.js에서 글로벌 처리됨)
    ═══════════════════════════════════════════════════════════ */
 function initLogout() {
-  const logoutButtons = [
-    document.getElementById('btn-logout'),
-    document.getElementById('sideLogoutBtn'),
-    document.getElementById('btn-logout-profile')
-  ];
-
-  logoutButtons.forEach(btn => {
-    if (btn) {
-      btn.addEventListener('click', (e) => {
-        e.preventDefault();
-
-        localStorage.removeItem('userToken');
-        localStorage.removeItem('userName');
-        localStorage.removeItem('userRole');
-        localStorage.removeItem('email');
-        localStorage.removeItem('isLoggedIn');
-        localStorage.removeItem('userPhone');
-        localStorage.removeItem('balance');
-        localStorage.removeItem('isFaceRegistered');
-
-        if (window.Auth) {
-          window.Auth.clear();
-        }
-
-        alert('로그아웃 되었습니다.');
-        window.location.href = 'index.html';
-      });
-    }
-  });
+  // common.js에서 처리됨
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -1032,7 +1344,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   renderInquiryList();
 
   initTabs();
-  initInquiryForm();
+  // initInquiryForm(); // 함수가 정의되지 않아 주석 처리
   initCouponForm();
   initReviewForm();
   initProfileEditSave();
@@ -1053,9 +1365,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  if (MOCK_TICKETS.length > 0) {
-    openQrModal(MOCK_TICKETS[0].qrToken, '입장 확인용 일회용 안전 QR');
-  }
+  initHeroQr();
+  initQrModal();
+  initSideSticky();
 });
 
 window.deleteInquiry = function (id) {

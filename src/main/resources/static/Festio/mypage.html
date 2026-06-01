@@ -28,103 +28,122 @@
   <main class="page-body">
 
     <!-- 프로필 히어로 -->
-    <div class="mypage-hero custom-hero-design"
-      style="display:flex; justify-content:space-between; align-items:center; background: linear-gradient(135deg, #2D1A54 0%, #8930F8 100%); padding: 40px; border-radius: 24px; color: #fff; box-shadow: 0 10px 30px rgba(0,0,0,0.15); margin-bottom: 32px; gap: 40px; flex-wrap: wrap;">
+    <div class="mypage-hero"
+      style="background: linear-gradient(135deg, #2D1A54 0%, #8930F8 100%); padding: 36px 40px; border-radius: 24px; color: #fff; box-shadow: 0 10px 40px rgba(0,0,0,0.2); margin-bottom: 32px; display: grid; grid-template-columns: 1fr auto; gap: 32px; align-items: center;">
 
-      <!-- 왼쪽 영역 -->
-      <div style="flex:1; min-width: 320px; display:flex; flex-direction:column; gap: 24px;">
-        <!-- 1. 프로필 정보 -->
-        <div style="display:flex; align-items:center; gap: 20px;">
-          <div class="mypage-avatar" id="profileAvatar"
-            style="width: 72px; height: 72px; border-radius: 50%; background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.4); display:flex; justify-content:center; align-items:center;">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-              stroke-linecap="round" stroke-linejoin="round">
-              <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
-              <circle cx="12" cy="7" r="4" />
-            </svg>
+      <!-- 왼쪽: 프로필 + QR + 등급 + 통계 -->
+      <div style="display: flex; flex-direction: column; gap: 20px; min-width: 0;">
+
+        <!-- 프로필 정보 + QR 코드 (한 줄에 배치) -->
+        <div style="display:flex; align-items:center; justify-content:space-between; gap: 18px;">
+          <!-- 아바타 + 이름 -->
+          <div style="display:flex; align-items:center; gap: 18px;">
+            <div class="mypage-avatar" id="profileAvatar"
+              style="width: 72px; height: 72px; border-radius: 50%; background: rgba(255,255,255,0.12); border: 2px solid rgba(255,255,255,0.35); display:flex; justify-content:center; align-items:center; flex-shrink:0;">
+              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.9)"
+                stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
+            </div>
+            <div>
+              <p style="font-size: 1.05rem; margin: 0 0 2px 0; color: rgba(255,255,255,0.75); font-weight: 400;">반가워요, <span id="profileName" style="font-size: 1.6rem; font-weight: 800; color: #fff; line-height: 1.2;">로딩 중...</span> 님!</p>
+              <p style="font-size: 0.9rem; margin: 0; color: rgba(255,255,255,0.55);" id="profileEmail">-</p>
+            </div>
           </div>
-          <div>
-            <p style="font-size: 1.3rem; margin: 0 0 6px 0; color: #fff;">반가워요, <strong
-                style="font-weight: 800; font-size: 1.5rem;" id="profileName">로딩 중...</strong>님!</p>
-            <p style="font-size: 0.95rem; margin: 0; color: rgba(255,255,255,0.7);" id="profileEmail">-</p>
+          <!-- QR 코드 (등급 게이지 바로 위, 프로필 행 우측) -->
+          <div class="hero-qr-card">
+            <div class="hero-qr-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#8930F8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hero-qr-title-icon">
+                <rect x="3" y="3" width="4" height="18" rx="1"></rect>
+                <rect x="9" y="3" width="12" height="18" rx="1"></rect>
+              </svg>
+              나의 티켓 QR
+            </div>
+            <div class="hero-qr-canvas-wrap">
+              <div id="qr-code-container" class="hero-qr-canvas"
+                title="클릭하여 QR 모달 열기">
+                <!-- QR 코드 생성 영역 -->
+              </div>
+            </div>
+            <div class="hero-qr-timer-bar-wrap">
+              <div class="hero-qr-timer-bar" id="heroQrTimerBar"></div>
+            </div>
+            <div class="hero-qr-timer-text-wrap">
+              <span class="hero-qr-timer-text" id="heroQrTimer">03:00</span>
+            </div>
+            <div class="hero-qr-hint-text">클릭하여 확대하기</div>
           </div>
         </div>
 
-        <!-- 2. 등급 및 프로그레스 바 -->
-        <div style="display:flex; flex-direction:column; gap: 12px;">
-          <div style="display:flex; justify-content:space-between; align-items:flex-end;">
-            <span
-              style="background: rgba(0,0,0,0.25); padding: 6px 14px; border-radius: 20px; font-size: 0.8rem; font-weight: 700; letter-spacing: 1px; display:inline-flex; align-items:center; gap: 6px;"
-              id="profileGrade">
+        <!-- 등급 배지 + 프로그레스 바 -->
+        <div style="display:flex; flex-direction:column; gap: 10px;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span id="profileGrade"
+              style="background: rgba(0,0,0,0.3); padding: 6px 14px; border-radius: 20px; font-size: 0.82rem; font-weight: 700; letter-spacing: 1.5px; display:inline-flex; align-items:center; gap: 5px; backdrop-filter: blur(4px);">
               ★ BRONZE
             </span>
-            <span style="font-size: 0.85rem; color: rgba(255,255,255,0.8); font-weight: 500;"
-              id="gradeNextText">Silver까지 ₩50,000 남음</span>
+            <span style="font-size: 0.85rem; color: rgba(255,255,255,0.75);" id="gradeNextText">Silver까지 ₩50,000
+              남음</span>
           </div>
-          <div
-            style="height: 6px; background: rgba(255,255,255,0.15); border-radius: 3px; overflow: hidden; width: 100%;">
-            <div
-              style="height: 100%; width: 30%; background: linear-gradient(90deg, #A88BEB 0%, #F8CEEC 100%); border-radius: 3px;"
-              id="gradeBar"></div>
+          <div style="height: 7px; background: rgba(255,255,255,0.12); border-radius: 4px; overflow: hidden;">
+            <div id="gradeBar"
+              style="height: 100%; width: 30%; background: linear-gradient(90deg, #c8a8f8 0%, #f8ceec 100%); border-radius: 4px;">
+            </div>
           </div>
         </div>
 
-        <!-- 3. 통계 영역 -->
-        <div style="display:flex; background: rgba(0,0,0,0.15); border-radius: 16px; margin-top: 8px;">
-          <div style="flex:1; padding: 20px 10px; text-align:center; border-right: 1px solid rgba(255,255,255,0.05);">
-            <div style="font-size: 1.5rem; font-weight: 700; margin-bottom: 4px;" id="statTickets">0</div>
-            <div style="font-size: 0.8rem; color: rgba(255,255,255,0.7);">예매 수</div>
+        <!-- 통계 -->
+        <div style="display:flex; background: rgba(0,0,0,0.18); border-radius: 14px; overflow: hidden;">
+          <div style="flex:1; padding: 18px 10px; text-align:center; border-right: 1px solid rgba(255,255,255,0.08);">
+            <div style="font-size: 1.5rem; font-weight: 800; margin-bottom: 2px;" id="statTickets">0</div>
+            <div style="font-size: 0.8rem; color: rgba(255,255,255,0.75);">예매 수</div>
           </div>
-          <div style="flex:1; padding: 20px 10px; text-align:center; border-right: 1px solid rgba(255,255,255,0.05);">
-            <div style="font-size: 1.5rem; font-weight: 700; margin-bottom: 4px;" id="statWishlists">0</div>
-            <div style="font-size: 0.8rem; color: rgba(255,255,255,0.7);">찜 목록</div>
+          <div style="flex:1; padding: 18px 10px; text-align:center; border-right: 1px solid rgba(255,255,255,0.08);">
+            <div style="font-size: 1.5rem; font-weight: 800; margin-bottom: 2px;" id="statWishlists">0</div>
+            <div style="font-size: 0.8rem; color: rgba(255,255,255,0.75);">찜 목록</div>
           </div>
-          <div style="flex:1; padding: 20px 10px; text-align:center; border-right: 1px solid rgba(255,255,255,0.05);">
-            <div style="font-size: 1.5rem; font-weight: 700; margin-bottom: 4px;" id="statCoupons">0</div>
-            <div style="font-size: 0.8rem; color: rgba(255,255,255,0.7);">보유 쿠폰</div>
+          <div style="flex:1; padding: 18px 10px; text-align:center; border-right: 1px solid rgba(255,255,255,0.08);">
+            <div style="font-size: 1.5rem; font-weight: 800; margin-bottom: 2px;" id="statCoupons">0</div>
+            <div style="font-size: 0.8rem; color: rgba(255,255,255,0.75);">보유 쿠폰</div>
           </div>
-          <div style="flex:1; padding: 20px 10px; text-align:center;">
-            <div style="font-size: 1.5rem; font-weight: 700; margin-bottom: 4px;" id="statReviews">0</div>
-            <div style="font-size: 0.8rem; color: rgba(255,255,255,0.7);">작성 리뷰</div>
+          <div style="flex:1; padding: 18px 10px; text-align:center;">
+            <div style="font-size: 1.5rem; font-weight: 800; margin-bottom: 2px;" id="statReviews">0</div>
+            <div style="font-size: 0.8rem; color: rgba(255,255,255,0.75);">작성 리뷰</div>
           </div>
         </div>
+
       </div>
 
-      <!-- 오른쪽 3분 타이머 QR 영역 -->
-      <div
-        style="background: #ffffff; border-radius: 20px; padding: 24px 20px; width: 220px; display:flex; flex-direction:column; align-items:center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); cursor: pointer;"
-        onclick="openQrModal(MOCK_TICKETS[0]?.qrToken || 'FEST-NEW-XYZ123', '입장 및 스캔 QR')">
-        <div
-          style="display:flex; align-items:center; gap: 6px; margin-bottom: 16px; color: #3b2667; font-weight: 700; font-size: 0.95rem;">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6a4dff" stroke-width="2">
+      <!-- 우측: QR 타이머 카드 (클릭 → 모달) -->
+      <div class="hero-qr-card" id="heroQrCard"
+        style="display: none; flex-direction: column; align-items: center; justify-content: center; gap: 10px; background: rgba(255,255,255,0.1); backdrop-filter: blur(14px); border: 1px solid rgba(255,255,255,0.22); border-radius: 22px; padding: 28px 32px; cursor: pointer; transition: background 0.2s, transform 0.15s; min-width: 170px;">
+        <div class="hero-qr-title"
+          style="display:flex; align-items:center; gap:7px; font-weight: 800; font-size: 1rem; color: rgba(255,255,255,0.95); white-space: nowrap;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.9)" stroke-width="2.2">
             <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
             <line x1="9" y1="3" x2="9" y2="21"></line>
           </svg>
           나의 티켓 QR
         </div>
-
-        <div id="qr-code-container"
-          style="background:#fff; width: 140px; height: 140px; margin-bottom: 16px; display:flex; justify-content:center; align-items:center;">
-          <!-- QR 코드 생성 영역 -->
-        </div>
-
-        <div
-          style="width: 100%; height: 4px; background: #f0f0f5; border-radius: 2px; margin-bottom: 8px; overflow: hidden;">
-          <div id="qr-linear-progress"
-            style="width: 100%; height: 100%; background: linear-gradient(90deg, #6a4dff 0%, #a770ef 100%); transition: width 1s linear;">
+        <!-- 프로그레스 바 -->
+        <div class="hero-qr-progress-wrap"
+          style="width: 100%; height: 5px; background: rgba(255,255,255,0.18); border-radius: 3px; overflow: hidden;">
+          <div id="qr-linear-progress" class="hero-qr-progress-bar"
+            style="width: 100%; height: 100%; background: linear-gradient(90deg, #c8a8f8 0%, #f8ceec 100%); border-radius: 3px; transition: width 1s linear;">
           </div>
         </div>
-
-        <div class="qr-timer-text" style="color: #ff4757; font-weight: 800; font-size: 1.15rem; margin-bottom: 8px;">
+        <div class="qr-timer-text" id="heroQrTimer"
+          style="font-size: 1.7rem; font-weight: 900; color: #fff; font-variant-numeric: tabular-nums; letter-spacing: 2px;">
           03:00</div>
-
-        <div style="color: #999; font-size: 0.75rem; font-weight: 500;">클릭하여 확대하기</div>
+        <div class="hero-qr-hint" style="font-size: 0.78rem; color: rgba(255,255,255,0.6);">클릭하여 확대하기</div>
       </div>
+
     </div>
 
-    <div class="mypage-layout">
+    <div class="mypage-layout" id="mypageLayout">
       <!-- ── 데스크톱 사이드 메뉴 ── -->
-      <aside class="mypage-left">
+      <aside class="mypage-left" id="mypageLeft">
         <nav class="mypage-sidenav" aria-label="마이페이지 메뉴">
           <button class="mypage-sidenav-item active" data-tab="tab-tickets">
             <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -468,7 +487,6 @@
 
                 <div class="profile-actions">
                   <button class="btn btn-primary btn-full profile-btn-save" id="btn-save-profile">변경사항 저장</button>
-                  <button class="btn btn-ghost btn-full profile-btn-logout" id="btn-logout-profile">로그아웃</button>
                 </div>
               </div>
             </div>
@@ -511,11 +529,42 @@
     </div>
   </div>
 
+  <!-- QR 크게보기 모달 -->
+  <div class="qr-modal-overlay" id="qrModalOverlay" role="dialog" aria-modal="true" aria-label="QR 코드 크게보기">
+    <div class="qr-modal-card">
+      <div class="qr-modal-header">
+        <div class="qr-modal-title">나의 티켓 QR</div>
+        <button class="qr-modal-close" id="qrModalCloseBtn" aria-label="닫기">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+            stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+      <div class="qr-modal-body">
+        <div class="qr-modal-canvas-wrap">
+          <div id="qrModalCanvas" class="qr-modal-canvas"></div>
+        </div>
+        <div class="qr-modal-scan-text">클릭하여 스캔하기</div>
+        <div class="qr-modal-code" id="qrModalCode">FEST-NEW-XYZ123</div>
+        <div class="qr-modal-user" id="qrModalUser">홍*동</div>
+        <div class="qr-modal-timer-bar-wrap">
+          <div class="qr-modal-timer-bar" id="qrModalTimerBar"></div>
+        </div>
+        <div class="qr-modal-timer-text-wrap">
+          <span class="qr-modal-timer-text" id="qrModalTimer">03:00</span>
+        </div>
+        <p class="qr-modal-refresh-note">3분마다 자동 갱신됩니다</p>
+      </div>
+    </div>
+  </div>
+
   <script src="js/components/bottomNav.js"></script>
 
   <script src="js/components/appFooter.js?v=1780060003367"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs/qrcode.min.js"></script>
   <script src="js/api.js"></script>
   <script src="js/common.js"></script>
   <script src="js/mypage.js"></script>

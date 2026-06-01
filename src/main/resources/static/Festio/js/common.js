@@ -493,6 +493,30 @@ document.addEventListener('DOMContentLoaded', () => {
   initBackButton();
   initDesktopSearchToggle();
   initHeaderScroll();
+
+  // 글로벌 로그아웃 이벤트 (이벤트 위임)
+  document.addEventListener('click', (e) => {
+    const logoutBtn = e.target.closest('#btn-logout, #sideLogoutBtn');
+    if (logoutBtn) {
+      e.preventDefault();
+
+      localStorage.removeItem('userToken');
+      localStorage.removeItem('userName');
+      localStorage.removeItem('userRole');
+      localStorage.removeItem('email');
+      localStorage.removeItem('isLoggedIn');
+      localStorage.removeItem('userPhone');
+      localStorage.removeItem('balance');
+      localStorage.removeItem('isFaceRegistered');
+
+      if (window.Auth) {
+        window.Auth.clear();
+      }
+
+      alert('로그아웃 되었습니다.');
+      window.location.href = 'index.html';
+    }
+  });
 });
 
 /* ── 전역 노출 ──────────────────────────────────────────────── */
