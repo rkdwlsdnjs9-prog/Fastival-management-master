@@ -63,6 +63,14 @@ export function initPage(viewId) {
     return;
   }
 
+  // Cleanup old cached data from localStorage that might contain D or E zones
+  Object.keys(DB.seats).forEach(key => {
+    const zone = key.split('-')[0];
+    if (zone !== 'A' && zone !== 'B' && zone !== 'C') {
+      delete DB.seats[key];
+    }
+  });
+
   // Show user info in header
   if (headerUser) headerUser.innerText = `스태프: ${user.name}`;
   if (headerCheckpoint) {
@@ -286,9 +294,34 @@ function renderTempAccountsInLogin() {
 // ==========================================
 // 2. DASHBOARD RENDERING
 // ==========================================
-function renderDashboard() {
+async function renderDashboard() {
   const view = document.getElementById("view-dashboard");
   if (!view) return;
+
+  let fnbOrders = [];
+  let goodsOrders = [];
+  try {
+    const [fnbRes, goodsRes, seatsRes] = await Promise.all([
+      fetch('/api/order/fnb'),
+      fetch('/api/order/goods'),
+      fetch('/api/order/seats?zones=A,B,C')
+    ]);
+    if (fnbRes.ok) fnbOrders = await fnbRes.json();
+    if (goodsRes.ok) goodsOrders = await goodsRes.json();
+    
+    if (seatsRes.ok) {
+      const allSeats = await seatsRes.json();
+      DB.seats = {}; // Completely rebuild seats map from DB
+      allSeats.forEach(s => {
+        DB.seats[s.id] = {
+          status: s.isReserved ? "RESERVED" : "AVAILABLE",
+          holder: s.isReserved ? "예약됨" : null
+        };
+      });
+    }
+  } catch (e) {
+    console.error("Failed to fetch dashboard data", e);
+  }
 
   const stats = getSeatStats();
   
@@ -296,11 +329,9 @@ function renderDashboard() {
   const enteredPercent = stats.total > 0 ? Math.round((stats.entered / stats.total) * 100) : 0;
   const reservedTotal = stats.reserved + stats.entered;
   const reservedPercent = stats.total > 0 ? Math.round((reservedTotal / stats.total) * 100) : 0;
-  
-  const fnbOrders = DB.orders.filter(o => o.type === "FOOD" && o.status !== "REFUNDED");
+
+  fnbOrders = fnbOrders.filter(o => o.status !== "REFUNDED");
   const activeFnbCount = fnbOrders.filter(o => o.status === "RECEIVED" || o.status === "COOKING" || o.status === "READY").length;
-  
-  const goodsOrders = DB.orders.filter(o => o.type === "GOODS");
   const activeGoodsCount = goodsOrders.filter(o => o.status === "ORDERED" || o.status === "READY").length;
 
   view.innerHTML = `
@@ -570,33 +601,39 @@ function renderDashboard() {
 
   // Bind Goods Actions
   document.querySelectorAll(".btn-goods-action").forEach(btn => {
-    btn.onclick = () => {
+    btn.onclick = async () => {
       const ordId = btn.getAttribute("data-id");
       const nextStatus = btn.getAttribute("data-next");
-      const order = DB.orders.find(o => o.id === ordId);
-      if (order) {
-        order.status = nextStatus;
-        saveDB();
-        publish("order-change", { orderId: ordId, status: nextStatus });
-        addNotification("ORDER", `굿즈 주문 ${ordId} 상태 변경 -> ${nextStatus}`);
-        renderDashboard();
-      }
+      
+      try {
+        await fetch(`/api/order/goods/${ordId}/status`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: nextStatus })
+        });
+      } catch (e) {}
+
+      addNotification("ORDER", `굿즈 주문 ${ordId} 상태 변경 -> ${nextStatus}`);
+      renderDashboard();
     };
   });
 
   // Bind F&B Actions
   document.querySelectorAll(".btn-fnb-action").forEach(btn => {
-    btn.onclick = () => {
+    btn.onclick = async () => {
       const ordId = btn.getAttribute("data-id");
       const nextStatus = btn.getAttribute("data-next");
-      const order = DB.orders.find(o => o.id === ordId);
-      if (order) {
-        order.status = nextStatus;
-        saveDB();
-        publish("order-change", { orderId: ordId, status: nextStatus });
-        addNotification("ORDER", `식음료 주문 ${ordId} 상태 변경 -> ${nextStatus}`);
-        renderDashboard();
-      }
+      
+      try {
+        await fetch(`/api/order/fnb/${ordId}/status`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: nextStatus })
+        });
+      } catch (e) {}
+
+      addNotification("ORDER", `식음료 주문 ${ordId} 상태 변경 -> ${nextStatus}`);
+      renderDashboard();
     };
   });
 }
@@ -807,7 +844,7 @@ function renderScanStatusScreen() {
             <span class="mock-dot dot-red btn-mock-scan" data-id="T-FAKE" data-tooltip="[오류 티켓]"></span>
           </span>
         </span>
-        <span>실시간 입장객: <strong id="scan-entered-count">${stats.entered}</strong> / 36 석</span>
+        <span>실시간 입장객: <strong id="scan-entered-count">${stats.entered}</strong> / ${stats.total} 석</span>
       </div>
       <div class="panel-body-rigid">
         <table class="table-rigid">
@@ -846,9 +883,25 @@ function renderScanStatusScreen() {
 // ==========================================
 // 4. REALTIME SEATING MAP RENDERING
 // ==========================================
-function renderSeatMapScreen() {
+async function renderSeatMapScreen() {
   const view = document.getElementById("view-seats");
   if (!view) return;
+
+  try {
+    const res = await fetch('/api/order/seats?zones=A,B,C');
+    if (res.ok) {
+      const allSeats = await res.json();
+      DB.seats = {};
+      allSeats.forEach(s => {
+        DB.seats[s.id] = {
+          status: s.isReserved ? "RESERVED" : "AVAILABLE",
+          holder: s.isReserved ? "예약됨" : null
+        };
+      });
+    }
+  } catch(e) {
+    console.error("Failed to fetch reserved seats", e);
+  }
 
   view.innerHTML = `
     <div class="seating-layout-grid">
@@ -884,9 +937,25 @@ function renderSeatMapScreen() {
 // ==========================================
 // 5. ON-SITE TICKETING SCREEN RENDERING
 // ==========================================
-function renderTicketingScreen() {
+async function renderTicketingScreen() {
   const view = document.getElementById("view-ticketing");
   if (!view) return;
+
+  try {
+    const res = await fetch('/api/order/seats?zones=A,B,C');
+    if (res.ok) {
+      const allSeats = await res.json();
+      DB.seats = {};
+      allSeats.forEach(s => {
+        DB.seats[s.id] = {
+          status: s.isReserved ? "RESERVED" : "AVAILABLE",
+          holder: s.isReserved ? "예약됨" : null
+        };
+      });
+    }
+  } catch(e) {
+    console.error("Failed to fetch reserved seats", e);
+  }
 
   const seasons = DB.options.seasons;
   const rates = DB.options.rates;
@@ -1077,54 +1146,37 @@ function renderTicketingScreen() {
     requestTossPayment({
       title: paymentTitle,
       amount: totalPrice,
-      onSuccess: (paymentData) => {
-        // Success payment: Process DB update for each selected seat
-        selectedSeats.forEach(item => {
-          const { seatId, seasonId, rateId } = item;
-          const seatPrice = calculateTicketPrice(seasonId, rateId);
+      onSuccess: async (paymentData) => {
+        // Success payment: Send to backend
+        const seatIds = selectedSeats.map(s => s.seatId);
+        
+        try {
+          const res = await fetch('/api/order/ticket', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              totalPrice: totalPrice,
+              seats: seatIds
+            })
+          });
 
-          DB.seats[seatId].status = "RESERVED";
-          DB.seats[seatId].holder = `${holder} (입장대기)`;
+          if (!res.ok) throw new Error("API Error");
 
-          // Register matching ticket ID
-          const ticketId = `T-${Math.floor(1000 + Math.random() * 9000)}`;
-          const selectedRate = DB.options.rates.find(r => r.id === rateId);
+          // Publish global payment complete
+          publish("payment-complete", { customer: holder, amount: totalPrice });
+          addNotification("TICKET", `현장 고객 ${holder}님 일괄 예매 완료: 좌석 [${seatIdsText}]`);
+
+          alert(`결제 및 좌석 ${selectedSeats.length}개 예매가 성공적으로 서버에 저장되었습니다!`);
+          selectedSeats = [];
           
-          DB.tickets.push({
-            id: ticketId,
-            seat: seatId,
-            status: "VALID",
-            type: selectedRate ? selectedRate.name.split(" ")[0] : "ADULT",
-            used: false,
-            holder
-          });
-
-          // Add to orders queue for invoice records
-          const newOrderId = `ORD-${Math.floor(10000 + Math.random() * 90000)}`;
-          DB.orders.unshift({
-            id: newOrderId,
-            type: "TICKET",
-            items: [{ name: `좌석 ${seatId} 예매`, quantity: 1 }],
-            price: seatPrice,
-            status: "PAID",
-            customer: holder,
-            timestamp: new Date().toLocaleTimeString(),
-            metadata: { seatId, ticketId }
-          });
-
-          // Publish to Seat Map and Live dashboard logs
-          publish("seat-change", { seatId, status: "RESERVED", seat: DB.seats[seatId] });
-        });
-
-        // Publish global payment complete
-        publish("payment-complete", { customer: holder, amount: totalPrice });
-        addNotification("TICKET", `현장 고객 ${holder}님 일괄 예매 완료: 좌석 [${seatIdsText}]`);
-
-        saveDB();
-
-        alert(`결제 및 좌석 ${selectedSeats.length}개 예매가 완료되었습니다!`);
-        selectedSeats = [];
-        renderTicketingScreen();
+          // Re-render to fetch newly reserved seats from backend
+          renderTicketingScreen();
+          renderDashboard(); // Update dashboard counts
+          
+        } catch (e) {
+          alert("서버 오류: 예매를 저장하지 못했습니다.");
+          console.error(e);
+        }
       },
       onCancel: (err) => {
         alert("결제가 사용자 취소되었습니다.");
@@ -1163,7 +1215,7 @@ function renderRecentTicketsTable() {
 // ==========================================
 // 6. REFUND & CANCELLATION SCREEN RENDERING
 // ==========================================
-function renderRefundScreen() {
+async function renderRefundScreen() {
   const view = document.getElementById("view-refund");
   if (!view) return;
 
@@ -1181,7 +1233,7 @@ function renderRefundScreen() {
               <th>주문번호</th>
               <th>발권유형</th>
               <th>고객명</th>
-              <th>내용</th>
+              <th>내용 (좌석 번호)</th>
               <th>결제금액</th>
               <th>상태</th>
               <th class="text-right">액션</th>
@@ -1195,51 +1247,58 @@ function renderRefundScreen() {
     </div>
   `;
 
-  const tbody = document.getElementById("refund-tbody");
-  tbody.innerHTML = "";
+  try {
+    const res = await fetch('/api/order/tickets');
+    const tbody = document.getElementById("refund-tbody");
+    if (!res.ok) throw new Error("API 오류");
+    
+    const orders = await res.json();
+    
+    if (orders.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="7" class="text-center" style="color:#a0aec0;">조회되는 결제 완료 예매가 없습니다.</td></tr>`;
+      return;
+    }
 
-  // Get ticket orders
-  const orders = DB.orders.filter(o => o.type === "TICKET");
-
-  if (orders.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="7" class="text-center" style="color:#a0aec0;">조회되는 결제 완료 예매가 없습니다.</td></tr>`;
-    return;
-  }
-
-  orders.forEach(o => {
+    tbody.innerHTML = "";
+    orders.forEach(o => {
     let actionBtnHtml = "";
     let statusLabel = "";
 
-    if (o.status === "PAID") {
+    if (o.payment_status === "PAID") {
       statusLabel = `<span class="badge badge-green">결제 완료</span>`;
       actionBtnHtml = `<button class="btn btn-rigid btn-small btn-red btn-request-ref" data-id="${o.id}">환불 요청</button>`;
-    } else if (o.status === "REFUND_REQUESTED") {
+    } else if (o.payment_status === "REFUND_REQUESTED") {
       statusLabel = `<span class="badge badge-amber animate-pulse">환불대기</span>`;
       actionBtnHtml = `<button class="btn btn-rigid btn-small btn-purple btn-accept-ref" data-id="${o.id}">환불 수락 (Cancel API)</button>`;
-    } else if (o.status === "REFUNDED") {
+    } else if (o.payment_status === "REFUNDED") {
       statusLabel = `<span class="badge badge-red">환불 완료</span>`;
       actionBtnHtml = `<span style="font-size:12px; color:#a0aec0;">환불 완료됨</span>`;
     }
 
-    const itemsText = o.items.map(i => i.name).join(", ");
-    
-    // 발권 유형 판별
-    const isOnsite = o.metadata && o.metadata.ticketId;
-    const ticketType = isOnsite ? "현장" : "예매";
-    const ticketTypeBadge = isOnsite ? "badge-blue" : "badge-gray";
+    let dateStr = "";
+    if (Array.isArray(o.created_at)) {
+      dateStr = o.created_at.slice(0, 3).join('-') + ' ' + o.created_at.slice(3, 5).join(':');
+    } else {
+      dateStr = new Date(o.created_at).toLocaleString();
+    }
 
     const tr = document.createElement("tr");
     tr.innerHTML = `
-      <td><strong>${o.id}</strong></td>
-      <td><span class="badge ${ticketTypeBadge}">${ticketType}</span></td>
-      <td>${o.customer}</td>
-      <td>${itemsText}</td>
-      <td><strong>${o.price.toLocaleString()}원</strong></td>
-      <td>${statusLabel}</td>
+      <td><strong>ORD-${o.id}</strong></td>
+      <td><span class="badge badge-blue">현장예매</span></td>
+      <td>현장 고객</td>
+      <td>좌석: <strong>${o.seat_ids || '정보 없음'}</strong></td>
+      <td><strong>${Number(o.total_price).toLocaleString()}원</strong></td>
+      <td>${statusLabel}<br><span style="font-size:10px; color:var(--text-muted);">${dateStr}</span></td>
       <td class="text-right">${actionBtnHtml}</td>
     `;
     tbody.appendChild(tr);
   });
+  
+  } catch (e) {
+    const tbody = document.getElementById("refund-tbody");
+    if (tbody) tbody.innerHTML = `<tr><td colspan="7" class="text-center" style="color:#ef4444;">데이터를 불러오지 못했습니다.</td></tr>`;
+  }
 
   // Action Click Bindings
   document.querySelectorAll(".btn-request-ref").forEach(btn => {
@@ -1303,17 +1362,27 @@ function renderFnbOrdersScreen() {
   renderFnbQueueTable();
 }
 
-function renderFnbQueueTable() {
+async function renderFnbQueueTable() {
   const tbody = document.getElementById("fnb-queue-tbody");
   if (!tbody) return;
 
-  tbody.innerHTML = "";
-  const fnbOrders = DB.orders.filter(o => o.type === "FOOD");
+  tbody.innerHTML = `<tr><td colspan="8" class="text-center" style="color:#a0aec0;">로딩 중...</td></tr>`;
+
+  let fnbOrders = [];
+  try {
+    const res = await fetch('/api/order/fnb');
+    if (res.ok) {
+      fnbOrders = await res.json();
+    }
+  } catch (e) {
+    console.error("Failed to fetch F&B orders", e);
+  }
 
   if (fnbOrders.length === 0) {
     tbody.innerHTML = `<tr><td colspan="8" class="text-center" style="color:#a0aec0;">접수된 식음료 주문이 없습니다.</td></tr>`;
     return;
   }
+  tbody.innerHTML = "";
 
   fnbOrders.forEach(o => {
     let statusLabel = "";
@@ -1356,32 +1425,53 @@ function renderFnbQueueTable() {
 
   // Bind status toggle click handler
   document.querySelectorAll(".btn-fnb-status-toggle").forEach(el => {
-    el.onclick = () => {
+    el.onclick = async () => {
       const ordId = el.getAttribute("data-id");
       const nextStatus = el.getAttribute("data-next");
+      
+      try {
+        await fetch(`/api/order/fnb/${ordId}/status`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: nextStatus })
+        });
+      } catch (e) {
+        console.error("Failed to update status", e);
+      }
+
       const order = DB.orders.find(o => o.id === ordId);
       if (order) {
         order.status = nextStatus;
         saveDB();
         publish("order-change", { orderId: ordId, status: nextStatus });
-        renderFnbOrdersScreen();
       }
+      renderFnbOrdersScreen();
     };
   });
 
   // Cancel Handler
   document.querySelectorAll(".btn-fnb-cancel").forEach(btn => {
-    btn.onclick = () => {
+    btn.onclick = async () => {
       const ordId = btn.getAttribute("data-id");
       if (confirm(`주문 ${ordId}을 취소하고 환불처리 하시겠습니까?`)) {
+        try {
+          await fetch(`/api/order/fnb/${ordId}/status`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: "REFUNDED" })
+          });
+        } catch (e) {
+          console.error("Failed to cancel order", e);
+        }
+
         const order = DB.orders.find(o => o.id === ordId);
-        if (order && order.status === "RECEIVED") {
+        if (order) {
           order.status = "REFUNDED";
           saveDB();
           publish("order-change", { orderId: ordId, status: "REFUNDED" });
-          alert("주문 취소 및 환불 처리가 성공 완료되었습니다.");
-          renderFnbOrdersScreen();
         }
+        alert("주문 취소 및 환불 처리가 성공 완료되었습니다.");
+        renderFnbOrdersScreen();
       }
     };
   });
@@ -1422,17 +1512,27 @@ function renderGoodsOrdersScreen() {
   renderGoodsQueueTable();
 }
 
-function renderGoodsQueueTable() {
+async function renderGoodsQueueTable() {
   const tbody = document.getElementById("goods-queue-tbody");
   if (!tbody) return;
 
-  tbody.innerHTML = "";
-  const goodsOrders = DB.orders.filter(o => o.type === "GOODS");
+  tbody.innerHTML = `<tr><td colspan="8" class="text-center" style="color:#a0aec0; padding:30px 0;">로딩 중...</td></tr>`;
+  
+  let goodsOrders = [];
+  try {
+    const res = await fetch('/api/order/goods');
+    if (res.ok) {
+      goodsOrders = await res.json();
+    }
+  } catch (e) {
+    console.error("Failed to fetch GOODS orders", e);
+  }
 
   if (goodsOrders.length === 0) {
     tbody.innerHTML = `<tr><td colspan="8" class="text-center" style="color:#a0aec0; padding:30px 0;">주문 수령 대기 중인 굿즈가 없습니다.</td></tr>`;
     return;
   }
+  tbody.innerHTML = "";
 
   goodsOrders.forEach(o => {
     // 결제완료(ORDERED) → 수령가능(READY) → 픽업완료(PICKED_UP)
@@ -1482,30 +1582,56 @@ function renderGoodsQueueTable() {
 
   // 상태 토글 클릭
   tbody.querySelectorAll(".btn-goods-toggle").forEach(el => {
-    el.onclick = () => {
-      const order = DB.orders.find(o => o.id === el.dataset.id);
-      if (!order) return;
-      order.status = el.dataset.next;
-      saveDB();
-      publish("order-change", { orderId: order.id, status: order.status });
+    el.onclick = async () => {
+      const ordId = el.dataset.id;
+      const nextStatus = el.dataset.next;
+      
+      try {
+        await fetch(`/api/order/goods/${ordId}/status`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: nextStatus })
+        });
+      } catch (e) {
+        console.error("Failed to update goods status", e);
+      }
+
+      const order = DB.orders.find(o => o.id === ordId);
+      if (order) {
+        order.status = nextStatus;
+        saveDB();
+        publish("order-change", { orderId: ordId, status: nextStatus });
+      }
       renderGoodsOrdersScreen();
     };
   });
 
   // 환불/취소
   tbody.querySelectorAll(".btn-goods-refund").forEach(btn => {
-    btn.onclick = () => {
+    btn.onclick = async () => {
       const ordId = btn.dataset.id;
       if (!confirm(`주문 ${ordId}을 전면 환불/취소하시겠습니까?\n(현재재고수량이 자동 복원됩니다)`)) return;
+      
+      try {
+        await fetch(`/api/order/goods/${ordId}/status`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: "REFUNDED" })
+        });
+      } catch (e) {
+        console.error("Failed to refund goods order", e);
+      }
+      
       const order = DB.orders.find(o => o.id === ordId);
-      if (!order) return;
-      order.items.forEach(item => {
-        const g = DB.goods.find(g => g.name === item.name);
-        if (g) g.currentStock += item.quantity;
-      });
-      order.status = "REFUNDED";
-      saveDB();
-      publish("order-change", { orderId: ordId, status: "REFUNDED" });
+      if (order) {
+        order.items.forEach(item => {
+          const g = DB.goods.find(g => g.name === item.name);
+          if (g) g.currentStock += item.quantity;
+        });
+        order.status = "REFUNDED";
+        saveDB();
+        publish("order-change", { orderId: ordId, status: "REFUNDED" });
+      }
       alert("환불 처리 완료. 재고가 복구되었습니다.");
       renderGoodsOrdersScreen();
     };

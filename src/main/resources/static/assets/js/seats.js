@@ -33,69 +33,34 @@ export function renderSeatMap(containerId, onSeatClick) {
   const container = document.getElementById(containerId);
   if (!container) return;
 
+  const zones = Array.from(new Set(Object.keys(DB.seats).map(id => id.split("-")[0]))).sort();
+
+  let badgesHtml = zones.map(z => `<div class="zone-badge">구역 ${z}</div>`).join('');
+  let zonesHtml = zones.map(z => `
+    <div class="theater-zone" id="theater-zone-${z.toLowerCase()}" style="padding: 10px; background: rgba(0,0,0,0.2); border-radius: 8px;">
+      <div style="text-align:center; color:#ffd65c; font-weight:bold; margin-bottom:10px;">${z} 구역</div>
+      <div class="zone-seats-container" id="zone-container-${z.toLowerCase()}" style="display:flex; flex-wrap:wrap; gap:5px; justify-content:center; max-width: 150px;"></div>
+    </div>
+  `).join('');
+
   container.innerHTML = `
     <div class="theater-shell">
-      <!-- Top exits -->
       <div class="exit-indicator top-left">◀ 출입구</div>
       <div class="exit-indicator top-right">출입구 ▶</div>
-
-      <!-- Stage -->
       <div class="theater-stage">무 대 (STAGE)</div>
 
-      <!-- Zone Name Indicators -->
-      <div class="zone-badge-header">
-        <div class="zone-badge badge-a">가</div>
-        <div class="zone-badge badge-b">나</div>
-        <div class="zone-badge badge-c">다</div>
+      <div class="theater-layout-grid" style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; margin-top: 30px;">
+        ${zonesHtml}
       </div>
 
-      <!-- Layout Grid -->
-      <div class="theater-layout-grid">
-        <!-- Zone 가 (Left, Zone A) -->
-        <div class="theater-zone zone-left-wing" id="theater-zone-a">
-          <!-- Zone A Seats render here -->
-        </div>
-
-        <!-- Central Row Index Circle Column -->
-        <div class="row-indicators-column left-indicators">
-          <span class="row-badge" style="background-color: #ffd65c; color: #000;">B</span>
-          <span class="row-badge" style="background-color: #10b981; color: #fff;">C</span>
-          <span class="row-badge" style="background-color: #3b82f6; color: #fff;">D</span>
-          <span class="row-badge" style="background-color: #8b5cf6; color: #fff;">E</span>
-        </div>
-
-        <!-- Zone 나 (Center, Zone B) -->
-        <div class="theater-zone zone-center-wing" id="theater-zone-b">
-          <!-- Zone B Seats render here -->
-        </div>
-
-        <!-- Right Row Index Circle Column -->
-        <div class="row-indicators-column right-indicators">
-          <span class="row-badge" style="background-color: #ffd65c; color: #000;">B</span>
-          <span class="row-badge" style="background-color: #10b981; color: #fff;">C</span>
-          <span class="row-badge" style="background-color: #3b82f6; color: #fff;">D</span>
-          <span class="row-badge" style="background-color: #8b5cf6; color: #fff;">E</span>
-        </div>
-
-        <!-- Zone 다 (Right, Zone C) -->
-        <div class="theater-zone zone-right-wing" id="theater-zone-c">
-          <!-- Zone C Seats render here -->
-        </div>
-      </div>
-
-      <!-- Bottom wheelchair rows and bottom exits -->
       <div class="theater-footer-row">
         <div class="wheelchair-bay left-bay">
           <span class="wc-seat" title="장애인 전용석">♿</span>
           <span class="wc-seat" title="장애인 전용석">♿</span>
-          <span class="wc-seat" title="장애인 전용석">♿</span>
         </div>
-        
         <div class="exit-indicator bottom-left">◀ 출입구</div>
         <div class="exit-indicator bottom-right">출입구 ▶</div>
-
         <div class="wheelchair-bay right-bay">
-          <span class="wc-seat" title="장애인 전용석">♿</span>
           <span class="wc-seat" title="장애인 전용석">♿</span>
           <span class="wc-seat" title="장애인 전용석">♿</span>
         </div>
@@ -103,12 +68,10 @@ export function renderSeatMap(containerId, onSeatClick) {
     </div>
   `;
 
-  const zones = ["A", "B", "C"];
   zones.forEach(zone => {
-    const zoneContainer = document.getElementById(`theater-zone-${zone.toLowerCase()}`);
+    const zoneContainer = document.getElementById(`zone-container-${zone.toLowerCase()}`);
     if (!zoneContainer) return;
 
-    // Filter and sort seats in this zone
     const zoneSeats = Object.keys(DB.seats)
       .filter(id => id.startsWith(zone))
       .sort((a, b) => parseInt(a.split("-")[1]) - parseInt(b.split("-")[1]));
@@ -120,7 +83,6 @@ export function renderSeatMap(containerId, onSeatClick) {
       seatEl.setAttribute("data-seat-id", seatId);
       seatEl.id = `seat-node-${seatId}`;
       
-      // Show short seat display e.g. "A-5" as "5"
       const seatNumOnly = seatId.split("-")[1];
       
       seatEl.innerHTML = `
@@ -128,7 +90,6 @@ export function renderSeatMap(containerId, onSeatClick) {
         <span class="seat-tooltip">좌석: ${seatId}<br>${getStatusLabel(seatData.status)}<br>${seatData.holder || '지정 고객 없음'}</span>
       `;
 
-      // Click binding
       if (seatData.status === "AVAILABLE") {
         if (onSeatClick) {
           seatEl.style.cursor = "pointer";
