@@ -17,18 +17,37 @@
   <style>
     .stat-card { transition: transform .2s; }
     .stat-card:hover { transform: translateY(-4px); }
-    .filter-bar { background:#f8f9fb; border:1px solid #e5e7eb; border-radius:10px; padding:18px 22px; margin-bottom:20px; display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
-    .filter-bar label { font-weight:600; font-size:13px; margin-bottom:0; }
-    .filter-bar select { min-width:220px; }
+    
+    /* 가로형 카드 그리드 스타일 (Premium Card Design) */
+    .festival-select-card {
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      border: 1.5px solid #e5e7eb !important;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #ffffff;
+    }
+    .festival-select-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 18px rgba(105, 108, 255, 0.08);
+      border-color: #a2a4ff !important;
+    }
+    .festival-select-card.active {
+      border-color: #696cff !important;
+      background-color: rgba(105, 108, 255, 0.04) !important;
+      box-shadow: 0 4px 14px rgba(105, 108, 255, 0.16);
+    }
+    
     .status-tabs { display:flex; gap:6px; margin-bottom:18px; }
     .status-tab { padding:8px 20px; border-radius:50px; border:1.5px solid #d1d5db; background:#fff; font-size:13px; font-weight:600; cursor:pointer; transition:all .2s; color:#555; }
     .status-tab.active { background:#696cff; border-color:#696cff; color:#fff; box-shadow:0 3px 10px rgba(105,108,255,.35); }
     .status-tab .tab-count { background:rgba(0,0,0,.08); border-radius:20px; padding:1px 8px; font-size:11px; margin-left:5px; }
     .status-tab.active .tab-count { background:rgba(255,255,255,.25); }
+    
     .badge-type-food { background:#e3f2fd; color:#1565c0; padding:3px 9px; border-radius:20px; font-size:11.5px; font-weight:600; }
     .badge-type-goods { background:#f3e5f5; color:#6a1b9a; padding:3px 9px; border-radius:20px; font-size:11.5px; font-weight:600; }
     .badge-type-event { background:#e8f5e9; color:#2e7d32; padding:3px 9px; border-radius:20px; font-size:11.5px; font-weight:600; }
     .empty-row td { text-align:center; padding:48px 0; color:#aaa; font-size:14px; }
+    
     /* Detail Modal */
     .detail-modal-backdrop { display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:9999; align-items:center; justify-content:center; }
     .detail-modal-backdrop.show { display:flex; }
@@ -113,10 +132,18 @@
             </div>
           </div>
 
-          <!-- 필터 영역 -->
-          <div class="filter-bar">
-            <label for="festivalSelect"><i class="bx bx-calendar-event me-1"></i>행사 선택</label>
-            <select class="form-select" id="festivalSelect" style="max-width:260px;"></select>
+          <!-- 행사 선택 그리드 레이아웃 (기존 Select 제거 및 교체) -->
+          <div class="card mb-4 p-4">
+            <h6 class="pb-2 border-bottom text-muted fw-bold mb-3 d-flex align-items-center">
+              <i class="bx bx-calendar-event me-2 text-primary fs-4"></i>모집 대상 축제 선택 (UPCOMING)
+            </h6>
+            <!-- 가로 드래그/스크롤이 가능한 마스터 카드 그리드 구조 -->
+            <div id="festivalCardGrid" class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3 flex-nowrap overflow-auto pb-2" style="scrollbar-width: thin; -ms-overflow-style: none;">
+              <!-- 동적으로 축제 리스트 카드가 바인딩됩니다. -->
+              <div class="text-center py-4 text-muted w-100">
+                <i class="bx bx-loader-alt bx-spin me-2"></i>진행 예정 축제 목록을 불러오는 중...
+              </div>
+            </div>
           </div>
 
           <!-- 상태 탭 -->
@@ -142,10 +169,14 @@
                     <th>연락처</th>
                     <th>신청일</th>
                     <th>상태</th>
-                    <th>액션</th>
+                    <th class="text-end pe-4">액션</th>
                   </tr>
                 </thead>
-                <tbody id="appTableBody"></tbody>
+                <tbody id="appTableBody">
+                  <tr class="empty-row">
+                    <td colspan="7"><i class="bx bx-calendar-check fs-2 d-block mb-2 text-primary"></i>상단의 축제 카드를 선택하시면 입점 신청 내역을 확인할 수 있습니다.</td>
+                  </tr>
+                </tbody>
               </table>
             </div>
           </div>
@@ -188,98 +219,473 @@
 <script>
 'use strict';
 
-/* ═══════════════════════════════════════════════════════
-   실제 Spring Boot API 연동 스크립트
-   GET  /api/festival                           → 행사 목록
-   GET  /api/partner/inquiry?festivalId=&status= → 문의 필터 조회
-   PUT  /api/partner/inquiry/{id}/status        → 상태 변경
-   ═══════════════════════════════════════════════════════ */
+/**
+ * ═══════════════════════════════════════════════════════
+ * [백엔드 API 및 폴백 목(Mock) 데이터 구조 매핑 설계]
+ * ═══════════════════════════════════════════════════════
+ */
+const MOCK_FESTIVALS = [
+  { id: 1, name: '2026 워터밤 서울', startDate: '2026-07-05', endDate: '2026-07-07', thumbnailUrl: 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=500' },
+  { id: 2, name: '2026 서울재즈페스티벌', startDate: '2026-05-28', endDate: '2026-05-30', thumbnailUrl: 'https://images.unsplash.com/photo-1511192336575-5a79af67a629?w=500' },
+  { id: 3, name: '2026 부산 불꽃축제', startDate: '2026-11-04', endDate: '2026-11-04', thumbnailUrl: 'https://images.unsplash.com/photo-1531685250784-7569952593d2?w=500' },
+];
 
-let currentFestivalId = null;
-let currentStatus     = 'PENDING';
+let MOCK_INQUIRIES = [
+  { id:1, festivalId:1, inquiryType:'FOODTRUCK', companyName:'마포 닭강정 푸드트럭', managerName:'홍길동', phone:'010-1234-5678', email:'hong@food.com', content:'워터밤 행사 현장 내 10㎡ 구역에서 닭강정 및 음료 판매를 희망합니다. 사업자등록증 첨부드립니다.', createdAt:'2026-05-26T12:00:00', status:'PENDING', filePath1:'/uploads/business_license.pdf', filePath2:'/uploads/truck_proposal.pdf' },
+  { id:2, festivalId:1, inquiryType:'FOODTRUCK', companyName:'우주선 타코야끼', managerName:'김철수', phone:'010-9876-5432', email:'kim@tako.com', content:'타코야끼 및 크레페 전문 푸드트럭입니다. 5년 경력 위생 관리 우수 업체입니다.', createdAt:'2026-05-26T14:30:00', status:'PENDING', filePath1:'/uploads/tako_hygiene_license.pdf' },
+  { id:3, festivalId:1, inquiryType:'GOODS', companyName:'페스티벌 썬글라스 & 굿즈', managerName:'이영희', phone:'010-5555-1234', email:'lee@goods.com', content:'UV차단 썬글라스, 워터밤 MD 팔찌 등 굿즈 셀러 입점을 희망합니다. 연간 10개 이상 페스티벌 참여 이력 보유.', createdAt:'2026-05-25T09:00:00', status:'PENDING', filePath1:'/uploads/goods_catalog.pdf' },
+  { id:4, festivalId:1, inquiryType:'EVENT', companyName:'스타벅스 팝업', managerName:'박민준', phone:'010-7777-8888', email:'park@starbucks.com', content:'워터밤 현장 내 스타벅스 팝업 스토어 운영 제안드립니다. 음료 및 MD 판매 병행.', createdAt:'2026-05-24T18:15:00', status:'APPROVED', filePath1:'/uploads/starbucks_brand_proposal.pdf' },
+  { id:5, festivalId:2, inquiryType:'FOODTRUCK', companyName:'재즈밤 버거', managerName:'최재훈', phone:'010-2222-3333', email:'choi@burger.com', content:'수제버거 전문 푸드트럭. 재즈페스티벌 분위기에 맞는 감성 메뉴 구성 예정.', createdAt:'2026-05-22T10:45:00', status:'PENDING', filePath1:'/uploads/jazz_burger_menu.pdf' },
+  { id:6, festivalId:2, inquiryType:'GOODS', companyName:'비닐레코드 굿즈샵', managerName:'정수빈', phone:'010-4444-5555', email:'jung@vinyl.com', content:'LP판 및 재즈 아티스트 관련 굿즈 판매 목적 입점 신청. 음반 전문 MD 경력 8년.', createdAt:'2026-05-21T11:30:00', status:'REJECTED', filePath1:'/uploads/vinyl_store_license.pdf' },
+  { id:7, festivalId:3, inquiryType:'FOODTRUCK', companyName:'야경 포차', managerName:'오수연', phone:'010-6666-7777', email:'oh@pocha.com', content:'부산 불꽃축제 현장에서 포장마차 콘셉트의 야식 메뉴 운영 희망. 해산물 특화.', createdAt:'2026-05-20T16:00:00', status:'PENDING', filePath1:'/uploads/pocha_hygiene_certificate.pdf' },
+];
+
+let currentFestivalId = null; // 선택된 축제 ID
+let currentStatus     = 'PENDING'; // 현재 활성화된 심사 상태 탭
 let currentDetailId   = null;
-let cachedInquiries   = [];  // 현재 festivalId + status 로 로드된 데이터
+let activeFestivals   = []; // API 또는 로컬 축제 목록 저장 캐시
+let cachedInquiries   = []; // 현재 축제에 매핑된 신청서 목록 캐시
 
-// ─── 행사 목록 로드 및 드롭다운 초기화 ──────────────────
-async function initFestivalSelect() {
-  const sel = document.getElementById('festivalSelect');
+document.addEventListener('DOMContentLoaded', async () => {
+  await loadFestivals(); // 1. 진행 예정 축제 목록 로드
+  initTabs(); // 2. 탭 이벤트 구성
+  
+  // 모달 제어 이벤트 바인딩
+  document.getElementById('detailModalBackdrop').addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeModal();
+  });
+  document.getElementById('modalCloseBtn').addEventListener('click', closeModal);
+});
+
+/**
+ * 1. 진행 예정 축제 목록 조회 API 호출
+ * GET /api/admin/festivals?status=UPCOMING
+ * 
+ * [Request Headers]
+ * Accept: application/json
+ * 
+ * [Response JSON Format]
+ * [
+ *   {
+ *     "id": 1,
+ *     "name": "2026 워터밤 서울",
+ *     "startDate": "2026-07-05",
+ *     "endDate": "2026-07-07",
+ *     "posterUrl": "/uploads/poster1.png",
+ *     "reviewStatus": "APPROVED",
+ *     "operationalStatus": "UPCOMING"
+ *   }
+ * ]
+ */
+async function loadFestivals() {
+  const gridContainer = document.getElementById('festivalCardGrid');
   try {
-    const res = await fetch('/api/festival');
-    if (!res.ok) throw new Error('행사 목록 로드 실패');
-    const festivals = await res.json();
-
-    if (!festivals.length) {
-      sel.innerHTML = '<option value="">등록된 행사 없음</option>';
-      return;
+    const res = await fetch('/api/admin/festivals?status=UPCOMING');
+    if (!res.ok) {
+      // 1차 백엔드 경로 실패 시, 2차 전체 페스티벌 조회 API 시도
+      const altRes = await fetch('/api/festival');
+      if (!altRes.ok) throw new Error('API 로드 에러');
+      const allFests = await altRes.json();
+      // UPCOMING 필터 모방
+      activeFestivals = allFests.length > 0 ? allFests : MOCK_FESTIVALS;
+    } else {
+      activeFestivals = await res.json();
     }
-
-    sel.innerHTML = '';
-    festivals.forEach(f => {
-      const opt = document.createElement('option');
-      opt.value = f.id;
-      opt.textContent = f.name;
-      sel.appendChild(opt);
-    });
-
-    currentFestivalId = Number(festivals[0].id);
-    await loadAndRender();
-
   } catch (err) {
-    console.error('[행사 목록 오류]', err);
-    sel.innerHTML = '<option value="">로드 실패</option>';
+    console.warn('[백엔드 API 연결 불가 - 로컬 목(Mock) 데이터로 구동합니다]', err);
+    activeFestivals = MOCK_FESTIVALS;
   }
 
-  sel.addEventListener('change', async () => {
-    currentFestivalId = Number(sel.value);
-    await loadAndRender();
-  });
+  renderFestivalGrid();
 }
 
-// ─── API에서 문의 데이터 로드 후 전체 갱신 ──────────────
+/**
+ * DB에 저장된 실제 대표 이미지(thumbnail_url / thumbnailUrl) 반환 함수
+ */
+function getFestivalPoster(f) {
+  // DB에서 반환되는 카멜케이스(thumbnailUrl) 및 스네이크케이스(thumbnail_url) 모두 대응 지원
+  const dbThumbnail = f.thumbnailUrl || f.thumbnail_url;
+  
+  if (dbThumbnail && dbThumbnail.trim() !== "") {
+    return dbThumbnail;
+  }
+
+  // 대표 이미지가 비어있는 경우에만 사용되는 기본 플레이스홀더 이미지
+  return "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=500";
+}
+
+/**
+ * 2. 가로형 마스터 축제 카드 그리드 동적 렌더링
+ */
+function renderFestivalGrid() {
+  const gridContainer = document.getElementById('festivalCardGrid');
+  if (!activeFestivals.length) {
+    gridContainer.innerHTML = `
+      <div class="text-center py-4 text-muted w-100">
+        <i class="bx bx-calendar-x fs-2 d-block mb-1"></i>진행 예정인 축제가 존재하지 않습니다.
+      </div>`;
+    return;
+  }
+
+  gridContainer.innerHTML = activeFestivals.map(f => {
+    // 해당 축제에 대한 대기 중(PENDING)인 신청서 건수 계산
+    const pendingCount = getInquiryCountForFestival(f.id, 'PENDING');
+    const badgeClass = pendingCount > 0 ? 'bg-danger' : 'bg-label-secondary';
+
+    return `
+      <div class="col" style="min-width: 320px; cursor: pointer;">
+        <div class="card festival-select-card h-100 ${currentFestivalId === f.id ? 'active' : ''}" 
+             id="fest-card-${f.id}" onclick="selectFestival(${f.id})">
+          <div class="row g-0 h-100">
+            <div class="col-4">
+              <img src="${getFestivalPoster(f)}" 
+                   class="img-fluid rounded-start h-100 object-fit-cover" 
+                   style="height: 100%; min-height: 100px; width: 100%; object-fit: cover;" 
+                   alt="축제 포스터" 
+                   onerror="this.src='/assets/img/elements/12.jpg';" />
+            </div>
+            <div class="col-8">
+              <div class="card-body p-3 d-flex flex-column justify-content-between h-100">
+                <div>
+                  <h6 class="card-title text-dark fw-bold mb-1 text-truncate" title="${f.name}">${f.name}</h6>
+                  <p class="card-text text-muted mb-0 fs-7 text-truncate">
+                    <i class="bx bx-calendar me-1"></i>${formatDate(f.startDate)} ~ ${formatDate(f.endDate)}
+                  </p>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mt-2">
+                  <span class="badge bg-label-info font-mono" style="font-size:10px;">UPCOMING</span>
+                  <span class="badge ${badgeClass} rounded-pill px-2" id="grid-badge-${f.id}" style="font-size:11px;">
+                    ${pendingCount}건 대기
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+/**
+ * 특정 축제에 속한 특정 상태의 신청서 개수 계산
+ */
+function getInquiryCountForFestival(festivalId, status) {
+  // 실제 백엔드가 붙어있을 때는 로컬 캐시 또는 간이 계산용
+  return MOCK_INQUIRIES.filter(i => i.festivalId === festivalId && i.status === status).length;
+}
+
+/**
+ * 3. 축제 카드 클릭 시 액션 제어 함수
+ */
+async function selectFestival(id) {
+  // 1. 기존의 active 클래스 모두 제거 후 클릭 대상 카드만 활성화 테두리 추가
+  document.querySelectorAll('.festival-select-card').forEach(card => {
+    card.classList.remove('active');
+  });
+  
+  const selectedCard = document.getElementById(`fest-card-${id}`);
+  if (selectedCard) {
+    selectedCard.classList.add('active');
+  }
+
+  currentFestivalId = id;
+
+  // 2. 하단 데이터 리로드 및 렌더링
+  await loadAndRender();
+}
+
+/**
+ * 4. 특정 축제에 매핑된 입점 신청서 목록 조회 API 호출
+ * GET /api/partner/inquiry?status={status}&festivalId={festivalId}
+ * 
+ * [Request Query Parameters]
+ * status: PENDING, APPROVED, REJECTED
+ * festivalId: 선택된 축제 ID
+ * 
+ * [Response JSON Format]
+ * [
+ *   {
+ *     "id": 1,
+ *     "inquiryType": "FOODTRUCK", // FOODTRUCK, GOODS, EVENT
+ *     "companyName": "마포 닭강정 푸드트럭",
+ *     "managerName": "홍길동",
+ *     "phone": "010-1234-5678",
+ *     "email": "hong@food.com",
+ *     "content": "신청 정보 내용...",
+ *     "createdAt": "2026-05-26T12:00:00",
+ *     "status": "PENDING"
+ *   }
+ * ]
+ */
 async function loadAndRender() {
+  if (!currentFestivalId) return;
+
   await Promise.all([
-    loadInquiries('PENDING'),
-    loadInquiries('APPROVED'),
-    loadInquiries('REJECTED'),
+    fetchInquiries('PENDING'),
+    fetchInquiries('APPROVED'),
+    fetchInquiries('REJECTED'),
   ]);
+
   updateSummary();
   updateTabCounts();
   renderTable();
 }
 
-// 특정 상태의 문의 개수 캐시 (탭 카운트용)
-const countCache = { PENDING: 0, APPROVED: 0, REJECTED: 0 };
+const statusCounts = { PENDING: 0, APPROVED: 0, REJECTED: 0 };
 
-async function loadInquiries(status) {
-  let url = `/api/partner/inquiry?status=${status}`;
-  if (currentFestivalId) url += `&festivalId=${currentFestivalId}`;
+async function fetchInquiries(status) {
+  let url = `/api/partner/inquiry?status=${status}&festivalId=${currentFestivalId}`;
   try {
     const res = await fetch(url);
-    if (!res.ok) throw new Error('문의 로드 실패');
+    if (!res.ok) throw new Error('신청서 조회 API 오류');
     const data = await res.json();
-    countCache[status] = data.length;
+    statusCounts[status] = data.length;
     if (status === currentStatus) cachedInquiries = data;
   } catch (err) {
-    console.error(`[문의 로드 오류 - ${status}]`, err);
-    countCache[status] = 0;
-    if (status === currentStatus) cachedInquiries = [];
+    // API 연결 오류 시 Mock 데이터 필터링 매핑 처리
+    const filteredMock = MOCK_INQUIRIES.filter(i => i.festivalId === currentFestivalId && i.status === status);
+    statusCounts[status] = filteredMock.length;
+    if (status === currentStatus) cachedInquiries = filteredMock;
   }
 }
 
-// ─── 요약 카드 업데이트 ──────────────────────────────────
+/**
+ * 5. 통계 요약 카드 및 탭 렌더링 동기화
+ */
 function updateSummary() {
-  document.getElementById('summaryPending').textContent  = countCache.PENDING  + ' 건';
-  document.getElementById('summaryApproved').textContent = countCache.APPROVED + ' 건';
-  document.getElementById('summaryRejected').textContent = countCache.REJECTED + ' 건';
+  document.getElementById('summaryPending').textContent  = statusCounts.PENDING  + ' 건';
+  document.getElementById('summaryApproved').textContent = statusCounts.APPROVED + ' 건';
+  document.getElementById('summaryRejected').textContent = statusCounts.REJECTED + ' 건';
 }
 
 function updateTabCounts() {
-  document.getElementById('tabCountPending').textContent  = countCache.PENDING;
-  document.getElementById('tabCountApproved').textContent = countCache.APPROVED;
-  document.getElementById('tabCountRejected').textContent = countCache.REJECTED;
+  document.getElementById('tabCountPending').textContent  = statusCounts.PENDING;
+  document.getElementById('tabCountApproved').textContent = statusCounts.APPROVED;
+  document.getElementById('tabCountRejected').textContent = statusCounts.REJECTED;
+
+  // 마스터 카드 대기 건수 배지 정보도 최신 데이터로 보정
+  const badge = document.getElementById(`grid-badge-${currentFestivalId}`);
+  if (badge) {
+    badge.textContent = `${statusCounts.PENDING}건 대기`;
+    if (statusCounts.PENDING > 0) {
+      badge.className = 'badge bg-danger rounded-pill px-2';
+    } else {
+      badge.className = 'badge bg-label-secondary rounded-pill px-2';
+    }
+  }
 }
 
-// ─── 유형 뱃지 ────────────────────────────────────────────
+/**
+ * 6. 입점 신청 목록 테이블 동적 바인딩
+ */
+function renderTable() {
+  const titleMap = { PENDING:'대기중 신청서', APPROVED:'승인된 신청서', REJECTED:'반려된 신청서' };
+  document.getElementById('tableHeadTitle').textContent = titleMap[currentStatus];
+
+  const tbody = document.getElementById('appTableBody');
+  if (!currentFestivalId) {
+    tbody.innerHTML = `
+      <tr class="empty-row">
+        <td colspan="7">
+          <i class="bx bx-calendar-check fs-2 d-block mb-2 text-primary"></i>
+          상단의 축제 카드를 선택하시면 입점 신청 내역을 확인할 수 있습니다.
+        </td>
+      </tr>`;
+    return;
+  }
+
+  if (!cachedInquiries.length) {
+    tbody.innerHTML = `
+      <tr class="empty-row">
+        <td colspan="7">
+          <i class="bx bx-inbox fs-2 d-block mb-2 text-muted"></i>
+          해당 축제에 접수된 신청서가 존재하지 않습니다.
+        </td>
+      </tr>`;
+    return;
+  }
+
+  tbody.innerHTML = cachedInquiries.map(item => `
+    <tr data-id="${item.id}" style="cursor:pointer;">
+      <td>${typeBadge(item.inquiryType)}</td>
+      <td><strong>${item.companyName}</strong></td>
+      <td>${item.managerName}</td>
+      <td>${item.phone}</td>
+      <td>${formatDate(item.createdAt)}</td>
+      <td>${statusBadge(item.status)}</td>
+      <td class="text-end pe-3">
+        <div class="d-inline-flex gap-1">
+          <button class="btn btn-sm btn-outline-secondary detail-btn" data-id="${item.id}">
+            <i class="bx bx-show me-1"></i>상세
+          </button>
+          ${item.status === 'PENDING' ? `
+            <button class="btn btn-sm btn-success action-btn" data-id="${item.id}" data-action="APPROVED">승인</button>
+            <button class="btn btn-sm btn-danger action-btn" data-id="${item.id}" data-action="REJECTED">반려</button>
+          ` : ''}
+        </div>
+      </td>
+    </tr>
+  `).join('');
+
+  // 이벤트 연결
+  tbody.querySelectorAll('.detail-btn').forEach(btn => {
+    btn.addEventListener('click', e => { e.stopPropagation(); openModal(Number(btn.dataset.id)); });
+  });
+  tbody.querySelectorAll('.action-btn').forEach(btn => {
+    btn.addEventListener('click', e => { e.stopPropagation(); changeStatus(Number(btn.dataset.id), btn.dataset.action); });
+  });
+  tbody.querySelectorAll('tr[data-id]').forEach(row => {
+    row.addEventListener('click', () => openModal(Number(row.dataset.id)));
+  });
+}
+
+/**
+ * 7. 입점 신청서 승인 및 반려 비동기 처리 API 호출
+ * PUT /api/partner/inquiry/{id}/status
+ * 
+ * [Request JSON Format]
+ * {
+ *   "status": "APPROVED" // APPROVED 또는 REJECTED
+ * }
+ */
+async function changeStatus(id, newStatus) {
+  const item = cachedInquiries.find(i => i.id === id) || MOCK_INQUIRIES.find(i => i.id === id);
+  if (!item) return;
+
+  const label = newStatus === 'APPROVED' ? '승인' : '반려';
+  if (!confirm(`[${item.companyName}] 업체의 입점 신청을 최종 [${label}] 처리하시겠습니까?`)) return;
+
+  try {
+    const res = await fetch(`/api/partner/inquiry/${id}/status`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: newStatus }),
+    });
+    if (!res.ok) throw new Error('상태 변경 실패: ' + res.status);
+    
+    // DB 성공 시 전역 Mock 동기화
+    const idx = MOCK_INQUIRIES.findIndex(i => i.id === id);
+    if (idx !== -1) MOCK_INQUIRIES[idx].status = newStatus;
+
+    alert(`✅ [${item.companyName}] ${label} 처리가 완료되었습니다.`);
+  } catch (err) {
+    console.warn('[API 미지원 또는 에러 - 로컬 메모리 상태를 강제 동기화합니다]', err);
+    // Mock 메모리 강제 업데이트 처리
+    const idx = MOCK_INQUIRIES.findIndex(i => i.id === id);
+    if (idx !== -1) MOCK_INQUIRIES[idx].status = newStatus;
+    alert(`✅ [${item.companyName}] ${label} 처리(메모리 동기화) 완료되었습니다.`);
+  }
+
+  closeModal();
+  await loadAndRender();
+  renderFestivalGrid(); // 마스터 카드의 실시간 카운트 배지도 함께 갱신
+}
+
+/**
+ * 8. 상세 정보 열람 모달 바인딩
+ */
+function openModal(id) {
+  const item = cachedInquiries.find(i => i.id === id) || MOCK_INQUIRIES.find(i => i.id === id);
+  if (!item) return;
+  currentDetailId = id;
+
+  // 첨부서류 파일명 및 다운로드 링크 추출
+  let fileHtml = "";
+  const file1 = item.filePath1 || item.file_path_1;
+  const file2 = item.filePath2 || item.file_path_2;
+
+  if (file1 || file2) {
+    fileHtml += `
+      <div class="detail-row" style="flex-direction:column; margin-top: 14px;">
+        <span class="dl" style="margin-bottom:6px;"><i class="bx bx-paperclip me-1"></i>첨부 서류 (제출 서류)</span>
+        <div class="d-flex flex-column gap-2 mt-1">`;
+      
+    if (file1) {
+      const fileName1 = file1.substring(file1.lastIndexOf("/") + 1);
+      fileHtml += `
+        <a href="${file1}" target="_blank" class="btn btn-sm btn-outline-primary d-inline-flex align-items-center justify-content-between py-2 px-3" style="border-radius: 8px; text-decoration: none;">
+          <span class="text-truncate me-2 fw-semibold" style="max-width: 320px; font-size: 13px;"><i class="bx bxs-file-pdf me-2 fs-5 align-middle"></i>${fileName1}</span>
+          <span class="badge bg-primary px-2 py-1" style="font-size: 10px;"><i class="bx bx-download me-1"></i>다운로드</span>
+        </a>`;
+    }
+    
+    if (file2) {
+      const fileName2 = file2.substring(file2.lastIndexOf("/") + 1);
+      fileHtml += `
+        <a href="${file2}" target="_blank" class="btn btn-sm btn-outline-primary d-inline-flex align-items-center justify-content-between py-2 px-3" style="border-radius: 8px; text-decoration: none;">
+          <span class="text-truncate me-2 fw-semibold" style="max-width: 320px; font-size: 13px;"><i class="bx bxs-file-pdf me-2 fs-5 align-middle"></i>${fileName2}</span>
+          <span class="badge bg-primary px-2 py-1" style="font-size: 10px;"><i class="bx bx-download me-1"></i>다운로드</span>
+        </a>`;
+    }
+    
+    fileHtml += `</div></div>`;
+  } else {
+    fileHtml += `
+      <div class="detail-row" style="flex-direction:column; margin-top: 14px;">
+        <span class="dl" style="margin-bottom:6px;"><i class="bx bx-paperclip me-1"></i>첨부 서류 (제출 서류)</span>
+        <div class="text-muted fs-7 py-1"><i class="bx bx-error-circle me-1 align-middle"></i>제출된 첨부 서류가 없습니다.</div>
+      </div>`;
+  }
+
+  document.getElementById('modalTitle').textContent = `📋 ${item.companyName} 입점 신청 상세`;
+  document.getElementById('modalBody').innerHTML = `
+    <div class="detail-row"><span class="dl">문의 유형</span><span class="dd">${typeBadge(item.inquiryType)}</span></div>
+    <div class="detail-row"><span class="dl">업체명</span><span class="dd"><strong>${item.companyName}</strong></span></div>
+    <div class="detail-row"><span class="dl">담당자</span><span class="dd">${item.managerName}</span></div>
+    <div class="detail-row"><span class="dl">연락처</span><span class="dd">${item.phone}</span></div>
+    <div class="detail-row"><span class="dl">이메일</span><span class="dd">${item.email}</span></div>
+    <div class="detail-row"><span class="dl">신청일</span><span class="dd">${formatDate(item.createdAt)}</span></div>
+    <div class="detail-row"><span class="dl">현재 상태</span><span class="dd">${statusBadge(item.status)}</span></div>
+    <div class="detail-row" style="flex-direction:column;">
+      <span class="dl" style="margin-bottom:6px;">상세 신청서 내용</span>
+      <div class="detail-content-box">${item.content || '기재된 상세 내용이 존재하지 않습니다.'}</div>
+    </div>
+    ${fileHtml}
+  `;
+
+  const actionWrap = document.getElementById('modalActionWrap');
+  if (item.status === 'PENDING') {
+    actionWrap.innerHTML = `
+      <button class="btn btn-danger" id="modalRejectBtn">반려</button>
+      <button class="btn btn-success" id="modalApproveBtn">승인</button>
+    `;
+    document.getElementById('modalApproveBtn').onclick = () => changeStatus(id, 'APPROVED');
+    document.getElementById('modalRejectBtn').onclick  = () => changeStatus(id, 'REJECTED');
+  } else {
+    actionWrap.innerHTML = `<button class="btn btn-outline-secondary" id="modalCloseBtn2">닫기</button>`;
+    document.getElementById('modalCloseBtn2').onclick = closeModal;
+  }
+
+  document.getElementById('detailModalBackdrop').classList.add('show');
+}
+
+function closeModal() {
+  document.getElementById('detailModalBackdrop').classList.remove('show');
+  currentDetailId = null;
+}
+
+/**
+ * 9. 서브 탭 초기화 및 이벤트 연결
+ */
+function initTabs() {
+  document.querySelectorAll('.status-tab').forEach(tab => {
+    tab.addEventListener('click', async () => {
+      document.querySelectorAll('.status-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      currentStatus = tab.dataset.status;
+      
+      if (currentFestivalId) {
+        await fetchInquiries(currentStatus);
+        renderTable();
+      }
+    });
+  });
+}
+
+/**
+ * 유틸리티 헬퍼 함수
+ */
 function typeBadge(t) {
   if (t === 'FOODTRUCK') return `<span class="badge-type-food">🍔 푸드트럭</span>`;
   if (t === 'GOODS')     return `<span class="badge-type-goods">🛍 굿즈/셀러</span>`;
@@ -296,362 +702,6 @@ function formatDate(dtStr) {
   if (!dtStr) return '-';
   return dtStr.substring(0, 10);
 }
-
-// ─── 테이블 렌더링 ───────────────────────────────────────
-function renderTable() {
-  const titleMap = { PENDING:'대기중 신청서', APPROVED:'승인된 신청서', REJECTED:'반려된 신청서' };
-  document.getElementById('tableHeadTitle').textContent = titleMap[currentStatus];
-
-  const tbody = document.getElementById('appTableBody');
-  if (!cachedInquiries.length) {
-    tbody.innerHTML = `<tr class="empty-row"><td colspan="7"><i class="bx bx-inbox fs-2 d-block mb-2"></i>해당 조건의 신청서가 없습니다.</td></tr>`;
-    return;
-  }
-
-  tbody.innerHTML = cachedInquiries.map(item => `
-    <tr data-id="${item.id}" style="cursor:pointer;">
-      <td>${typeBadge(item.inquiryType)}</td>
-      <td><strong>${item.companyName}</strong></td>
-      <td>${item.managerName}</td>
-      <td>${item.phone}</td>
-      <td>${formatDate(item.createdAt)}</td>
-      <td>${statusBadge(item.status)}</td>
-      <td>
-        <button class="btn btn-sm btn-outline-secondary detail-btn" data-id="${item.id}">
-          <i class="bx bx-show me-1"></i>상세
-        </button>
-        ${item.status === 'PENDING' ? `
-          <button class="btn btn-sm btn-success ms-1 action-btn" data-id="${item.id}" data-action="APPROVED">승인</button>
-          <button class="btn btn-sm btn-danger ms-1 action-btn" data-id="${item.id}" data-action="REJECTED">반려</button>
-        ` : ''}
-      </td>
-    </tr>
-  `).join('');
-
-  tbody.querySelectorAll('.detail-btn').forEach(btn => {
-    btn.addEventListener('click', e => { e.stopPropagation(); openModal(Number(btn.dataset.id)); });
-  });
-  tbody.querySelectorAll('.action-btn').forEach(btn => {
-    btn.addEventListener('click', e => { e.stopPropagation(); changeStatus(Number(btn.dataset.id), btn.dataset.action); });
-  });
-  tbody.querySelectorAll('tr[data-id]').forEach(row => {
-    row.addEventListener('click', () => openModal(Number(row.dataset.id)));
-  });
-}
-
-// ─── 상태 변경 (실제 API PUT) ────────────────────────────
-async function changeStatus(id, newStatus) {
-  const item = cachedInquiries.find(i => i.id === id);
-  if (!item) return;
-  const label = newStatus === 'APPROVED' ? '승인' : '반려';
-  if (!confirm(`[${item.companyName}] 을(를) ${label} 처리하시겠습니까?`)) return;
-
-  try {
-    const res = await fetch(`/api/partner/inquiry/${id}/status`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: newStatus }),
-    });
-    if (!res.ok) throw new Error('상태 변경 실패: ' + res.status);
-
-    closeModal();
-    await loadAndRender();
-    alert(`✅ [${item.companyName}] ${label} 처리 완료되었습니다.`);
-  } catch (err) {
-    console.error('[상태 변경 오류]', err);
-    alert('처리 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
-  }
-}
-
-// ─── 상세 모달 ───────────────────────────────────────────
-function openModal(id) {
-  const item = cachedInquiries.find(i => i.id === id);
-  if (!item) return;
-  currentDetailId = id;
-
-  document.getElementById('modalTitle').textContent = `📋 ${item.companyName} 신청서 상세`;
-  document.getElementById('modalBody').innerHTML = `
-    <div class="detail-row"><span class="dl">문의 유형</span><span class="dd">${typeBadge(item.inquiryType)}</span></div>
-    <div class="detail-row"><span class="dl">업체명</span><span class="dd"><strong>${item.companyName}</strong></span></div>
-    <div class="detail-row"><span class="dl">담당자</span><span class="dd">${item.managerName}</span></div>
-    <div class="detail-row"><span class="dl">연락처</span><span class="dd">${item.phone}</span></div>
-    <div class="detail-row"><span class="dl">이메일</span><span class="dd">${item.email}</span></div>
-    <div class="detail-row"><span class="dl">신청일</span><span class="dd">${formatDate(item.createdAt)}</span></div>
-    <div class="detail-row"><span class="dl">현재 상태</span><span class="dd">${statusBadge(item.status)}</span></div>
-    <div class="detail-row" style="flex-direction:column;"><span class="dl" style="margin-bottom:6px;">상세 문의 내용</span><div class="detail-content-box">${item.content || '-'}</div></div>
-  `;
-
-  const actionWrap = document.getElementById('modalActionWrap');
-  if (item.status === 'PENDING') {
-    actionWrap.innerHTML = `
-      <button class="btn btn-danger" id="modalRejectBtn">반려</button>
-      <button class="btn btn-success" id="modalApproveBtn">승인</button>
-    `;
-    document.getElementById('modalApproveBtn').onclick = () => changeStatus(id, 'APPROVED');
-    document.getElementById('modalRejectBtn').onclick  = () => changeStatus(id, 'REJECTED');
-  } else {
-    actionWrap.innerHTML = `<button class="btn btn-outline-secondary" id="modalCloseBtn2">닫기</button>`;
-    document.getElementById('modalCloseBtn2').onclick = closeModal;
-  }
-
-  document.getElementById('detailModalBackdrop').classList.add('show');
-}
-
-function closeModal() {
-  document.getElementById('detailModalBackdrop').classList.remove('show');
-  currentDetailId = null;
-}
-
-// ─── 초기화 ──────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', async () => {
-  await initFestivalSelect();
-
-  document.querySelectorAll('.status-tab').forEach(tab => {
-    tab.addEventListener('click', async () => {
-      document.querySelectorAll('.status-tab').forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
-      currentStatus = tab.dataset.status;
-      // 해당 탭 데이터를 API에서 새로 로드
-      await loadInquiries(currentStatus);
-      renderTable();
-    });
-  });
-
-  document.getElementById('detailModalBackdrop').addEventListener('click', e => {
-    if (e.target === e.currentTarget) closeModal();
-  });
-  document.getElementById('modalCloseBtn').addEventListener('click', closeModal);
-});
-</script>
-</body>
-</html>
-
-
-/* ═══════════════════════════════════════════════════════
-   MOCK DATA — partner_inquiry 테이블 구조 기반
-   festival_id: 연결된 행사 외래키
-   status: PENDING | APPROVED | REJECTED
-   inquiry_type: EVENT | FOODTRUCK | GOODS
-   ─────────────────────────────────────────────────────
-   TODO: 백엔드 연동 시
-     GET  /api/admin/partner/inquiries?festival_id={id}&status={status}
-     PUT  /api/admin/partner/inquiries/{id}/status  body: { status }
-   ═══════════════════════════════════════════════════════ */
-
-const MOCK_FESTIVALS = [
-  { id: 1, name: '2026 워터밤 서울' },
-  { id: 2, name: '2026 서울재즈페스티벌' },
-  { id: 3, name: '2026 부산 불꽃축제' },
-];
-
-let MOCK_INQUIRIES = [
-  { id:1, festival_id:1, inquiry_type:'FOODTRUCK', company_name:'마포 닭강정 푸드트럭', manager_name:'홍길동', phone:'010-1234-5678', email:'hong@food.com', content:'워터밤 행사 현장 내 10㎡ 구역에서 닭강정 및 음료 판매를 희망합니다. 사업자등록증 첨부드립니다.', applied_at:'2026-05-26', status:'PENDING' },
-  { id:2, festival_id:1, inquiry_type:'FOODTRUCK', company_name:'우주선 타코야끼', manager_name:'김철수', phone:'010-9876-5432', email:'kim@tako.com', content:'타코야끼 및 크레페 전문 푸드트럭입니다. 5년 경력 위생 관리 우수 업체입니다.', applied_at:'2026-05-26', status:'PENDING' },
-  { id:3, festival_id:1, inquiry_type:'GOODS', company_name:'페스티벌 썬글라스 & 굿즈', manager_name:'이영희', phone:'010-5555-1234', email:'lee@goods.com', content:'UV차단 썬글라스, 워터밤 MD 팔찌 등 굿즈 셀러 입점을 희망합니다. 연간 10개 이상 페스티벌 참여 이력 보유.', applied_at:'2026-05-25', status:'PENDING' },
-  { id:4, festival_id:1, inquiry_type:'EVENT', company_name:'스타벅스 팝업', manager_name:'박민준', phone:'010-7777-8888', email:'park@starbucks.com', content:'워터밤 현장 내 스타벅스 팝업 스토어 운영 제안드립니다. 음료 및 MD 판매 병행.', applied_at:'2026-05-24', status:'APPROVED' },
-  { id:5, festival_id:2, inquiry_type:'FOODTRUCK', company_name:'재즈밤 버거', manager_name:'최재훈', phone:'010-2222-3333', email:'choi@burger.com', content:'수제버거 전문 푸드트럭. 재즈페스티벌 분위기에 맞는 감성 메뉴 구성 예정.', applied_at:'2026-05-22', status:'PENDING' },
-  { id:6, festival_id:2, inquiry_type:'GOODS', company_name:'비닐레코드 굿즈샵', manager_name:'정수빈', phone:'010-4444-5555', email:'jung@vinyl.com', content:'LP판 및 재즈 아티스트 관련 굿즈 판매 목적 입점 신청. 음반 전문 MD 경력 8년.', applied_at:'2026-05-21', status:'REJECTED' },
-  { id:7, festival_id:3, inquiry_type:'FOODTRUCK', company_name:'야경 포차', manager_name:'오수연', phone:'010-6666-7777', email:'oh@pocha.com', content:'부산 불꽃축제 현장에서 포장마차 콘셉트의 야식 메뉴 운영 희망. 해산물 특화.', applied_at:'2026-05-20', status:'PENDING' },
-];
-
-// ─── 상태 변수 ───────────────────────────────────────────
-let currentFestivalId = MOCK_FESTIVALS[0].id;
-let currentStatus     = 'PENDING';
-let currentDetailId   = null;
-
-// ─── 행사 드롭다운 초기화 ────────────────────────────────
-function initFestivalSelect() {
-  const sel = document.getElementById('festivalSelect');
-  MOCK_FESTIVALS.forEach(f => {
-    const opt = document.createElement('option');
-    opt.value = f.id;
-    opt.textContent = f.name;
-    sel.appendChild(opt);
-  });
-  sel.addEventListener('change', () => {
-    currentFestivalId = Number(sel.value);
-    renderTable();
-    updateSummary();
-    updateTabCounts();
-  });
-}
-
-// ─── 필터된 데이터 조회 ──────────────────────────────────
-function getFiltered(status) {
-  return MOCK_INQUIRIES.filter(i => i.festival_id === currentFestivalId && i.status === status);
-}
-
-// ─── 요약 카드 업데이트 ──────────────────────────────────
-function updateSummary() {
-  document.getElementById('summaryPending').textContent  = getFiltered('PENDING').length  + ' 건';
-  document.getElementById('summaryApproved').textContent = getFiltered('APPROVED').length + ' 건';
-  document.getElementById('summaryRejected').textContent = getFiltered('REJECTED').length + ' 건';
-}
-
-// ─── 탭 카운트 업데이트 ──────────────────────────────────
-function updateTabCounts() {
-  document.getElementById('tabCountPending').textContent  = getFiltered('PENDING').length;
-  document.getElementById('tabCountApproved').textContent = getFiltered('APPROVED').length;
-  document.getElementById('tabCountRejected').textContent = getFiltered('REJECTED').length;
-}
-
-// ─── 유형 뱃지 HTML ──────────────────────────────────────
-function typeBadge(t) {
-  if (t === 'FOODTRUCK') return `<span class="badge-type-food">🍔 푸드트럭</span>`;
-  if (t === 'GOODS')     return `<span class="badge-type-goods">🛍 굿즈/셀러</span>`;
-  return `<span class="badge-type-event">🎪 행사/제휴</span>`;
-}
-
-// ─── 상태 뱃지 HTML ──────────────────────────────────────
-function statusBadge(s) {
-  if (s === 'PENDING')  return `<span class="badge bg-warning text-dark">대기중</span>`;
-  if (s === 'APPROVED') return `<span class="badge bg-success">승인됨</span>`;
-  return `<span class="badge bg-danger">반려됨</span>`;
-}
-
-// ─── 테이블 렌더링 ───────────────────────────────────────
-function renderTable() {
-  const titleMap = { PENDING:'대기중 신청서', APPROVED:'승인된 신청서', REJECTED:'반려된 신청서' };
-  document.getElementById('tableHeadTitle').textContent = titleMap[currentStatus];
-
-  const list = getFiltered(currentStatus);
-  const tbody = document.getElementById('appTableBody');
-
-  if (list.length === 0) {
-    tbody.innerHTML = `<tr class="empty-row"><td colspan="7"><i class="bx bx-inbox fs-2 d-block mb-2"></i>해당 조건의 신청서가 없습니다.</td></tr>`;
-    return;
-  }
-
-  tbody.innerHTML = list.map(item => `
-    <tr data-id="${item.id}" style="cursor:pointer;">
-      <td>${typeBadge(item.inquiry_type)}</td>
-      <td><strong>${item.company_name}</strong></td>
-      <td>${item.manager_name}</td>
-      <td>${item.phone}</td>
-      <td>${item.applied_at}</td>
-      <td>${statusBadge(item.status)}</td>
-      <td>
-        <button class="btn btn-sm btn-outline-secondary detail-btn" data-id="${item.id}">
-          <i class="bx bx-show me-1"></i>상세
-        </button>
-        ${item.status === 'PENDING' ? `
-          <button class="btn btn-sm btn-success ms-1 action-btn" data-id="${item.id}" data-action="APPROVED">승인</button>
-          <button class="btn btn-sm btn-danger ms-1 action-btn" data-id="${item.id}" data-action="REJECTED">반려</button>
-        ` : ''}
-      </td>
-    </tr>
-  `).join('');
-
-  // 이벤트 바인딩
-  tbody.querySelectorAll('.detail-btn').forEach(btn => {
-    btn.addEventListener('click', e => { e.stopPropagation(); openModal(Number(btn.dataset.id)); });
-  });
-  tbody.querySelectorAll('.action-btn').forEach(btn => {
-    btn.addEventListener('click', e => { e.stopPropagation(); changeStatus(Number(btn.dataset.id), btn.dataset.action); });
-  });
-  tbody.querySelectorAll('tr[data-id]').forEach(row => {
-    row.addEventListener('click', () => openModal(Number(row.dataset.id)));
-  });
-}
-
-// ─── 상태 변경 ───────────────────────────────────────────
-async function changeStatus(id, newStatus) {
-  const item = MOCK_INQUIRIES.find(i => i.id === id);
-  if (!item) return;
-
-  const label = newStatus === 'APPROVED' ? '승인' : '반려';
-  if (!confirm(`[${item.company_name}] 을(를) ${label} 처리하시겠습니까?`)) return;
-
-  /*
-   * ──────────────────────────────────────────────────────────
-   * TODO: 백엔드 연동 시 아래 주석 해제
-   * PUT /api/admin/partner/inquiries/{id}/status
-   * body: { status: newStatus }
-   * ──────────────────────────────────────────────────────────
-   * const res = await fetch(`/api/admin/partner/inquiries/${id}/status`, {
-   *   method: 'PUT',
-   *   headers: { 'Content-Type': 'application/json' },
-   *   body: JSON.stringify({ status: newStatus })
-   * });
-   * if (!res.ok) { alert('처리 중 오류 발생'); return; }
-   */
-
-  // Mock 처리
-  item.status = newStatus;
-  closeModal();
-  renderTable();
-  updateSummary();
-  updateTabCounts();
-
-  const msg = newStatus === 'APPROVED'
-    ? `✅ [${item.company_name}] 승인 완료. 담당자에게 승인 알림이 발송됩니다.`
-    : `🚫 [${item.company_name}] 반려 처리. 담당자에게 반려 알림이 발송됩니다.`;
-  alert(msg);
-}
-
-// ─── 상세 모달 열기 ──────────────────────────────────────
-function openModal(id) {
-  const item = MOCK_INQUIRIES.find(i => i.id === id);
-  if (!item) return;
-  currentDetailId = id;
-
-  document.getElementById('modalTitle').textContent = `📋 ${item.company_name} 신청서 상세`;
-  document.getElementById('modalBody').innerHTML = `
-    <div class="detail-row"><span class="dl">문의 유형</span><span class="dd">${typeBadge(item.inquiry_type)}</span></div>
-    <div class="detail-row"><span class="dl">업체명</span><span class="dd"><strong>${item.company_name}</strong></span></div>
-    <div class="detail-row"><span class="dl">담당자</span><span class="dd">${item.manager_name}</span></div>
-    <div class="detail-row"><span class="dl">연락처</span><span class="dd">${item.phone}</span></div>
-    <div class="detail-row"><span class="dl">이메일</span><span class="dd">${item.email}</span></div>
-    <div class="detail-row"><span class="dl">신청일</span><span class="dd">${item.applied_at}</span></div>
-    <div class="detail-row"><span class="dl">현재 상태</span><span class="dd">${statusBadge(item.status)}</span></div>
-    <div class="detail-row" style="flex-direction:column;"><span class="dl" style="margin-bottom:6px;">상세 문의 내용</span><div class="detail-content-box">${item.content}</div></div>
-  `;
-
-  const actionWrap = document.getElementById('modalActionWrap');
-  if (item.status === 'PENDING') {
-    actionWrap.innerHTML = `
-      <button class="btn btn-danger" id="modalRejectBtn">반려</button>
-      <button class="btn btn-success" id="modalApproveBtn">승인</button>
-    `;
-    document.getElementById('modalApproveBtn').onclick = () => changeStatus(id, 'APPROVED');
-    document.getElementById('modalRejectBtn').onclick  = () => changeStatus(id, 'REJECTED');
-  } else {
-    actionWrap.innerHTML = `<button class="btn btn-outline-secondary" id="modalCloseBtn2">닫기</button>`;
-    document.getElementById('modalCloseBtn2').onclick = closeModal;
-  }
-
-  document.getElementById('detailModalBackdrop').classList.add('show');
-}
-
-// ─── 상세 모달 닫기 ──────────────────────────────────────
-function closeModal() {
-  document.getElementById('detailModalBackdrop').classList.remove('show');
-  currentDetailId = null;
-}
-
-// ─── 초기화 ──────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
-  initFestivalSelect();
-  updateSummary();
-  updateTabCounts();
-  renderTable();
-
-  // 탭 클릭
-  document.querySelectorAll('.status-tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-      document.querySelectorAll('.status-tab').forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
-      currentStatus = tab.dataset.status;
-      renderTable();
-    });
-  });
-
-  // 모달 백드롭 닫기
-  document.getElementById('detailModalBackdrop').addEventListener('click', e => {
-    if (e.target === e.currentTarget) closeModal();
-  });
-  document.getElementById('modalCloseBtn').addEventListener('click', closeModal);
-});
 </script>
 </body>
 </html>

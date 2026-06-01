@@ -54,6 +54,8 @@ public class PartnerInquiryService {
                     .reviewStatus("PENDING")
                     .operationalStatus("UPCOMING")
                     .isActive(false)
+                    .proposalFileUrl(vo.getFilePath1()) // 행사 기획서 PDF 파일 경로 매핑
+                    .companyIntroUrl(vo.getFilePath2()) // 회사 소개서 PDF 파일 경로 매핑
                     .build();
             festivalRepository.save(newFestival);
         }

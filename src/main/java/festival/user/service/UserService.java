@@ -57,4 +57,24 @@ public class UserService {
         user.setPhone(phone);
         return userRepository.save(user);
     }
+
+    public java.util.List<UserVo> getAllUsers() {
+        return userRepository.findAll();
+    }
+
+    @Transactional
+    public UserVo updateStatus(Long id, String status) {
+        UserVo user = userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+        user.setStatus(status);
+        return userRepository.save(user);
+    }
+
+    @Transactional
+    public UserVo updateRole(Long id, String role) {
+        UserVo user = userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+        user.setRole(role);
+        return userRepository.save(user);
+    }
 }
