@@ -64,8 +64,8 @@ export function requestTossPayment({ title, amount, metadata, onSuccess, onCance
     
     // Simulate Toss API delay (1.5 seconds)
     setTimeout(() => {
-      tossModal.remove();
       const approvalCode = document.getElementById("toss-approval-code").value;
+      tossModal.remove();
       
       // Process successful payment in DB
       const transactionId = `TX-${Date.now().toString().slice(-6)}`;

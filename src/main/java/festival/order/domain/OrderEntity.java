@@ -13,12 +13,6 @@ public class OrderEntity {
     @Column(name = "product_type", length = 20)
     private String productType; // 상품유형 (예: GOODS, FOOD)
 
-    @Column(name = "product_name")
-    private String productName; // 상품명
-
-    @Column
-    private Integer price; // 판매가
-
     @Column(name = "current_stock")
     private Integer currentStock; // 현재 재고수량
 
@@ -35,11 +29,8 @@ public class OrderEntity {
     protected OrderEntity() {
     }
 
-    // 데이터 초기화를 위한 생성자
-    public OrderEntity(String productType, String productName, Integer price, Integer currentStock, String imageUrl) {
+    public OrderEntity(String productType, Integer currentStock, String imageUrl) {
         this.productType = productType;
-        this.productName = productName;
-        this.price = price;
         this.currentStock = currentStock;
         this.preAllocatedStock = 0;
         // 가용 재고는 초기 생성 시 현재 재고와 동일
@@ -50,8 +41,6 @@ public class OrderEntity {
     // Getters
     public Long getId() { return id; }
     public String getProductType() { return productType; }
-    public String getProductName() { return productName; }
-    public Integer getPrice() { return price; }
     public Integer getCurrentStock() { return currentStock; }
     public Integer getPreAllocatedStock() { return preAllocatedStock; }
     public Integer getAvailableStock() { return availableStock; }
