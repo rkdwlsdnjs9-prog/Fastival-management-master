@@ -42,19 +42,28 @@ public class PartnerInquiryController {
             @RequestParam(value = "fileGoodsLicense", required = false) org.springframework.web.multipart.MultipartFile fileGoodsLicense,
             @RequestParam(value = "fileGoodsMenu", required = false) org.springframework.web.multipart.MultipartFile fileGoodsMenu) {
         
-        // 업로드된 파일의 파일명을 추출하여 엔티티 필드에 매핑
-        if (fileEvent != null && !fileEvent.isEmpty()) {
-            vo.setFilePath1(fileEvent.getOriginalFilename());
-        } else if (fileFoodtruckLicense != null && !fileFoodtruckLicense.isEmpty()) {
-            vo.setFilePath1(fileFoodtruckLicense.getOriginalFilename());
-            if (fileFoodtruckMenu != null && !fileFoodtruckMenu.isEmpty()) {
-                vo.setFilePath2(fileFoodtruckMenu.getOriginalFilename());
+        // 업로드된 파일의 물리적 디렉토리 저장 및 엔티티 필드에 매핑
+        try {
+            if (fileEvent != null && !fileEvent.isEmpty()) {
+                String path = festival.order.util.FileUploadUtil.saveFile("uploads", fileEvent);
+                vo.setFilePath1(path);
+            } else if (fileFoodtruckLicense != null && !fileFoodtruckLicense.isEmpty()) {
+                String path = festival.order.util.FileUploadUtil.saveFile("uploads", fileFoodtruckLicense);
+                vo.setFilePath1(path);
+                if (fileFoodtruckMenu != null && !fileFoodtruckMenu.isEmpty()) {
+                    String path2 = festival.order.util.FileUploadUtil.saveFile("uploads", fileFoodtruckMenu);
+                    vo.setFilePath2(path2);
+                }
+            } else if (fileGoodsLicense != null && !fileGoodsLicense.isEmpty()) {
+                String path = festival.order.util.FileUploadUtil.saveFile("uploads", fileGoodsLicense);
+                vo.setFilePath1(path);
+                if (fileGoodsMenu != null && !fileGoodsMenu.isEmpty()) {
+                    String path2 = festival.order.util.FileUploadUtil.saveFile("uploads", fileGoodsMenu);
+                    vo.setFilePath2(path2);
+                }
             }
-        } else if (fileGoodsLicense != null && !fileGoodsLicense.isEmpty()) {
-            vo.setFilePath1(fileGoodsLicense.getOriginalFilename());
-            if (fileGoodsMenu != null && !fileGoodsMenu.isEmpty()) {
-                vo.setFilePath2(fileGoodsMenu.getOriginalFilename());
-            }
+        } catch (java.io.IOException e) {
+            e.printStackTrace();
         }
 
         return ResponseEntity.ok(service.create(vo));

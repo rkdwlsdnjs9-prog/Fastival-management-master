@@ -41,6 +41,10 @@ public class UserVo {
     @Builder.Default
     private Integer balance = 0;
 
+    @Column(name = "status", nullable = false, length = 20)
+    @Builder.Default
+    private String status = "ACTIVE"; // "ACTIVE" or "BANNED"
+
     @Column(name = "face_vector", columnDefinition = "TEXT")
     private String faceVector;
 
@@ -61,6 +65,9 @@ public class UserVo {
         }
         if (this.balance == null) {
             this.balance = 0;
+        }
+        if (this.status == null) {
+            this.status = "ACTIVE";
         }
     }
 }

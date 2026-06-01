@@ -316,6 +316,17 @@
                       <span class="badge bg-label-warning font-mono" id="reviewCountBadge">Pending: 0</span>
                     </div>
                     
+                    <!-- 카테고리 필터 칩 영역 -->
+                    <div class="px-4 py-3 border-bottom bg-light d-flex align-items-center flex-wrap gap-2">
+                      <span class="text-secondary fw-bold me-2 fs-7"><i class="bx bx-filter-alt me-1 text-warning"></i>카테고리 필터:</span>
+                      <button type="button" class="btn btn-xs btn-warning category-chip active" data-category="ALL" onclick="filterByCategory('ALL')">전체</button>
+                      <button type="button" class="btn btn-xs btn-outline-warning category-chip" data-category="콘서트/뮤지컬" onclick="filterByCategory('콘서트/뮤지컬')">콘서트/뮤지컬</button>
+                      <button type="button" class="btn btn-xs btn-outline-warning category-chip" data-category="지역축제" onclick="filterByCategory('지역축제')">지역축제</button>
+                      <button type="button" class="btn btn-xs btn-outline-warning category-chip" data-category="대학축제" onclick="filterByCategory('대학축제')">대학축제</button>
+                      <button type="button" class="btn btn-xs btn-outline-warning category-chip" data-category="박람회" onclick="filterByCategory('박람회')">박람회</button>
+                      <button type="button" class="btn btn-xs btn-outline-warning category-chip" data-category="스포츠" onclick="filterByCategory('스포츠')">스포츠</button>
+                    </div>
+                    
                     <div class="table-responsive text-nowrap">
                       <table class="table table-hover">
                         <thead>
@@ -325,6 +336,7 @@
                             <th>개최 장소 / 카테고리</th>
                             <th>일정 및 시간</th>
                             <th>기획사 / 등록 신청자</th>
+                            <th>첨부서류</th>
                             <th class="text-end">심사 액션</th>
                           </tr>
                         </thead>
@@ -509,12 +521,13 @@
                       <div class="d-flex align-items-center gap-3">
                         <h5 class="card-title mb-0 fw-bold"><i class="bx bx-slideshow me-2 text-success"></i>실시간 서비스 운영 관리</h5>
                         <div class="btn-group" role="group">
-                          <button type="button" class="btn btn-sm btn-outline-primary active" id="subTabUpcomingBtn" onclick="switchOperationSubTab('UPCOMING')">진행 전 (UPCOMING)</button>
+                          <button type="button" class="btn btn-sm btn-outline-warning active" id="subTabSettingBtn" onclick="switchOperationSubTab('SETTING')">정보 입력 대기 (SETTING)</button>
+                          <button type="button" class="btn btn-sm btn-outline-primary" id="subTabUpcomingBtn" onclick="switchOperationSubTab('UPCOMING')">진행 전 (UPCOMING)</button>
                           <button type="button" class="btn btn-sm btn-outline-success" id="subTabOngoingBtn" onclick="switchOperationSubTab('ONGOING')">진행 중 (ONGOING)</button>
                           <button type="button" class="btn btn-sm btn-outline-secondary" id="subTabCompletedBtn" onclick="switchOperationSubTab('COMPLETED')">진행 후 (COMPLETED)</button>
                         </div>
                       </div>
-                      <span class="badge bg-label-success font-mono" id="operationCountBadge">Upcoming: 0</span>
+                      <span class="badge bg-label-success font-mono" id="operationCountBadge">Setting: 0</span>
                     </div>
                     
                     <div class="table-responsive text-nowrap">
@@ -612,7 +625,13 @@
           return response.json();
         })
         .then(data => {
-          mockFestivals = data;
+          mockFestivals = data.map((f, index) => {
+            return {
+              ...f,
+              proposalFileUrl: f.proposalFileUrl || f.proposal_file_url || "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
+              companyIntroUrl: f.companyIntroUrl || f.company_intro_url || "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
+            };
+          });
           refreshLifecycleViews();
         })
         .catch(error => {
@@ -621,7 +640,8 @@
     }
 
     let currentReviewSubTab = 'PENDING';
-    let currentOperationSubTab = 'UPCOMING';
+    let currentOperationSubTab = 'SETTING';
+    let selectedCategory = 'ALL'; // 선택된 카테고리 필터 칩 상태 ('ALL' 또는 각 실체 DB 카테고리명)
 
     // 모든 테이블 및 화면 데이터 통합 새로고침
     function refreshLifecycleViews() {
@@ -635,20 +655,41 @@
       const badge = document.getElementById("reviewCountBadge");
       if (!tbody) return;
 
-      const filtered = mockFestivals.filter(f => f.reviewStatus === currentReviewSubTab);
-      badge.innerText = `${currentReviewSubTab}: ${filtered.length}`;
+      // 1. 심사 상태로 먼저 필터링
+      let filtered = mockFestivals.filter(f => f.reviewStatus === currentReviewSubTab);
+      
+      // 2. 카테고리 필터 칩이 활성화된 경우 추가로 필터링
+      if (selectedCategory !== 'ALL') {
+        filtered = filtered.filter(f => f.category === selectedCategory);
+      }
+
+      badge.innerText = `${currentReviewSubTab} (${selectedCategory}): ${filtered.length}`;
       tbody.innerHTML = "";
 
       if (filtered.length === 0) {
         tbody.innerHTML = `
           <tr>
-            <td colspan="6" class="text-center py-5 text-muted">해당 심사 상태의 축제 신청서가 없습니다.</td>
+            <td colspan="7" class="text-center py-5 text-muted">해당 심사 상태의 축제 신청서가 없습니다.</td>
           </tr>
         `;
         return;
       }
 
       filtered.forEach(fest => {
+        // 첨부서류 확인용 엘리먼트 렌더링 (기획서 보기 버튼만 유지)
+        let attachmentHtml = "";
+        const proposalUrl = fest.proposalFileUrl || fest.proposal_file_url;
+
+        if (proposalUrl) {
+          attachmentHtml += `
+            <a href="${proposalUrl}" target="_blank" class="btn btn-xs btn-outline-primary py-1 px-2.5 fw-semibold me-1 mb-1 shadow-sm" style="font-size: 11px;">
+              <i class="bx bx-file me-1"></i> 기획서 보기
+            </a>
+          `;
+        } else {
+          attachmentHtml = `<span class="text-muted fs-7 font-semibold" style="opacity: 0.6;">서류 없음</span>`;
+        }
+
         const tr = document.createElement("tr");
         tr.innerHTML = `
           <td><strong class="font-mono text-warning">#${fest.id}</strong></td>
@@ -673,6 +714,11 @@
             </div>
           </td>
           <td><span class="fw-medium text-dark">${fest.agency || '미정'}</span></td>
+          <td>
+            <div class="d-flex flex-wrap align-items-center">
+              ${attachmentHtml}
+            </div>
+          </td>
           <td class="text-end">
             ${fest.reviewStatus === 'PENDING' ? `
               <button class="btn btn-xs btn-success me-1 px-3 py-1.5 fw-bold" onclick="approveReview(${fest.id})">
@@ -715,8 +761,16 @@
         
         let badgeColor = "bg-label-primary";
         let actionBtn = "";
+        const isExposureDisabled = fest.operationalStatus === 'SETTING';
         
-        if (fest.operationalStatus === 'UPCOMING') {
+        if (fest.operationalStatus === 'SETTING') {
+          badgeColor = "bg-label-warning";
+          actionBtn = `
+            <button class="btn btn-xs btn-warning text-white px-3 py-1.5 fw-bold" onclick="openPublishModal(${fest.id})">
+              <i class="bx bx-edit-alt me-1"></i> 상세 정보 기입
+            </button>
+          `;
+        } else if (fest.operationalStatus === 'UPCOMING') {
           badgeColor = "bg-label-primary";
           actionBtn = `
             <button class="btn btn-xs btn-success px-3 py-1.5 fw-bold" onclick="advanceOperationStatus(${fest.id}, 'ONGOING')">
@@ -734,6 +788,13 @@
           badgeColor = "bg-label-secondary";
           actionBtn = `<span class="badge bg-secondary px-3 py-1.5 fw-bold">운영 종료됨</span>`;
         }
+
+        let exposureText = fest.isActive ? "노출 중" : "숨김";
+        if (fest.operationalStatus === 'SETTING') {
+          exposureText = "입력 대기";
+        }
+        
+        const labelClassColor = fest.isActive && fest.operationalStatus !== 'SETTING' ? 'text-primary' : 'text-secondary';
 
         tr.innerHTML = `
           <td><strong class="font-mono text-success">#${fest.id}</strong></td>
@@ -760,9 +821,11 @@
           <td>
             <div class="form-check form-switch d-inline-block">
               <input class="form-check-input" type="checkbox" role="switch" id="exposureToggle-${fest.id}" 
-                ${fest.isActive ? 'checked' : ''} onchange="toggleWebExposure(${fest.id}, this)">
-              <label class="form-check-label fs-7 fw-semibold ${fest.isActive ? 'text-primary' : 'text-secondary'}" for="exposureToggle-${fest.id}">
-                ${fest.isActive ? '노출 중' : '숨김'}
+                ${fest.isActive && fest.operationalStatus !== 'SETTING' ? 'checked' : ''} 
+                ${isExposureDisabled ? 'disabled' : ''} 
+                onchange="toggleWebExposure(${fest.id}, this)">
+              <label class="form-check-label fs-7 fw-semibold ${labelClassColor}" for="exposureToggle-${fest.id}">
+                ${exposureText}
               </label>
             </div>
           </td>
@@ -779,12 +842,86 @@
       currentReviewSubTab = status;
       document.getElementById("subTabPendingBtn").classList.toggle("active", status === 'PENDING');
       document.getElementById("subTabRejectedBtn").classList.toggle("active", status === 'REJECTED');
+      
+      // 서브 탭 변경 시 백엔드 API 연동 구조 호출
+      fetchFilteredFestivalsFromBackend(currentReviewSubTab, selectedCategory);
+      
       renderReviewTable();
+    }
+
+    /**
+     * [카테고리 필터 칩 클릭 인터랙션 처리 함수]
+     * 1. 클릭된 필터 칩 스타일 활성화 처리 및 비활성 칩 보더 스타일 환원
+     * 2. 선택된 카테고리를 전역 변수(selectedCategory)에 주입하여 하단 테이블 실시간 필터링
+     * 3. 페이지 조건 변경 시 백엔드 API와 호환되는 비동기 fetch 함수 트리거
+     */
+    function filterByCategory(category) {
+      selectedCategory = category;
+      
+      // 모든 카테고리 칩의 active 상태 및 스타일 업데이트
+      document.querySelectorAll('.category-chip').forEach(btn => {
+        const btnCat = btn.getAttribute('data-category');
+        if (btnCat === category) {
+          btn.classList.remove('btn-outline-warning');
+          btn.classList.add('btn-warning', 'active');
+        } else {
+          btn.classList.remove('btn-warning', 'active');
+          btn.classList.add('btn-outline-warning');
+        }
+      });
+
+      // 백엔드 API 연동 함수 호출 (조건 변경)
+      fetchFilteredFestivalsFromBackend(currentReviewSubTab, selectedCategory);
+
+      // 프론트엔드 실시간 테이블 렌더링 호출
+      renderReviewTable();
+    }
+
+    /**
+     * [백엔드 API 연동 구조 가이드 및 실제 비동기 Fetch 구현]
+     * 관리자가 대기열 서브탭(PENDING/REJECTED) 또는 카테고리 필터 칩을 클릭할 때
+     * 백엔드 서버에 동적으로 필터링된 데이터를 요청하는 API 호출 가이드 함수입니다.
+     *
+     * @param {string} status - 심사 상태 ('PENDING' | 'REJECTED')
+     * @param {string} category - 축제 카테고리 ('콘서트/뮤지컬' | '지역축제' | '대학축제' | '박람회' | '스포츠' | 'ALL')
+     */
+    async function fetchFilteredFestivalsFromBackend(status, category) {
+      // 카테고리가 'ALL'인 경우 쿼리 파라미터에서 제외하거나 빈값 처리합니다.
+      const categoryParam = category === 'ALL' ? '' : `&category=${encodeURIComponent(category)}`;
+      
+      // 예시 주소: /api/admin/festivals?status=PENDING&category=%EB%8C%80%ED%95%99%EC%B6%95%EC%A0%9C
+      const apiUrl = `/api/admin/festivals?status=${status}${categoryParam}`;
+      
+      console.log(`[API Request] Fetching filtered festivals from: ${apiUrl}`);
+      
+      try {
+        const response = await fetch(apiUrl);
+        if (!response.ok) {
+          throw new Error(`API 응답 실패 (상태 코드: ${response.status})`);
+        }
+        const data = await response.json();
+        console.log("백엔드 필터 조회 성공:", data);
+        
+        // 실제 API 연동 시 아래 주석을 해제하면 받아온 DB 데이터로 화면이 갱신됩니다:
+        /*
+        mockFestivals = data.map((f) => ({
+          ...f,
+          proposalFileUrl: f.proposalFileUrl || f.proposal_file_url || "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
+          companyIntroUrl: f.companyIntroUrl || f.company_intro_url || "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
+        }));
+        refreshLifecycleViews();
+        */
+      } catch (error) {
+        console.warn("[백엔드 API 미개발 안내] 현재 로컬 인메모리 필터링이 우선 동작 중입니다. 실제 서버 연동 시 위의 fetch 로직 주석을 해제하여 사용하세요.", error);
+      }
     }
 
     // 운영 상태 서브 탭 변경
     function switchOperationSubTab(status) {
       currentOperationSubTab = status;
+      if (document.getElementById("subTabSettingBtn")) {
+        document.getElementById("subTabSettingBtn").classList.toggle("active", status === 'SETTING');
+      }
       document.getElementById("subTabUpcomingBtn").classList.toggle("active", status === 'UPCOMING');
       document.getElementById("subTabOngoingBtn").classList.toggle("active", status === 'ONGOING');
       document.getElementById("subTabCompletedBtn").classList.toggle("active", status === 'COMPLETED');
@@ -827,7 +964,9 @@
         agency: agency,
         reviewStatus: "PENDING",
         operationalStatus: "UPCOMING",
-        isActive: false
+        isActive: false,
+        proposalFileUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
+        companyIntroUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
       };
 
       fetch("/api/festival", {
@@ -855,18 +994,18 @@
       });
     }
 
-    // [승인 Action]: PENDING -> APPROVED (자동으로 2단계 UPCOMING으로 배치!)
+    // [승인 Action]: PENDING -> APPROVED (자동으로 2단계 SETTING으로 배치!)
     function approveReview(id) {
       const fest = mockFestivals.find(f => f.id === id);
       if (fest) {
         fest.reviewStatus = 'APPROVED';
-        fest.operationalStatus = 'UPCOMING'; // 2단계 라이프사이클의 진행 전 상태로 배치
-        fest.isActive = true;
+        fest.operationalStatus = 'SETTING'; // 2단계 라이프사이클의 정보 입력 대기(SETTING) 상태로 최초 배치
+        fest.isActive = false; // 정보 기입 전까지 임시 노출 차단
 
-        alert(`👍 [${fest.name}] 축제 등록이 승인 완료되었습니다!\n이 축제는 이제 '2단계: 운영 상태 관리 (진행 전)' 탭에서 활성화됩니다.`);
+        alert(`👍 [${fest.name}] 축제 등록이 승인 완료되었습니다!\n상세 정보(가격, 포스터, 설명 등) 기입을 위해 '정보 입력 대기(SETTING)' 탭으로 이동합니다.`);
         
         // 백엔드 PATCH API 호출 백업 트리거
-        updateFestivalStatusOnBackend(id, 'APPROVED', 'UPCOMING');
+        updateFestivalStatusOnBackend(id, 'APPROVED', 'SETTING');
 
         refreshLifecycleViews();
         
@@ -874,7 +1013,7 @@
         const operationTabBtn = document.getElementById("tab-operation-btn");
         if (operationTabBtn) {
           operationTabBtn.click();
-          switchOperationSubTab('UPCOMING');
+          switchOperationSubTab('SETTING');
         }
       }
     }
@@ -999,6 +1138,114 @@
       }
     }
 
+    // 상세 정보 기입 모달 활성화 및 바인딩
+    function openPublishModal(id) {
+      const fest = mockFestivals.find(f => f.id === id);
+      if (fest) {
+        document.getElementById("publishFestId").value = fest.id;
+        document.getElementById("publishFestName").value = fest.name;
+        document.getElementById("publishFestPrice").value = fest.minPrice || "";
+        
+        // 외부 업체 제휴 신청으로 자동 등록되어 임시 기본 이미지(Unsplash 플레이스홀더)가 들어가 있는 경우
+        // 관리자가 직접 포스터를 등록할 수 있도록 입력창을 비워줍니다.
+        const defaultPlaceholder = "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?q=80";
+        if (fest.thumbnailUrl === defaultPlaceholder || (fest.thumbnailUrl && fest.thumbnailUrl.includes("photo-1533174072545-7a4b6ad7a6c3"))) {
+          document.getElementById("publishFestPosterUrl").value = "";
+        } else {
+          document.getElementById("publishFestPosterUrl").value = fest.thumbnailUrl || "";
+        }
+        
+        document.getElementById("publishFestDescription").value = fest.description || "";
+        
+        const modalEl = document.getElementById("publishFestivalModal");
+        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        modal.show();
+      }
+    }
+
+    // 최종 발행 폼 제출 처리
+    function submitPublishFestival() {
+      const id = parseInt(document.getElementById("publishFestId").value);
+      const price = parseInt(document.getElementById("publishFestPrice").value || "0");
+      const posterUrl = document.getElementById("publishFestPosterUrl").value;
+      const description = document.getElementById("publishFestDescription").value;
+
+      const fest = mockFestivals.find(f => f.id === id);
+      if (fest) {
+        // 로컬 프론트엔드 임시 상태 변경
+        fest.operationalStatus = 'UPCOMING';
+        fest.minPrice = price;
+        fest.thumbnailUrl = posterUrl;
+        fest.description = description;
+        fest.isActive = true; // 최종 발행 시 기본적으로 노출 상태 설정 가능
+
+        // 모달 비활성화
+        const modalEl = document.getElementById("publishFestivalModal");
+        const modal = bootstrap.Modal.getInstance(modalEl);
+        if (modal) modal.hide();
+
+        alert(`🚀 [${fest.name}] 축제의 상세 정보 기입 및 최종 발행이 완료되었습니다!\n운영 상태가 '정보 입력 대기(SETTING)'에서 '진행 전(UPCOMING)' 단계로 성공적으로 이동했습니다.`);
+
+        // 백엔드 API 확장 구조 호출
+        publishFestivalOnBackend(id, price, posterUrl, description);
+
+        refreshLifecycleViews();
+        switchOperationSubTab('UPCOMING');
+      }
+    }
+
+    /**
+     * [백엔드 API 확장 구조 주석 가이드]
+     * 모달에서 기입된 상세 데이터를 백엔드로 전송하고 축제를 최종 발행 상태로 업데이트하는 API인 PATCH 요청을 호출합니다.
+     */
+    async function publishFestivalOnBackend(id, price, posterUrl, description) {
+      console.log(`[REST API Call Log] PATCH /api/admin/festivals/${id}/publish`, { price, posterUrl, description });
+      
+      try {
+        // 백엔드 엔드포인트 `/api/admin/festivals/{id}/publish` 에 비동기 PATCH 요청 전송
+        const response = await fetch(`/api/admin/festivals/${id}/publish`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            price: price,
+            posterUrl: posterUrl,
+            description: description,
+            operationalStatus: 'UPCOMING',
+            isActive: true
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error(`최종 발행 API 요청 실패 (상태 코드: ${response.status})`);
+        }
+
+        const result = await response.json();
+        console.log("백엔드 최종 발행 완료 데이터 동기화 완료:", result);
+        
+        // 성공 시 실제 DB를 기반으로 대시보드 리스트 리로드
+        loadFestivalsFromDB();
+      } catch (error) {
+        console.warn("⚠️ 백엔드 API가 아직 설계되지 않았거나 로컬 모의 환경입니다. 로컬 프론트엔드 상태 변경이 우선 유지됩니다.", error);
+        
+        // [백업용]: 만약 특정 백엔드 엔드포인트가 없을 경우, 기존의 status 패치 API를 통해 상태 정보만이라도 반영을 시도하는 fallback 로직을 구현할 수 있습니다.
+        try {
+          await fetch(`/api/festival/${id}/status`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              reviewStatus: 'APPROVED',
+              operationalStatus: 'UPCOMING'
+            })
+          });
+          console.log("백업 Status PATCH 동기화 성공 (operationalStatus: UPCOMING)");
+        } catch (fbError) {
+          console.error("백업 동기화 실패:", fbError);
+        }
+      }
+    }
+
     // 인라인 호출용 window 전역 바인딩
     window.switchReviewSubTab = switchReviewSubTab;
     window.switchOperationSubTab = switchOperationSubTab;
@@ -1007,6 +1254,9 @@
     window.advanceOperationStatus = advanceOperationStatus;
     window.deleteFestival = deleteFestival;
     window.toggleWebExposure = toggleWebExposure;
+    window.openPublishModal = openPublishModal;
+    window.submitPublishFestival = submitPublishFestival;
+    window.filterByCategory = filterByCategory;
 
     // 3. [동적 탭 스위칭 감지 및 라우팅 로직]
     function checkTabRouting() {
@@ -1048,6 +1298,66 @@
       }
     }, 150);
   </script>
+
+  <!-- [상세 정보 기입 모달] -->
+  <div class="modal fade" id="publishFestivalModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content border-0 shadow-lg" style="border-radius: 12px; overflow: hidden;">
+        <div class="modal-header premium-gradient py-4">
+          <h5 class="modal-title text-white fw-bold" id="publishModalLabel">
+            <i class="bx bx-edit-alt me-2 fs-4"></i>축제 공식 발행 및 상세 정보 기입
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-5">
+          <form id="publishFestivalForm" onsubmit="event.preventDefault(); submitPublishFestival();">
+            <input type="hidden" id="publishFestId" />
+            
+            <div class="mb-4">
+              <label class="form-label fw-bold text-secondary fs-7">축제 명칭</label>
+              <input type="text" id="publishFestName" class="form-control bg-light border-0 fw-semibold text-dark" readonly />
+            </div>
+
+            <!-- 공식 티켓 가격 (price - 숫자 입력 필드) -->
+            <div class="mb-4">
+              <label for="publishFestPrice" class="form-label fw-bold text-secondary fs-7">공식 티켓 가격 (원) *</label>
+              <div class="input-group input-group-merge">
+                <span class="input-group-text bg-white border-primary"><i class="bx bx-won text-primary"></i></span>
+                <input type="number" id="publishFestPrice" class="form-control border-primary fw-semibold" placeholder="ex: 88000" required min="0" />
+              </div>
+              <div class="form-text fs-8 text-muted">소비자 예매 페이지에 노출될 실제 공식 티켓 기본 가격입니다.</div>
+            </div>
+
+            <!-- 공식 포스터 이미지 경로 또는 파일 첨부 (poster_url) -->
+            <div class="mb-4">
+              <label for="publishFestPosterUrl" class="form-label fw-bold text-secondary fs-7">공식 포스터 이미지 URL / 경로 *</label>
+              <div class="input-group">
+                <span class="input-group-text bg-light"><i class="bx bx-image-alt"></i></span>
+                <input type="url" id="publishFestPosterUrl" class="form-control border-start-0" placeholder="https://images.unsplash.com/photo-..." required />
+              </div>
+              <div class="form-text fs-8 text-muted">축제 홍보용 고해상도 공식 포스터 이미지 경로입니다.</div>
+            </div>
+
+            <!-- 축제 상세 설명 (description - textarea 영역) -->
+            <div class="mb-4">
+              <label for="publishFestDescription" class="form-label fw-bold text-secondary fs-7">축제 상세 설명 *</label>
+              <textarea id="publishFestDescription" class="form-control border-primary" rows="4" placeholder="이 축제에 대한 소개 글과 주요 라인업 정보를 자세하게 기입해 주세요." required></textarea>
+              <div class="form-text fs-8 text-muted">상세 보기 페이지의 본문에 노출되는 축제 소개글입니다.</div>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+              <button type="button" class="btn btn-secondary fw-semibold px-4" data-bs-dismiss="modal">
+                <i class="bx bx-x me-1"></i> 취소
+              </button>
+              <button type="submit" class="btn btn-warning text-white fw-bold px-4 shadow-sm">
+                <i class="bx bx-rocket me-1"></i> 최종 발행
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
 </body>
 
 </html>

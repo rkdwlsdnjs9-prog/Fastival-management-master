@@ -70,6 +70,12 @@ public class FestivalVo {
     @Column(name = "agency", length = 255)
     private String agency; // 기획사/신청 기관
 
+    @Column(name = "proposal_file_url", columnDefinition = "TEXT")
+    private String proposalFileUrl; // 행사 기획서 PDF 파일 경로
+
+    @Column(name = "company_intro_url", columnDefinition = "TEXT")
+    private String companyIntroUrl; // 회사 소개서 PDF 파일 경로
+
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
