@@ -29,6 +29,8 @@ public class SecurityConfig {
                 // ===================================================
                 // 어드민 REST API: ROLE_ADMIN 만 허용
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                // 스탭 로그인 API: 누구나 접근 가능해야 함
+                .requestMatchers("/api/payment/staff/login").permitAll()
                 // 스탭 REST API: ROLE_STAFF, ROLE_ADMIN 허용
                 .requestMatchers("/api/payment/staff/**").hasAnyRole("STAFF", "ADMIN")
 

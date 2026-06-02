@@ -222,7 +222,7 @@ function renderLoginScreen() {
 
   loginView.innerHTML = `
     <div class="login-box-rigid">
-      <h2 class="login-title">SYSTEM LOGIN</h2>
+      <h2 class="login-title" style="background: linear-gradient(90deg, #38bdf8, #10b981); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900; font-size: 28px; margin-bottom: 5px; letter-spacing: 1px;">FESTIO STAFF SYSTEM</h2>
       <div class="login-subtitle">스태프 단말기 전용 관제 시스템</div>
       
       <div id="login-error-alert" class="alert-box alert-red" style="display:none;"></div>
@@ -234,11 +234,25 @@ function renderLoginScreen() {
         </div>
         <div class="form-group-rigid">
           <label>SECURITY PASSWORD (비밀번호)</label>
-          <input type="password" id="login-pw" placeholder="PASSWORD 입력" required class="input-rigid">
+          <div style="position: relative;">
+            <input type="password" id="login-pw" placeholder="PASSWORD 입력" required class="input-rigid" style="padding-right: 40px; width: 100%; box-sizing: border-box;">
+            <button type="button" id="toggle-pw-visibility" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #a0aec0; font-size: 16px; padding: 0;">
+              👁️
+            </button>
+          </div>
         </div>
-        <button type="submit" class="btn btn-rigid btn-green" style="width:100%; margin-top:15px; font-weight:bold;">
-          시스템 액세스 인증
-        </button>
+        <div style="display: flex; gap: 10px; margin-top: 15px;">
+          <button type="submit" class="btn btn-rigid btn-green" style="flex: 1; font-weight:bold;">
+            시스템 액세스 인증
+          </button>
+          <button type="button" class="btn btn-rigid btn-red" id="btn-secondary-login" style="flex: 1; font-weight:bold;">
+            로그인
+          </button>
+        </div>
+        <div style="color: #ef4444; font-size: 11px; margin-top: 15px; line-height: 1.5; text-align: left;">
+          * 시스템 액세스 인증은 임시 계정으로 로그인이 가능합니다.<br>
+          * 로그인은 supabase에서 app_user table 계정으로 로그인이 가능합니다.
+        </div>
       </form>
 
       <div class="temp-accounts-box">
@@ -273,6 +287,64 @@ function renderLoginScreen() {
       errorBox.style.display = "block";
     }
   };
+
+  const togglePwBtn = document.getElementById("toggle-pw-visibility");
+  const pwInput = document.getElementById("login-pw");
+  if (togglePwBtn && pwInput) {
+    togglePwBtn.onclick = () => {
+      if (pwInput.type === "password") {
+        pwInput.type = "text";
+        togglePwBtn.innerText = "👀";
+      } else {
+        pwInput.type = "password";
+        togglePwBtn.innerText = "👁️";
+      }
+    };
+  }
+
+  const secondaryLoginBtn = document.getElementById("btn-secondary-login");
+  if (secondaryLoginBtn) {
+    secondaryLoginBtn.onclick = async (e) => {
+      e.preventDefault();
+      const id = document.getElementById("login-id").value.trim();
+      const pw = document.getElementById("login-pw").value.trim();
+
+      if (!id || !pw) {
+        const errorBox = document.getElementById("login-error-alert");
+        errorBox.innerText = "이메일과 비밀번호를 모두 입력해주세요.";
+        errorBox.style.display = "block";
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/payment/staff/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: id, password: pw })
+        });
+        
+        const res = await response.json();
+        if (response.ok && res.success) {
+          // sessionStorage 기반 기존 로직 호환 (auth.js의 구조)
+          sessionStorage.setItem("STAFF_CURRENT_USER", JSON.stringify(res.user));
+          sessionStorage.setItem("festio_staff_token", res.token);
+          
+          import('./store.js').then(module => {
+            module.addNotification("AUTH", `[실제 DB 로그인 성공] ${res.user.name} 계정`);
+          });
+          checkAuthSession();
+        } else {
+          const errorBox = document.getElementById("login-error-alert");
+          errorBox.innerText = res.error || "이메일 또는 비밀번호가 올바르지 않습니다.";
+          errorBox.style.display = "block";
+        }
+      } catch (err) {
+        const errorBox = document.getElementById("login-error-alert");
+        errorBox.innerText = "서버 통신 중 오류가 발생했습니다.";
+        errorBox.style.display = "block";
+      }
+    };
+  }
 }
 
 function renderTempAccountsInLogin() {
@@ -653,7 +725,6 @@ function renderScannerScreen() {
           <div id="qr-camera-reader" style="width: 100%; max-width: 450px; margin: 0 auto; border: 2px solid #2d3748; background:#1a202c;">
             <!-- html5-qrcode camera goes here -->
           </div>
-          <div class="qr-scanner-overlay-guide"></div>
           <button id="btn-stop-camera" class="btn btn-rigid btn-red" style="display:none;">카메라 끄기 / 스캔 중단</button>
         </div>
         

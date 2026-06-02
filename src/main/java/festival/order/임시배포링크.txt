@@ -1,0 +1,9 @@
+고정된 임시 배포 링크 (핸드폰 테스트용):
+https://fastival-staff-sohee.loca.lt
+
+* 스태프 QR 스캐너 접속 경로:
+https://fastival-staff-sohee.loca.lt/features/payment/staff/scanner.html
+
+주의: 이 링크는 고정 주소(subdomain) 옵션이 적용되었습니다. 
+앞으로 서버가 꺼졌다 켜지더라도 터널을 다시 열 때 똑같은 명령어를 사용하면 항상 이 주소 그대로 사용할 수 있습니다!
+(명령어: npx localtunnel --port 8082 --subdomain fastival-staff-sohee)
