@@ -22,4 +22,9 @@ public interface ProductRepository extends JpaRepository<ProductEntity, Long> {
      * 가용 재고(available_stock)가 0보다 큰, 즉 현재 구매 가능한 상품들만 조회합니다.
      */
     List<ProductEntity> findByAvailableStockGreaterThan(Integer stock);
+
+    /**
+     * 특정 상점/부스 ID(store_id)를 가진 상품 목록을 조회합니다.
+     */
+    List<ProductEntity> findByStoreId(Long storeId);
 }

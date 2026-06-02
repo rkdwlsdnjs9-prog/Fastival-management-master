@@ -14,6 +14,8 @@
   <link rel="stylesheet" href="/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css"/>
   <script src="/assets/vendor/js/helpers.js"></script>
   <script src="/assets/js/config.js"></script>
+  <!-- SweetAlert2 프리미엄 비동기 알림창 모듈 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <style>
     .stat-card { transition: transform .2s; }
     .stat-card:hover { transform: translateY(-4px); }
@@ -213,7 +215,6 @@
 <script src="/assets/vendor/js/bootstrap.js"></script>
 <script src="/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
 <script src="/assets/vendor/js/menu.js"></script>
-<script src="/assets/js/main.js"></script>
 <script src="/assets/js/sidebar.js"></script>
 
 <script>
@@ -280,16 +281,19 @@ document.addEventListener('DOMContentLoaded', async () => {
 async function loadFestivals() {
   const gridContainer = document.getElementById('festivalCardGrid');
   try {
-    const res = await fetch('/api/admin/festivals?status=UPCOMING');
-    if (!res.ok) {
-      // 1차 백엔드 경로 실패 시, 2차 전체 페스티벌 조회 API 시도
-      const altRes = await fetch('/api/festival');
-      if (!altRes.ok) throw new Error('API 로드 에러');
-      const allFests = await altRes.json();
-      // UPCOMING 필터 모방
-      activeFestivals = allFests.length > 0 ? allFests : MOCK_FESTIVALS;
-    } else {
-      activeFestivals = await res.json();
+    // 404 에러 유발을 막기 위해, 존재하는 API 엔드포인트(/api/festival)를 다이렉트로 조회
+    const res = await fetch('/api/festival');
+    if (!res.ok) throw new Error('API 로드 에러');
+    const allFests = await res.json();
+    
+    // UPCOMING 상태인 페스티벌을 위주로 필터링하여 매핑
+    activeFestivals = allFests.length > 0 
+      ? allFests.filter(f => f.operationalStatus === 'UPCOMING' || f.operational_status === 'UPCOMING') 
+      : MOCK_FESTIVALS;
+      
+    // 만약 UPCOMING 데이터가 아예 없다면 전체 목록 제공
+    if (allFests.length > 0 && activeFestivals.length === 0) {
+      activeFestivals = allFests;
     }
   } catch (err) {
     console.warn('[백엔드 API 연결 불가 - 로컬 목(Mock) 데이터로 구동합니다]', err);
@@ -307,6 +311,20 @@ function getFestivalPoster(f) {
   const dbThumbnail = f.thumbnailUrl || f.thumbnail_url;
   
   if (dbThumbnail && dbThumbnail.trim() !== "") {
+    // data:image 규격의 base64 데이터에 대한 초정밀 디코딩 유효성 검사 (깨진 base64 사전 필터링)
+    if (dbThumbnail.startsWith("data:")) {
+      try {
+        const parts = dbThumbnail.split(",");
+        if (parts.length < 2 || !parts[0].includes("base64")) {
+          throw new Error("Invalid format");
+        }
+        // base64 본문만 추출하여 브라우저 디코더(atob)로 실시간 유효성 테스트
+        window.atob(parts[1].replace(/\s/g, ""));
+      } catch (e) {
+        // 디코딩 실패(손상된 base64) 시 즉각 안전한 Unsplash 플레이스홀더 이미지로 대체
+        return "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=500";
+      }
+    }
     return dbThumbnail;
   }
 
@@ -342,7 +360,7 @@ function renderFestivalGrid() {
                    class="img-fluid rounded-start h-100 object-fit-cover" 
                    style="height: 100%; min-height: 100px; width: 100%; object-fit: cover;" 
                    alt="축제 포스터" 
-                   onerror="this.src='/assets/img/elements/12.jpg';" />
+                   onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=500';" />
             </div>
             <div class="col-8">
               <div class="card-body p-3 d-flex flex-column justify-content-between h-100">
@@ -550,11 +568,50 @@ function renderTable() {
  * }
  */
 async function changeStatus(id, newStatus) {
-  const item = cachedInquiries.find(i => i.id === id) || MOCK_INQUIRIES.find(i => i.id === id);
-  if (!item) return;
+  // DB에서 넘어오는 ID의 타입(String / Number) 불일치로 인한 조회 실패를 막기 위해 명시적 String 형변환 비교 적용
+  const item = cachedInquiries.find(i => String(i.id) === String(id)) || MOCK_INQUIRIES.find(i => String(i.id) === String(id));
+  if (!item) {
+    console.error('[Error] changeStatus - Inquiry not found for ID:', id);
+    Swal.fire({
+      icon: 'error',
+      title: '조회 실패',
+      text: '❌ 해당 입점 신청서 대상을 찾을 수 없습니다. (ID 미매칭)',
+      confirmButtonColor: '#696cff'
+    });
+    return;
+  }
 
   const label = newStatus === 'APPROVED' ? '승인' : '반려';
-  if (!confirm(`[${item.companyName}] 업체의 입점 신청을 최종 [${label}] 처리하시겠습니까?`)) return;
+  const confirmColor = newStatus === 'APPROVED' ? '#71dd37' : '#ff3e1d';
+
+  // SweetAlert2 프리미엄 질문 대화 상자 (동기식 멈춤 없음)
+  const result = await Swal.fire({
+    title: `최종 [${label}] 처리하시겠습니까?`,
+    text: `[${item.companyName}] 업체의 입점 신청을 최종 [${label}] 결정합니다.`,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonText: `네, ${label}합니다`,
+    cancelButtonText: '취소',
+    confirmButtonColor: confirmColor,
+    cancelButtonColor: '#8592a3',
+    customClass: {
+      confirmButton: 'btn btn-primary me-3',
+      cancelButton: 'btn btn-outline-secondary'
+    },
+    buttonsStyling: true
+  });
+
+  if (!result.isConfirmed) return;
+
+  // 비동기 처리 중 로딩 인디케이터 활성화
+  Swal.fire({
+    title: '데이터 갱신 중...',
+    text: '백엔드 서버 및 Supabase DB 상태를 동기화하고 있습니다.',
+    allowOutsideClick: false,
+    didOpen: () => {
+      Swal.showLoading();
+    }
+  });
 
   try {
     const res = await fetch(`/api/partner/inquiry/${id}/status`, {
@@ -562,19 +619,31 @@ async function changeStatus(id, newStatus) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status: newStatus }),
     });
-    if (!res.ok) throw new Error('상태 변경 실패: ' + res.status);
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(`서버 오류 (${res.status}): ${errText || '상태 변경 실패'}`);
+    }
     
     // DB 성공 시 전역 Mock 동기화
-    const idx = MOCK_INQUIRIES.findIndex(i => i.id === id);
+    const idx = MOCK_INQUIRIES.findIndex(i => String(i.id) === String(id));
     if (idx !== -1) MOCK_INQUIRIES[idx].status = newStatus;
 
-    alert(`✅ [${item.companyName}] ${label} 처리가 완료되었습니다.`);
+    // 성공 메시지 팝업 노출
+    await Swal.fire({
+      icon: 'success',
+      title: '처리 성공',
+      text: `🎉 [${item.companyName}] ${label} 처리가 성공적으로 완료되었습니다.`,
+      confirmButtonColor: '#696cff'
+    });
   } catch (err) {
-    console.warn('[API 미지원 또는 에러 - 로컬 메모리 상태를 강제 동기화합니다]', err);
-    // Mock 메모리 강제 업데이트 처리
-    const idx = MOCK_INQUIRIES.findIndex(i => i.id === id);
-    if (idx !== -1) MOCK_INQUIRIES[idx].status = newStatus;
-    alert(`✅ [${item.companyName}] ${label} 처리(메모리 동기화) 완료되었습니다.`);
+    console.error('승인/반려 처리 실패:', err);
+    Swal.fire({
+      icon: 'error',
+      title: '처리 실패',
+      text: `❌ 승인/반려 처리 중 오류가 발생했습니다.\n원인: ${err.message}`,
+      confirmButtonColor: '#ff3e1d'
+    });
+    return; // 에러 발생 시 리로드나 모달 닫기를 수행하지 않아 원인을 유지합니다.
   }
 
   closeModal();
@@ -586,8 +655,17 @@ async function changeStatus(id, newStatus) {
  * 8. 상세 정보 열람 모달 바인딩
  */
 function openModal(id) {
-  const item = cachedInquiries.find(i => i.id === id) || MOCK_INQUIRIES.find(i => i.id === id);
-  if (!item) return;
+  const item = cachedInquiries.find(i => String(i.id) === String(id)) || MOCK_INQUIRIES.find(i => String(i.id) === String(id));
+  if (!item) {
+    console.error('[Error] openModal - Inquiry not found for ID:', id);
+    Swal.fire({
+      icon: 'error',
+      title: '상세 정보 조회 실패',
+      text: '❌ 해당 신청서의 상세 정보를 불러올 수 없습니다. (ID 미매칭)',
+      confirmButtonColor: '#ff3e1d'
+    });
+    return;
+  }
   currentDetailId = id;
 
   // 첨부서류 파일명 및 다운로드 링크 추출

@@ -280,38 +280,75 @@ const MOCK = {
  */
 function normalizeFestival(row) {
   if (!row) return null;
+
+  const targetStartDate = row.startDate || row.start_date;
+  const targetEndDate = row.endDate || row.end_date;
+  const targetCreatedAt = row.createdAt || row.created_at;
+
+  // 1. D-Day Fallback 계산 (자바 백엔드 계산값이 없을 경우 대비)
+  let dday = row.dday || row.d_day;
+  if (!dday && targetStartDate) {
+    const start = new Date(targetStartDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    start.setHours(0, 0, 0, 0);
+    const diff = start.getTime() - today.getTime();
+    const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+    if (days > 0) dday = `D-${days}`;
+    else if (days === 0) dday = "D-Day";
+    else {
+      if (targetEndDate && new Date(targetEndDate) < today) {
+        dday = "종료";
+      } else {
+        dday = "진행중";
+      }
+    }
+  }
+
+  // 2. isNew Fallback 계산 (등록 후 7일 이내)
+  let isNew = row.isNew !== undefined ? row.isNew : row.is_new;
+  if (isNew === undefined && targetCreatedAt) {
+    const created = new Date(targetCreatedAt);
+    const today = new Date();
+    const diff = today.getTime() - created.getTime();
+    const diffDays = diff / (1000 * 60 * 60 * 24);
+    isNew = diffDays <= 7;
+  }
+
   return {
     /* DB 컬럼 원본 (항상 포함) */
     id: row.id,
-    name: row.name,
-    start_date: row.start_date,
-    end_date: row.end_date,
-    is_active: row.is_active,
-    map_image_url: row.map_image_url,
-    created_at: row.created_at,
-    is_adult_only: row.is_adult_only,
+    name: row.name || row.eventName,
+    start_date: targetStartDate,
+    end_date: targetEndDate,
+    is_active: row.is_active !== undefined ? row.is_active : row.isActive,
+    map_image_url: row.map_image_url || row.mapImageUrl,
+    created_at: targetCreatedAt,
+    is_adult_only: row.is_adult_only !== undefined ? row.is_adult_only : row.isAdultOnly,
 
     /* 기존 JS 코드 호환 alias */
     eventNo: row.id,
-    eventName: row.name,
-    startDate: row.start_date,
-    endDate: row.end_date,
-    eventDate: row.start_date,      // 표시용 단일 날짜
-    eventEndDate: row.end_date,
-    isActive: row.is_active,
-    isAdultOnly: row.is_adult_only,
-    mapImageUrl: row.map_image_url,
+    eventName: row.name || row.eventName,
+    startDate: targetStartDate,
+    endDate: targetEndDate,
+    eventDate: targetStartDate,      // 표시용 단일 날짜
+    eventEndDate: targetEndDate,
+    isActive: row.is_active !== undefined ? row.is_active : row.isActive,
+    isAdultOnly: row.is_adult_only !== undefined ? row.is_adult_only : row.isAdultOnly,
+    mapImageUrl: row.map_image_url || row.mapImageUrl,
 
     /* 추가 메타 (API 또는 Mock에서 제공) */
     category: row.category || '',
     venue: row.venue || '',
-    startTime: row.start_time || '',
-    endTime: row.end_time || '',
-    minPrice: row.min_price || 0,
-    thumbnailUrl: row.thumbnail_url || null,
-    badgeLabel: row.badge_label || null,
-    isHot: row.is_hot || false,
-    viewCount: row.view_count || 0,
+    startTime: row.start_time || row.startTime || '',
+    endTime: row.end_time || row.endTime || '',
+    minPrice: row.minPrice !== undefined ? row.minPrice : (row.min_price || 0),
+    thumbnailUrl: row.thumbnail_url || row.thumbnailUrl || null,
+    badgeLabel: row.badge_label || row.badgeLabel || null,
+    isHot: row.is_hot !== undefined ? row.is_hot : (row.isHot || false),
+    viewCount: row.viewCount || row.view_count || 0,
+    isNew: !!isNew,
+    dday: dday || '-',
   };
 }
 
@@ -398,6 +435,24 @@ const memberApi = {
 const eventApi = {
   /** 전체 행사 목록 조회 (점진적 로드) */
   getEvents: async (category = null, onProgress = null) => {
+    // 1. 스프링 부트 백엔드 API (/api/festival) 우선 조회 시도
+    try {
+      const response = await fetch('/api/festival');
+      if (response.ok) {
+        const data = await response.json();
+        let list = (data || []).filter(f => f.isActive !== false && f.is_active !== false);
+        if (category && category !== 'all') {
+          list = list.filter(f => f.category === category);
+        }
+        const normalized = list.map(normalizeFestival);
+        if (onProgress) onProgress(normalized);
+        return normalized;
+      }
+    } catch (e) {
+      console.warn('Java 백엔드 API 조회 실패, Supabase/Mock으로 폴백합니다.', e);
+    }
+
+    // 2. Fallback: Mock 데이터 처리
     if (USE_MOCK) {
       let list = MOCK.festivals.filter(f => f.is_active);
       if (category && category !== 'all') {
@@ -408,6 +463,7 @@ const eventApi = {
       return normalized;
     }
 
+    // 3. Fallback: Supabase 직접 조회
     const sb = getSupabase();
     if (!sb) return [];
 

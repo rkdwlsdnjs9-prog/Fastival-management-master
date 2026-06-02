@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="ko" class="layout-menu-fixed layout-compact" data-assets-path="/assets/" data-template="vertical-menu-template-free">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+    <title>메뉴 및 옵션 마스터 등록 - FASTIVAL O2O</title>
+
+    <link rel="icon" type="image/x-icon" href="/assets/img/favicon/favicon.ico" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/assets/vendor/fonts/iconify-icons.css" />
+    <link rel="stylesheet" href="/assets/vendor/css/core.css" />
+    <link rel="stylesheet" href="/assets/css/demo.css" />
+    <link rel="stylesheet" href="/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
+    <link rel="stylesheet" href="/assets/vendor/libs/apex-charts/apex-charts.css" />
+    <script src="/assets/vendor/js/helpers.js"></script>
+    <script src="/assets/js/config.js"></script>
+    <style>
+      .premium-gradient {
+        background: linear-gradient(135deg, #696cff 0%, #a2a4ff 100%);
+        color: white;
+      }
+      .stat-card {
+        transition: transform 0.2s;
+      }
+      .stat-card:hover {
+        transform: translateY(-5px);
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="layout-wrapper layout-content-navbar">
+      <div class="layout-container">
+        
+        <!-- Sidebar Menu -->
+        <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
+          <!-- sidebar.js 가 런타임에 동적으로 삽입 -->
+        </aside>
+
+        <div class="layout-page">
+          <!-- Navbar -->
+          <nav class="layout-navbar container-xxl navbar navbar-expand-xl navbar-detached align-items-center bg-navbar-theme" id="layout-navbar">
+            <div class="layout-menu-toggle navbar-nav align-items-xl-center me-4 me-xl-0 d-xl-none">
+              <a class="nav-item nav-link px-0 me-xl-6" href="javascript:void(0)">
+                <i class="bx bx-menu bx-sm"></i>
+              </a>
+            </div>
+            <div class="navbar-nav-right d-flex align-items-center" id="navbar-collapse">
+              <h5 class="mb-0 fw-bold"><i class="bx bx-list-plus me-2 text-primary"></i>메뉴 및 옵션 마스터 등록</h5>
+              <ul class="navbar-nav flex-row align-items-center ms-auto">
+                <li class="nav-item dropdown-user dropdown">
+                  <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown">
+                    <div class="avatar avatar-online">
+                      <img src="/assets/img/avatars/1.png" class="w-px-40 h-auto rounded-circle" />
+                    </div>
+                  </a>
+                  <ul class="dropdown-menu dropdown-menu-end">
+                    <li>
+                      <a class="dropdown-item" href="#">
+                        <div class="d-flex">
+                          <div class="flex-shrink-0 me-3">
+                            <div class="avatar avatar-online">
+                              <img src="/assets/img/avatars/1.png" class="w-px-40 h-auto rounded-circle" />
+                            </div>
+                          </div>
+                          <div class="flex-grow-1">
+                            <span class="fw-medium d-block">최고 관리자</span>
+                            <small class="text-muted">Master Admin</small>
+                          </div>
+                        </div>
+                      </a>
+                    </li>
+                  </ul>
+                </li>
+              </ul>
+            </div>
+          </nav>
+
+          <!-- Content wrapper -->
+          <div class="content-wrapper">
+            <div class="container-xxl flex-grow-1 container-p-y">
+              
+<div class="row">
+  <div class="col-xl-7 col-lg-12 mb-6">
+    <div class="card h-100 shadow-sm">
+      <div class="card-header pb-2">
+        <h5 class="card-title m-0 fw-bold text-dark"><i class="bx bx-list-plus me-2 text-info"></i>상품 및 메뉴 등록 마스터 폼</h5>
+      </div>
+      <div class="card-body">
+        <form>
+          <div class="mb-4">
+            <label class="form-label fw-bold text-dark fs-6">상품명</label>
+            <input type="text" class="form-control form-control-lg py-3" value="원조 매운 떡볶이" style="font-size: 1rem;" />
+          </div>
+          <div class="row mb-4">
+            <div class="col-md-6 mb-3 mb-md-0">
+              <label class="form-label fw-bold text-dark fs-6">기본 판매 가격</label>
+              <input type="number" class="form-control form-control-lg py-3" value="6500" style="font-size: 1rem;" />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-bold text-dark fs-6">상품 소속 카테고리</label>
+              <select class="form-select form-select-lg py-3" style="font-size: 1rem;">
+                <option>푸드 메뉴 (Food)</option>
+                <option>사이드 메뉴 (Side)</option>
+                <option>드링크 / 주류 (Beverage)</option>
+              </select>
+            </div>
+          </div>
+          
+          <hr class="my-4" />
+          
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="m-0 fw-bold text-dark"><i class="bx bx-cog me-1 text-info"></i>선택 옵션 그룹 설정</h6>
+            <button type="button" class="btn btn-md btn-outline-info py-2 px-3 fw-bold"><i class="bx bx-plus-circle me-1"></i>옵션 그룹 추가</button>
+          </div>
+          
+          <div class="border border-2 rounded-3 p-4 mb-4 bg-light">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <strong class="text-dark fs-6">옵션 그룹 1: 매운맛 선택 (필수)</strong>
+              <button type="button" class="btn btn-sm btn-link text-danger p-0 fw-bold"><i class="bx bx-trash me-1"></i>삭제</button>
+            </div>
+            <div class="row g-2 mb-3">
+              <div class="col-6"><input type="text" class="form-control form-control-lg py-2" value="순한맛" style="font-size: 0.95rem;" /></div>
+              <div class="col-6"><input type="number" class="form-control form-control-lg py-2" value="0" placeholder="추가 금액" style="font-size: 0.95rem;" /></div>
+            </div>
+            <div class="row g-2 mb-3">
+              <div class="col-6"><input type="text" class="form-control form-control-lg py-2" value="보통 매운맛 (신라면 맵기)" style="font-size: 0.95rem;" /></div>
+              <div class="col-6"><input type="number" class="form-control form-control-lg py-2" value="0" style="font-size: 0.95rem;" /></div>
+            </div>
+            <div class="row g-2">
+              <div class="col-6"><input type="text" class="form-control form-control-lg py-2" value="아주 지옥의 매운맛" style="font-size: 0.95rem;" /></div>
+              <div class="col-6"><input type="number" class="form-control form-control-lg py-2" value="1000" style="font-size: 0.95rem;" /></div>
+            </div>
+          </div>
+          
+          <button type="button" class="btn btn-primary btn-lg w-100 py-3 fw-bold shadow-sm" style="min-height: 52px; font-size: 1.1rem;">
+            <i class="bx bx-check-circle me-2 fs-5"></i>신규 메뉴 최종 마스터 등록
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-xl-5 col-lg-12 mb-6">
+    <div class="card h-100 shadow-sm border-0">
+      <div class="card-header pb-2 bg-white">
+        <h5 class="card-title m-0 fw-bold text-dark"><i class="bx bx-store me-2 text-info fs-4"></i>등록된 메뉴 목록 및 필터</h5>
+      </div>
+      
+      <!-- Category Filter Tabs -->
+      <div class="px-4 py-2 border-bottom bg-light">
+        <ul class="nav nav-pills card-header-pills gap-2" id="menuFilterTabs">
+          <li class="nav-item">
+            <button class="nav-link active fw-bold py-2 px-3" data-filter="all">전체</button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link fw-bold py-2 px-3" data-filter="food">메인 (Food)</button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link fw-bold py-2 px-3" data-filter="side">사이드 (Side)</button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link fw-bold py-2 px-3" data-filter="beverage">음료 (Beverage)</button>
+          </li>
+        </ul>
+      </div>
+
+      <div class="list-group list-group-flush border-top" id="menuItemContainer">
+        <!-- Item 1 -->
+        <div class="list-group-item d-flex justify-content-between align-items-center py-4 px-3 hover-bg-light transition-all menu-list-item" data-category="food">
+          <div class="d-flex align-items-center">
+            <!-- Star Toggle (Baemin representative menu feature) -->
+            <div class="me-3 cursor-pointer" onclick="toggleRepresentative(this, '원조 매운 떡볶이')">
+              <i class="bx bxs-star text-warning fs-3 star-icon" style="cursor: pointer;"></i>
+            </div>
+            <div class="avatar avatar-md me-3" style="width: 52px; height: 52px;">
+              <img src="https://images.unsplash.com/photo-1585647347483-22b66260dfff?q=80&w=150&auto=format&fit=crop" class="rounded-3 w-100 h-100 object-fit-cover" />
+            </div>
+            <div>
+              <h6 class="mb-1 fw-bold text-dark fs-6">원조 매운 떡볶이 <span class="badge bg-label-warning py-1 px-2 fs-8 ms-1">대표메뉴</span></h6>
+              <small class="text-muted">₩ 6,500 / 카테고리: 메인</small>
+            </div>
+          </div>
+          <button class="btn btn-md btn-outline-secondary py-2 px-3 fw-bold" style="min-width: 64px;">관리</button>
+        </div>
+
+        <!-- Item 2 -->
+        <div class="list-group-item d-flex justify-content-between align-items-center py-4 px-3 hover-bg-light transition-all menu-list-item" data-category="side">
+          <div class="d-flex align-items-center">
+            <!-- Star Toggle -->
+            <div class="me-3 cursor-pointer" onclick="toggleRepresentative(this, '수제 모둠 튀김')">
+              <i class="bx bx-star text-muted fs-3 star-icon" style="cursor: pointer;"></i>
+            </div>
+            <div class="avatar avatar-md me-3" style="width: 52px; height: 52px;">
+              <img src="https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?q=80&w=150&auto=format&fit=crop" class="rounded-3 w-100 h-100 object-fit-cover" />
+            </div>
+            <div>
+              <h6 class="mb-1 fw-bold text-dark fs-6">수제 모둠 튀김 (5pcs)</h6>
+              <small class="text-muted">₩ 7,000 / 카테고리: 사이드</small>
+            </div>
+          </div>
+          <button class="btn btn-md btn-outline-secondary py-2 px-3 fw-bold" style="min-width: 64px;">관리</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+            </div>
+
+            <!-- Footer -->
+            <footer class="content-footer footer bg-footer-theme">
+              <div class="container-xxl d-flex flex-wrap justify-content-between py-2 flex-md-row flex-column">
+                <div class="mb-2 mb-md-0">
+                  © <script>document.write(new Date().getFullYear());</script> FASTIVAL O2O
+                </div>
+              </div>
+            </footer>
+
+            <div class="content-backdrop fade"></div>
+          </div>
+        </div>
+      </div>
+      <div class="layout-overlay layout-menu-toggle"></div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/assets/vendor/libs/jquery/jquery.js"></script>
+    <script src="/assets/vendor/libs/popper/popper.js"></script>
+    <script src="/assets/vendor/js/bootstrap.js"></script>
+    <script src="/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
+    <script src="/assets/vendor/js/menu.js"></script>
+    <script src="/assets/vendor/libs/apex-charts/apexcharts.js"></script>
+    <script src="/assets/js/main.js"></script>
+    <script src="/assets/js/staff-sidebar.js"></script>
+    
+<script>
+  // Dynamic Category Filtering Logic
+  const filterTabs = document.querySelectorAll('#menuFilterTabs button');
+  const menuItems = document.querySelectorAll('.menu-list-item');
+
+  filterTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      // Toggle Active Class
+      filterTabs.forEach(btn => btn.classList.remove('active'));
+      tab.classList.add('active');
+
+      const filterVal = tab.getAttribute('data-filter');
+
+      // Filter Item List
+      menuItems.forEach(item => {
+        const itemCategory = item.getAttribute('data-category');
+        if (filterVal === 'all' || itemCategory === filterVal) {
+          item.style.setProperty('display', 'flex', 'important');
+        } else {
+          item.style.setProperty('display', 'none', 'important');
+        }
+      });
+    });
+  });
+
+  // Star Toggle representative menu
+  function toggleRepresentative(element, menuName) {
+    const starIcon = element.querySelector('.star-icon');
+    const parentContainer = element.closest('.menu-list-item');
+    const titleHeader = parentContainer.querySelector('h6');
+
+    if (starIcon.classList.contains('bx-star')) {
+      // Toggle to Selected (Representative Menu)
+      starIcon.classList.remove('bx-star', 'text-muted');
+      starIcon.classList.add('bxs-star', 'text-warning');
+      
+      // Add 'Representative' badge dynamically if it does not exist
+      if (!titleHeader.querySelector('.badge')) {
+        titleHeader.innerHTML += ' <span class="badge bg-label-warning py-1 px-2 fs-8 ms-1">대표메뉴</span>';
+      }
+      alert(`★ [${menuName}] 상품이 우리 가게 대표 메뉴로 지정되었습니다!\n소비자 화면 상단에 우선 고정 노출됩니다.`);
+    } else {
+      // Toggle to Deselected
+      starIcon.classList.remove('bxs-star', 'text-warning');
+      starIcon.classList.add('bx-star', 'text-muted');
+
+      // Remove Badge
+      const badge = titleHeader.querySelector('.badge');
+      if (badge) {
+        badge.remove();
+      }
+      alert(`☆ [${menuName}] 대표 메뉴 지정이 해제되었습니다.`);
+    }
+  }
+</script>
+</body>
+</html>

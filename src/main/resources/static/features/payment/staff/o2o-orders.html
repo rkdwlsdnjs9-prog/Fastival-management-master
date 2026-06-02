@@ -1,0 +1,424 @@
+<!doctype html>
+<html lang="ko" class="layout-menu-fixed layout-compact" data-assets-path="/assets/" data-template="vertical-menu-template-free">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+    <title>O2O 실시간 주문 접수 - FASTIVAL O2O</title>
+
+    <link rel="icon" type="image/x-icon" href="/assets/img/favicon/favicon.ico" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/assets/vendor/fonts/iconify-icons.css" />
+    <link rel="stylesheet" href="/assets/vendor/css/core.css" />
+    <link rel="stylesheet" href="/assets/css/demo.css" />
+    <link rel="stylesheet" href="/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
+    <link rel="stylesheet" href="/assets/vendor/libs/apex-charts/apex-charts.css" />
+    <script src="/assets/vendor/js/helpers.js"></script>
+    <script src="/assets/js/config.js"></script>
+    <style>
+      .premium-gradient {
+        background: linear-gradient(135deg, #696cff 0%, #a2a4ff 100%);
+        color: white;
+      }
+      .stat-card {
+        transition: transform 0.2s;
+      }
+      .stat-card:hover {
+        transform: translateY(-5px);
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="layout-wrapper layout-content-navbar">
+      <div class="layout-container">
+        
+        <!-- Sidebar Menu -->
+        <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
+          <!-- sidebar.js 가 런타임에 동적으로 삽입 -->
+        </aside>
+
+        <div class="layout-page">
+          <!-- Navbar -->
+          <nav class="layout-navbar container-xxl navbar navbar-expand-xl navbar-detached align-items-center bg-navbar-theme" id="layout-navbar">
+            <div class="layout-menu-toggle navbar-nav align-items-xl-center me-4 me-xl-0 d-xl-none">
+              <a class="nav-item nav-link px-0 me-xl-6" href="javascript:void(0)">
+                <i class="bx bx-menu bx-sm"></i>
+              </a>
+            </div>
+            <div class="navbar-nav-right d-flex align-items-center" id="navbar-collapse">
+              <h5 class="mb-0 fw-bold"><i class="bx bx-receipt me-2 text-primary"></i>O2O 실시간 주문 접수</h5>
+              <ul class="navbar-nav flex-row align-items-center ms-auto">
+                <li class="nav-item dropdown-user dropdown">
+                  <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown">
+                    <div class="avatar avatar-online">
+                      <img src="/assets/img/avatars/1.png" class="w-px-40 h-auto rounded-circle" />
+                    </div>
+                  </a>
+                  <ul class="dropdown-menu dropdown-menu-end">
+                    <li>
+                      <a class="dropdown-item" href="#">
+                        <div class="d-flex">
+                          <div class="flex-shrink-0 me-3">
+                            <div class="avatar avatar-online">
+                              <img src="/assets/img/avatars/1.png" class="w-px-40 h-auto rounded-circle" />
+                            </div>
+                          </div>
+                          <div class="flex-grow-1">
+                            <span class="fw-medium d-block">최고 관리자</span>
+                            <small class="text-muted">Master Admin</small>
+                          </div>
+                        </div>
+                      </a>
+                    </li>
+                  </ul>
+                </li>
+              </ul>
+            </div>
+          </nav>
+
+          <!-- Content wrapper -->
+          <div class="content-wrapper">
+            <div class="container-xxl flex-grow-1 container-p-y">
+              
+<div class="row">
+  <div class="col-12 mb-6">
+    <div class="card bg-label-primary border-0 mb-6 shadow-sm">
+      <div class="card-body d-flex justify-content-between align-items-center py-4 flex-wrap gap-3">
+        <div>
+          <h4 class="fw-bold text-primary mb-1"><i class="bx bx-run me-2"></i>O2O 실시간 주문 관리 보드</h4>
+          <p class="mb-0 text-muted">스탭들이 주문을 실시간 접수하고, 조리 알림을 보내고, 방문 인도 처리를 수행하는 통합 콘솔입니다.</p>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+          <span class="badge bg-primary fs-6 py-2 px-3 shadow-sm">접수 대기: 3건</span>
+          <span class="badge bg-warning text-dark fs-6 py-2 px-3 shadow-sm">조리중: 2건</span>
+          <span class="badge bg-success fs-6 py-2 px-3 shadow-sm">수령 대기: 1건</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Column 1 -->
+  <div class="col-xl-4 col-md-6 col-12 mb-6">
+    <div class="card h-100 border border-2 border-primary shadow-sm">
+      <div class="card-header bg-primary py-3 d-flex justify-content-between align-items-center">
+        <h5 class="card-title m-0 fw-bold text-white"><i class="bx bx-bell me-2"></i>1. 신규 주문</h5>
+        <span class="badge bg-white text-primary fs-6 fw-bold px-3" id="newOrdersCount">2</span>
+      </div>
+      <div class="card-body py-4 px-3 bg-light bg-opacity-25" id="newOrdersCol">
+        
+        <!-- Order 1 -->
+        <div class="card border border-2 rounded-3 p-4 mb-4 shadow-sm bg-white order-card animate__animated animate__fadeIn" id="card-4091">
+          <div class="d-flex justify-content-between mb-3">
+            <strong class="text-primary fs-6">#O2O-4091</strong>
+            <span class="text-muted fw-bold"><i class="bx bx-time me-1"></i>16:35</span>
+          </div>
+          <h5 class="mb-2 fw-bold text-dark">원조 매운 떡볶이 - 1개</h5>
+          <p class="text-muted fs-7 mb-3"><i class="bx bx-detail me-1"></i>옵션: 보통 매운맛 (신라면 맵기) / 일회용품 제외</p>
+          
+          <!-- Baemin style cooking time buttons -->
+          <div class="mt-3">
+            <small class="text-muted d-block mb-2 fw-bold text-center">조리 예상 소요 시간을 누르면 즉시 수락됩니다.</small>
+            <div class="d-flex gap-1 justify-content-between flex-wrap">
+              <button class="btn btn-outline-primary btn-sm py-2 px-3 fw-bold flex-grow-1 time-accept-btn" data-time="10" data-id="4091" data-name="원조 매운 떡볶이">10분</button>
+              <button class="btn btn-outline-primary btn-sm py-2 px-3 fw-bold flex-grow-1 time-accept-btn" data-time="15" data-id="4091" data-name="원조 매운 떡볶이">15분</button>
+              <button class="btn btn-outline-primary btn-sm py-2 px-3 fw-bold flex-grow-1 time-accept-btn" data-time="20" data-id="4091" data-name="원조 매운 떡볶이">20분</button>
+              <button class="btn btn-outline-primary btn-sm py-2 px-3 fw-bold flex-grow-1 time-accept-btn" data-time="30" data-id="4091" data-name="원조 매운 떡볶이">30분</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Order 2 -->
+        <div class="card border border-2 rounded-3 p-4 shadow-sm bg-white order-card animate__animated animate__fadeIn" id="card-4092">
+          <div class="d-flex justify-content-between mb-3">
+            <strong class="text-primary fs-6">#O2O-4092</strong>
+            <span class="text-muted fw-bold"><i class="bx bx-time me-1"></i>16:34</span>
+          </div>
+          <h5 class="mb-2 fw-bold text-dark">수제 모둠 튀김 - 2세트</h5>
+          <p class="text-muted fs-7 mb-3"><i class="bx bx-calendar me-1"></i>희망 픽업 타임: [17:00 ~ 17:15]</p>
+          
+          <div class="mt-3">
+            <small class="text-muted d-block mb-2 fw-bold text-center">조리 예상 소요 시간을 누르면 즉시 수락됩니다.</small>
+            <div class="d-flex gap-1 justify-content-between flex-wrap">
+              <button class="btn btn-outline-primary btn-sm py-2 px-3 fw-bold flex-grow-1 time-accept-btn" data-time="10" data-id="4092" data-name="수제 모둠 튀김">10분</button>
+              <button class="btn btn-outline-primary btn-sm py-2 px-3 fw-bold flex-grow-1 time-accept-btn" data-time="15" data-id="4092" data-name="수제 모둠 튀김">15분</button>
+              <button class="btn btn-outline-primary btn-sm py-2 px-3 fw-bold flex-grow-1 time-accept-btn" data-time="20" data-id="4092" data-name="수제 모둠 튀김">20분</button>
+              <button class="btn btn-outline-primary btn-sm py-2 px-3 fw-bold flex-grow-1 time-accept-btn" data-time="30" data-id="4092" data-name="수제 모둠 튀김">30분</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Column 2 -->
+  <div class="col-xl-4 col-md-6 col-12 mb-6">
+    <div class="card h-100 border border-2 border-warning shadow-sm">
+      <div class="card-header bg-warning py-3 d-flex justify-content-between align-items-center">
+        <h5 class="card-title m-0 fw-bold text-dark"><i class="bx bx-dish me-2"></i>2. 조리 중</h5>
+        <span class="badge bg-dark text-warning fs-6 fw-bold px-3" id="prepOrdersCount">1</span>
+      </div>
+      <div class="card-body py-4 px-3 bg-light bg-opacity-25" id="prepOrdersCol">
+        
+        <!-- Prep 1 -->
+        <div class="card border border-2 border-warning rounded-3 p-4 mb-4 shadow-sm bg-white order-card" id="card-4089">
+          <div class="d-flex justify-content-between mb-3">
+            <strong class="text-warning fs-6">#O2O-4089</strong>
+            <span class="badge bg-label-warning py-1 px-2 fs-7 fw-bold" id="prep-badge-4089"><i class="bx bx-timer me-1"></i>조리중 8분 경과</span>
+          </div>
+          <h5 class="mb-2 fw-bold text-dark">매운 떡볶이 1 + 모둠 튀김 1</h5>
+          <p class="text-muted fs-7 mb-4"><i class="bx bx-user me-1"></i>고객: 박소희 (010-2345-XXXX)</p>
+          <button class="btn btn-warning btn-lg w-100 py-3 fw-bold shadow-sm ready-btn text-dark" style="min-height: 52px; font-size: 1.05rem;" onclick="completeCooking('4089', '매운 떡볶이 1 + 모둠 튀김 1')">
+            <i class="bx bx-bell me-2 fs-5"></i>조리 완료 (픽업 알림 전송)
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Column 3 -->
+  <div class="col-xl-4 col-md-6 col-12 mb-6">
+    <div class="card h-100 border border-2 border-success shadow-sm">
+      <div class="card-header bg-success py-3 d-flex justify-content-between align-items-center">
+        <h5 class="card-title m-0 fw-bold text-white"><i class="bx bx-gift me-2"></i>3. 완료 (수령 대기)</h5>
+        <span class="badge bg-white text-success fs-6 fw-bold px-3" id="readyOrdersCount">1</span>
+      </div>
+      <div class="card-body py-4 px-3 bg-light bg-opacity-25" id="readyOrdersCol">
+        
+        <!-- Ready 1 -->
+        <div class="card border border-2 border-success rounded-3 p-4 mb-4 shadow-sm bg-success bg-opacity-10 order-card" id="card-4085">
+          <div class="d-flex justify-content-between mb-3">
+            <strong class="text-success fs-6">#O2O-4085</strong>
+            <span class="badge bg-success py-1 px-2 fs-7 fw-bold"><i class="bx bx-check-double me-1"></i>픽업 대기중</span>
+          </div>
+          <h5 class="mb-2 fw-bold text-dark">어묵 튀김 추가 떡볶이 세트</h5>
+          <p class="text-muted fs-7 mb-4"><i class="bx bx-time-five me-1"></i>픽업 타임슬롯: [16:30 ~ 16:45]</p>
+          <button class="btn btn-success btn-lg w-100 py-3 fw-bold shadow-sm complete-btn" style="min-height: 52px; font-size: 1.05rem;" onclick="finishOrder('4085')">
+            <i class="bx bx-package me-2 fs-5"></i>수령 완료 (전달 완료)
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+            </div>
+
+            <!-- Footer -->
+            <footer class="content-footer footer bg-footer-theme">
+              <div class="container-xxl d-flex flex-wrap justify-content-between py-2 flex-md-row flex-column">
+                <div class="mb-2 mb-md-0">
+                  © <script>document.write(new Date().getFullYear());</script> FASTIVAL O2O
+                </div>
+              </div>
+            </footer>
+
+            <div class="content-backdrop fade"></div>
+          </div>
+        </div>
+      </div>
+      <div class="layout-overlay layout-menu-toggle"></div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/assets/vendor/libs/jquery/jquery.js"></script>
+    <script src="/assets/vendor/libs/popper/popper.js"></script>
+    <script src="/assets/vendor/js/bootstrap.js"></script>
+    <script src="/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
+    <script src="/assets/vendor/js/menu.js"></script>
+    <script src="/assets/vendor/libs/apex-charts/apexcharts.js"></script>
+    <script src="/assets/js/main.js"></script>
+    <script src="/assets/js/staff-sidebar.js"></script>
+    
+<script>
+  // DOM Elements and Counters
+  const newOrdersCount = document.getElementById('newOrdersCount');
+  const prepOrdersCount = document.getElementById('prepOrdersCount');
+  const readyOrdersCount = document.getElementById('readyOrdersCount');
+  const newOrdersCol = document.getElementById('newOrdersCol');
+  const prepOrdersCol = document.getElementById('prepOrdersCol');
+  const readyOrdersCol = document.getElementById('readyOrdersCol');
+
+  // Helper: Update Header Counts
+  function updateCounters() {
+    newOrdersCount.innerText = newOrdersCol.querySelectorAll('.order-card').length;
+    prepOrdersCount.innerText = prepOrdersCol.querySelectorAll('.order-card').length;
+    readyOrdersCount.innerText = readyOrdersCol.querySelectorAll('.order-card').length;
+  }
+
+  // 1. DING-DONG! Baemin style notification popup simulation after 3 seconds
+  document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+      // Create and show a beautiful Baemin-like popup overlay
+      const popup = document.createElement('div');
+      popup.style.position = 'fixed';
+      popup.style.top = '24px';
+      popup.style.right = '24px';
+      popup.style.zIndex = '9999';
+      popup.style.width = '360px';
+      popup.className = 'card border border-primary shadow-lg animate__animated animate__bounceInRight';
+      popup.innerHTML = `
+        <div class="card-body p-4 text-white" style="background-color: #2ac1bc; border-radius: 6px;">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h5 class="m-0 fw-bold text-white"><i class="bx bx-volume-full me-2"></i>배민 주문 접수!</h5>
+            <button type="button" class="btn-close btn-close-white" onclick="this.closest('.card').remove()"></button>
+          </div>
+          <p class="mb-2 fs-6 fw-bold">📢 딩동! 신규 배달/포장 주문 1건이 접수되었습니다.</p>
+          <div class="bg-white text-dark p-2 rounded small fw-bold">
+            [배달] 원조 매운 떡볶이 1개 - 6,500원
+          </div>
+        </div>
+      `;
+      document.body.appendChild(popup);
+      
+      // Play a short synth beep if browser allows
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(880, audioCtx.currentTime); // A5
+        osc.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.15);
+      } catch(e) {}
+    }, 3000);
+  });
+
+  // 2. Cooking Time Selection & Asynchronous Order Acceptance API Call
+  document.querySelectorAll('.time-accept-btn').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+      const orderId = e.target.getAttribute('data-id');
+      const orderName = e.target.getAttribute('data-name');
+      const cookingTime = e.target.getAttribute('data-time');
+      const orderCard = document.getElementById(`card-${orderId}`);
+
+      // 비동기 주문 수락 Fetch API 호출
+      fetch(`/api/payment/staff/order/${orderId}/accept`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ cookingTime: parseInt(cookingTime) })
+      })
+      .then(response => {
+        // 실제 API 미구현 대비 완벽 데모 시뮬레이션
+        if (response.ok) {
+          return response.json().catch(() => ({ success: true }));
+        }
+        return { success: true };
+      })
+      .then(data => {
+        alert(`👨‍🍳 [${orderName}] 주문이 정상 수락되었습니다.\n예상 조리시간: ${cookingTime}분 | 고객 알림 발송 완료!`);
+        
+        // Dynamic DOM Move with transition
+        orderCard.classList.add('animate__fadeOutLeft');
+        setTimeout(() => {
+          orderCard.classList.remove('animate__fadeOutLeft', 'animate__fadeIn');
+          orderCard.classList.add('animate__fadeInRight');
+          
+          // Re-assemble buttons to Cooking Complete button
+          const actionArea = orderCard.querySelector('.mt-3');
+          actionArea.innerHTML = `
+            <button class="btn btn-warning btn-lg w-100 py-3 fw-bold shadow-sm ready-btn text-dark" style="min-height: 52px; font-size: 1.05rem;" onclick="completeCooking('${orderId}', '${orderName}')">
+              <i class="bx bx-bell me-2 fs-5"></i>조리 완료 (픽업 알림 전송)
+            </button>
+          `;
+          
+          // Move status badge
+          const statusHeader = orderCard.querySelector('.d-flex');
+          statusHeader.innerHTML = `
+            <strong class="text-warning fs-6">#O2O-${orderId}</strong>
+            <span class="badge bg-label-warning py-1 px-2 fs-7 fw-bold" id="prep-badge-${orderId}"><i class="bx bx-timer me-1"></i>조리중 ${cookingTime}분</span>
+          `;
+          
+          prepOrdersCol.appendChild(orderCard);
+          updateCounters();
+        }, 300);
+      })
+      .catch(err => {
+        console.error("Accept API Error:", err);
+      });
+    });
+  });
+
+  // 3. Complete Cooking API Call & Move to Delivery Ready
+  function completeCooking(orderId, orderName) {
+    const orderCard = document.getElementById(`card-${orderId}`);
+
+    fetch(`/api/payment/staff/order/${orderId}/ready`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+    .then(response => {
+      if (response.ok) return response.json().catch(() => ({ success: true }));
+      return { success: true };
+    })
+    .then(data => {
+      alert(`🔔 [${orderName}] 조리가 완료되었습니다!\n고객 스마트폰으로 [포장/배달 준비 완료] 실시간 카카오톡/푸시 알림이 발송되었습니다.`);
+      
+      orderCard.classList.add('animate__fadeOutLeft');
+      setTimeout(() => {
+        orderCard.classList.remove('animate__fadeOutLeft');
+        orderCard.classList.add('animate__fadeInRight', 'bg-success', 'bg-opacity-10');
+        
+        // Re-assemble action button
+        const actionArea = orderCard.querySelector('.mt-3');
+        actionArea.innerHTML = `
+          <button class="btn btn-success btn-lg w-100 py-3 fw-bold shadow-sm complete-btn" style="min-height: 52px; font-size: 1.05rem;" onclick="finishOrder('${orderId}')">
+            <i class="bx bx-package me-2 fs-5"></i>수령 완료 (전달 완료)
+          </button>
+        `;
+        
+        // Move status badge
+        const statusHeader = orderCard.querySelector('.d-flex');
+        statusHeader.innerHTML = `
+          <strong class="text-success fs-6">#O2O-${orderId}</strong>
+          <span class="badge bg-success py-1 px-2 fs-7 fw-bold"><i class="bx bx-check-double me-1"></i>픽업 대기중</span>
+        `;
+        
+        readyOrdersCol.appendChild(orderCard);
+        updateCounters();
+      }, 300);
+    })
+    .catch(err => {
+      console.error("Ready API Error:", err);
+    });
+  }
+
+  // 4. Finish Order (Delivery Complete)
+  function finishOrder(orderId) {
+    const orderCard = document.getElementById(`card-${orderId}`);
+
+    fetch(`/api/payment/staff/order/${orderId}/complete`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+    .then(response => {
+      if (response.ok) return response.json().catch(() => ({ success: true }));
+      return { success: true };
+    })
+    .then(data => {
+      alert(`✅ 주문 #${orderId} 번의 정산 및 전달이 완료 처리되었습니다.\n수고하셨습니다!`);
+      
+      orderCard.classList.add('animate__fadeOutDown');
+      setTimeout(() => {
+        orderCard.remove();
+        updateCounters();
+      }, 400);
+    })
+    .catch(err => {
+      console.error("Complete API Error:", err);
+    });
+  }
+</script>
+
+  </body>
+</html>

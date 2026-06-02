@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="ko" class="layout-menu-fixed layout-compact" data-assets-path="/assets/" data-template="vertical-menu-template-free">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+    <title>점포 설정 및 영업 관리 - FASTIVAL O2O</title>
+
+    <link rel="icon" type="image/x-icon" href="/assets/img/favicon/favicon.ico" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/assets/vendor/fonts/iconify-icons.css" />
+    <link rel="stylesheet" href="/assets/vendor/css/core.css" />
+    <link rel="stylesheet" href="/assets/css/demo.css" />
+    <link rel="stylesheet" href="/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
+    <link rel="stylesheet" href="/assets/vendor/libs/apex-charts/apex-charts.css" />
+    <script src="/assets/vendor/js/helpers.js"></script>
+    <script src="/assets/js/config.js"></script>
+    <style>
+      .premium-gradient {
+        background: linear-gradient(135deg, #696cff 0%, #a2a4ff 100%);
+        color: white;
+      }
+      .stat-card {
+        transition: transform 0.2s;
+      }
+      .stat-card:hover {
+        transform: translateY(-5px);
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="layout-wrapper layout-content-navbar">
+      <div class="layout-container">
+        
+        <!-- Sidebar Menu -->
+        <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
+          <!-- sidebar.js 가 런타임에 동적으로 삽입 -->
+        </aside>
+
+        <div class="layout-page">
+          <!-- Navbar -->
+          <nav class="layout-navbar container-xxl navbar navbar-expand-xl navbar-detached align-items-center bg-navbar-theme" id="layout-navbar">
+            <div class="layout-menu-toggle navbar-nav align-items-xl-center me-4 me-xl-0 d-xl-none">
+              <a class="nav-item nav-link px-0 me-xl-6" href="javascript:void(0)">
+                <i class="bx bx-menu bx-sm"></i>
+              </a>
+            </div>
+            <div class="navbar-nav-right d-flex align-items-center" id="navbar-collapse">
+              <h5 class="mb-0 fw-bold"><i class="bx bx-store-alt me-2 text-primary"></i>점포 설정 및 영업 관리</h5>
+              <ul class="navbar-nav flex-row align-items-center ms-auto">
+                <li class="nav-item dropdown-user dropdown">
+                  <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown">
+                    <div class="avatar avatar-online">
+                      <img src="/assets/img/avatars/1.png" class="w-px-40 h-auto rounded-circle" />
+                    </div>
+                  </a>
+                  <ul class="dropdown-menu dropdown-menu-end">
+                    <li>
+                      <a class="dropdown-item" href="#">
+                        <div class="d-flex">
+                          <div class="flex-shrink-0 me-3">
+                            <div class="avatar avatar-online">
+                              <img src="/assets/img/avatars/1.png" class="w-px-40 h-auto rounded-circle" />
+                            </div>
+                          </div>
+                          <div class="flex-grow-1">
+                            <span class="fw-medium d-block">최고 관리자</span>
+                            <small class="text-muted">Master Admin</small>
+                          </div>
+                        </div>
+                      </a>
+                    </li>
+                  </ul>
+                </li>
+              </ul>
+            </div>
+          </nav>
+
+          <!-- Content wrapper -->
+          <div class="content-wrapper">
+            <div class="container-xxl flex-grow-1 container-p-y">
+              
+<div class="row">
+  <div class="col-xl-6 col-lg-12 mb-6">
+    <div class="card h-100 shadow-sm border-0">
+      <div class="card-header pb-2 bg-white">
+        <h5 class="card-title m-0 fw-bold text-dark"><i class="bx bx-power-off me-2 text-info fs-4"></i>오늘 영업 제어 (배민 주문접수 벤치마킹)</h5>
+      </div>
+      <div class="card-body">
+        <!-- Baemin Style Huge Business Toggle Board -->
+        <div id="baeminToggleBoard" class="border border-2 rounded-3 p-5 mb-5 text-center transition-all bg-light" style="border-color: #2ac1bc !important; background-color: rgba(42, 193, 188, 0.04) !important;">
+          <h2 class="fw-extrabold mb-2 text-dark" style="font-weight: 800; letter-spacing: -1px;">B-3 홍길동 떡볶이</h2>
+          
+          <div class="my-4 d-flex justify-content-center align-items-center gap-3">
+            <span class="fs-6 fw-bold text-muted">오늘 영업 종료</span>
+            <div class="form-check form-switch p-0 m-0" style="width: 100px; height: 50px;">
+              <input class="form-check-input status-switch m-0" type="checkbox" id="baeminOpenToggle" checked style="width: 100px; height: 50px; cursor: pointer; background-color: #ccc; border-color: #ccc;" />
+            </div>
+            <span class="fs-6 fw-bold text-success" style="color: #2ac1bc !important;">오늘 영업 개시 (주문대기)</span>
+          </div>
+
+          <div class="mt-4">
+            <h3 class="fw-bold m-0" id="businessStatusText" style="color: #2ac1bc;">🏪 주문 수락 대기중</h3>
+            <p class="text-muted mt-2 mb-0" id="businessStatusSubText">소비자용 모바일 앱에 실시간 메뉴 주문 버튼이 노출되고 있습니다.</p>
+          </div>
+        </div>
+
+        <!-- Owners real-time notice section -->
+        <div class="card bg-label-info border-0 mb-4">
+          <div class="card-body p-4">
+            <h6 class="fw-bold mb-2 text-info"><i class="bx bx-megaphone me-1"></i> 실시간 사장님 한 줄 공지</h6>
+            <p class="text-muted small mb-3">축제 소비자용 실시간 페이지 및 메뉴 화면 상단에 롤링 배너로 즉각 송출됩니다.</p>
+            <div class="input-group">
+              <input type="text" id="ownerNoticeInput" class="form-control form-control-lg border-info" placeholder="예: 재료 소진으로 18시 이후 튀김만 가능합니다!" style="font-size: 0.95rem;" value="💥 오늘 주문 시 쿨피스 1개 무료 증정 이벤트 진행 중!" />
+              <button class="btn btn-info btn-lg px-4 fw-bold" type="button" id="saveNoticeBtn"><i class="bx bx-paper-plane me-1"></i>공지 등록</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="list-group list-group-flush border-top">
+          <div class="list-group-item d-flex justify-content-between align-items-center py-4 px-1">
+            <div>
+              <h6 class="mb-1 fw-bold fs-6 text-dark">O2O 실시간 주문 접수 여부</h6>
+              <small class="text-muted">비활성화 시 배달/포장 모바일 앱 주문 접수가 임시 정지됩니다.</small>
+            </div>
+            <div class="form-check form-switch me-3">
+              <input class="form-check-input status-switch" type="checkbox" id="o2oToggle" checked style="transform: scale(1.65); cursor: pointer;" />
+            </div>
+          </div>
+          <div class="list-group-item d-flex justify-content-between align-items-center py-4 px-1">
+            <div>
+              <h6 class="mb-1 fw-bold fs-6 text-dark">혼잡도 상태 강제 노출</h6>
+              <small class="text-muted">소비자 화면에 '대기 시간 20분 이상 소요 예정' 마크를 강제로 노출합니다.</small>
+            </div>
+            <div class="form-check form-switch me-3">
+              <input class="form-check-input status-switch" type="checkbox" style="transform: scale(1.65); cursor: pointer;" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-xl-6 col-lg-12 mb-6">
+    <div class="card h-100 shadow-sm border-0">
+      <div class="card-header pb-2 bg-white">
+        <h5 class="card-title m-0 fw-bold text-dark"><i class="bx bx-edit me-2 text-info fs-4"></i>가맹점 정보 설정</h5>
+      </div>
+      <div class="card-body">
+        <form>
+          <div class="mb-4">
+            <label class="form-label fw-bold text-dark fs-6">점포 대분류</label>
+            <select class="form-select form-select-lg py-3" style="font-size: 1rem;">
+              <option>음식 / F&B 푸드트럭</option>
+              <option>음료 / 주류 바</option>
+              <option>공식 MD 및 굿즈 판매소</option>
+            </select>
+          </div>
+          <div class="mb-4">
+            <label class="form-label fw-bold text-dark fs-6">가게 상세 소개</label>
+            <textarea class="form-control form-control-lg py-3" rows="4" style="font-size: 1rem; line-height: 1.6;">속 시원하게 매운 원조 떡볶이와 바삭한 수제 모둠 튀김 전문 푸드트럭입니다!</textarea>
+          </div>
+          <div class="mb-4">
+            <label class="form-label fw-bold text-dark fs-6">평균 조리 완료 시간 (분 단위)</label>
+            <input type="number" class="form-control form-control-lg py-3" value="8" style="font-size: 1rem;" />
+          </div>
+          <div class="mb-4">
+            <label class="form-label fw-bold text-dark fs-6">점포 대표 포스터 이미지</label>
+            <div class="border border-2 border-dashed rounded-3 p-4 text-center bg-light" style="cursor: pointer;">
+              <i class="bx bx-cloud-upload fs-1 mb-2 text-info"></i>
+              <h6 class="fw-bold mb-1 text-dark">새 포스터 이미지 드래그 업로드</h6>
+              <p class="mb-0 text-muted fs-7">JPG, PNG 파일 지원 (권장 해상도 800x600 이상)</p>
+            </div>
+          </div>
+          <button type="button" class="btn btn-primary btn-lg w-100 py-3 fw-bold shadow-sm" style="min-height: 52px; font-size: 1.1rem;">
+            <i class="bx bx-save me-2 fs-5"></i>가맹점 정보 수정 저장
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+            </div>
+
+            <!-- Footer -->
+            <footer class="content-footer footer bg-footer-theme">
+              <div class="container-xxl d-flex flex-wrap justify-content-between py-2 flex-md-row flex-column">
+                <div class="mb-2 mb-md-0">
+                  © <script>document.write(new Date().getFullYear());</script> FASTIVAL O2O
+                </div>
+              </div>
+            </footer>
+
+            <div class="content-backdrop fade"></div>
+          </div>
+        </div>
+      </div>
+      <div class="layout-overlay layout-menu-toggle"></div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/assets/vendor/libs/jquery/jquery.js"></script>
+    <script src="/assets/vendor/libs/popper/popper.js"></script>
+    <script src="/assets/vendor/js/bootstrap.js"></script>
+    <script src="/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
+    <script src="/assets/vendor/js/menu.js"></script>
+    <script src="/assets/vendor/libs/apex-charts/apexcharts.js"></script>
+    <script src="/assets/js/main.js"></script>
+    <script src="/assets/js/staff-sidebar.js"></script>
+    
+<script>
+  // DOM Elements
+  const baeminOpenToggle = document.getElementById('baeminOpenToggle');
+  const baeminToggleBoard = document.getElementById('baeminToggleBoard');
+  const businessStatusText = document.getElementById('businessStatusText');
+  const businessStatusSubText = document.getElementById('businessStatusSubText');
+  const o2oToggle = document.getElementById('o2oToggle');
+  const ownerNoticeInput = document.getElementById('ownerNoticeInput');
+  const saveNoticeBtn = document.getElementById('saveNoticeBtn');
+
+  // Load Saved Notice on Load
+  document.addEventListener('DOMContentLoaded', () => {
+    const savedNotice = localStorage.getItem('owner_notice');
+    if (savedNotice) {
+      ownerNoticeInput.value = savedNotice;
+    }
+  });
+
+  // Baemin Style Business Switch Logic
+  baeminOpenToggle.addEventListener('change', function(e) {
+    if (e.target.checked) {
+      baeminToggleBoard.style.borderColor = '#2ac1bc';
+      baeminToggleBoard.style.backgroundColor = 'rgba(42, 193, 188, 0.04)';
+      businessStatusText.innerText = '🏪 주문 수락 대기중';
+      businessStatusText.style.color = '#2ac1bc';
+      businessStatusSubText.innerText = '소비자용 모바일 앱에 실시간 메뉴 주문 버튼이 노출되고 있습니다.';
+      alert("🏪 오늘 영업이 개시되었습니다! 신규 오더를 받을 준비가 되었습니다.");
+    } else {
+      baeminToggleBoard.style.borderColor = '#e0e0e0';
+      baeminToggleBoard.style.backgroundColor = '#f8f9fa';
+      businessStatusText.innerText = '💤 영업 마감 (준비중)';
+      businessStatusText.style.color = '#6c757d';
+      businessStatusSubText.innerText = '현재 모바일 앱 주문이 정지되었으며 매장 정비 상태입니다.';
+      alert("💤 오늘 영업이 마감 상태로 처리되었습니다. 외부 주문 접수가 마감됩니다.");
+    }
+  });
+
+  // Save Owner Notice Logic
+  saveNoticeBtn.addEventListener('click', () => {
+    const noticeVal = ownerNoticeInput.value.trim();
+    if (noticeVal === "") {
+      alert("⚠️ 실시간 공지 내용을 입력해 주세요!");
+      return;
+    }
+    localStorage.setItem('owner_notice', noticeVal);
+    alert("📢 실시간 사장님 공지가 정상적으로 등록 및 대외 송출되었습니다!\n\n등록된 공지: " + noticeVal);
+  });
+
+  // O2O Toggle Alert
+  o2oToggle.addEventListener('change', function(e) {
+    if(e.target.checked) {
+      alert("🔔 모바일 앱을 통한 O2O 온라인 주문 접수가 재개되었습니다!");
+    } else {
+      alert("🔕 모바일 앱 O2O 온라인 주문 접수가 긴급 일시중지되었습니다.");
+    }
+  });
+</script>
+
+  </body>
+</html>

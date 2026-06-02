@@ -87,4 +87,12 @@ public class ProductService {
                 .orElseThrow(() -> new IllegalArgumentException("상품이 존재하지 않습니다. ID: " + id));
         product.toggleFnbStatus();
     }
+
+    /**
+     * 8. 특정 상점의 상품/메뉴 목록 조회
+     */
+    @Transactional(readOnly = true)
+    public List<ProductEntity> getProductsByStore(Long storeId) {
+        return productRepository.findByStoreId(storeId);
+    }
 }

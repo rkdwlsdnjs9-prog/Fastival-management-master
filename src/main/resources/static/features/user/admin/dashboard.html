@@ -313,7 +313,12 @@
                           <button type="button" class="btn btn-sm btn-outline-danger" id="subTabRejectedBtn" onclick="switchReviewSubTab('REJECTED')">반려됨 (REJECTED)</button>
                         </div>
                       </div>
-                      <span class="badge bg-label-warning font-mono" id="reviewCountBadge">Pending: 0</span>
+                      <div class="d-flex align-items-center gap-3">
+                        <span class="badge bg-label-warning font-mono" id="reviewCountBadge">Pending: 0</span>
+                        <button type="button" class="btn btn-primary fw-bold" data-bs-toggle="modal" data-bs-target="#createFestivalModal">
+                          <i class="bx bx-plus me-1"></i> 신규 축제 등록 신청
+                        </button>
+                      </div>
                     </div>
                     
                     <!-- 카테고리 필터 칩 영역 -->
@@ -347,169 +352,6 @@
                     </div>
                   </div>
                   
-                  <!-- 신규 축제 등록 신청서 폼 -->
-                  <div class="card">
-                    <div class="card-header border-bottom d-flex align-items-center justify-content-between py-4">
-                      <h5 class="card-title mb-0 fw-bold"><i class="bx bx-plus-circle me-2 text-primary"></i>신규 축제 등록 신청서 제출 (기획사 신청용)</h5>
-                      <span class="badge bg-label-secondary">제출 시 PENDING 상태로 대기열 진입</span>
-                    </div>
-                    <div class="card-body pt-6 mt-4">
-                      <form id="createFestivalForm" onsubmit="event.preventDefault(); addFestival();">
-                        <div class="row g-4">
-                          
-                          <!-- 축제 명칭 -->
-                          <div class="col-md-6 col-12 mb-3">
-                            <label class="form-label fw-bold text-secondary">축제 명칭 *</label>
-                            <input 
-                              type="text" 
-                              id="festName" 
-                              required 
-                              class="form-control" 
-                              placeholder="ex: 2026 워터밤 대전 (Waterbomb)"
-                            />
-                          </div>
-                          
-                          <!-- 카테고리 -->
-                          <div class="col-md-6 col-12 mb-3">
-                            <label class="form-label fw-bold text-secondary">카테고리 *</label>
-                            <select id="festCategory" class="form-select" required>
-                              <option value="콘서트/뮤지컬">콘서트/뮤지컬</option>
-                              <option value="지역축제">지역축제</option>
-                              <option value="대학축제">대학축제</option>
-                              <option value="박람회">박람회</option>
-                              <option value="스포츠">스포츠</option>
-                            </select>
-                          </div>
-    
-                          <!-- 개최 장소 -->
-                          <div class="col-md-6 col-12 mb-3">
-                            <label class="form-label fw-bold text-secondary">개최 장소 *</label>
-                            <input 
-                              type="text" 
-                              id="festVenue" 
-                              required 
-                              class="form-control" 
-                              placeholder="ex: DCC 대전컨벤션센터 야외무대"
-                            />
-                          </div>
-    
-                          <!-- 최소 티켓 가격 -->
-                          <div class="col-md-6 col-12 mb-3">
-                            <label class="form-label fw-bold text-secondary">최소 티켓 가격 (원) *</label>
-                            <input 
-                              type="number" 
-                              id="festMinPrice" 
-                              required 
-                              class="form-control" 
-                              placeholder="ex: 55000"
-                            />
-                          </div>
-    
-                          <!-- 썸네일 이미지 URL -->
-                          <div class="col-md-6 col-12 mb-3">
-                            <label class="form-label fw-bold text-secondary">포스터 썸네일 이미지 URL *</label>
-                            <input 
-                              type="url" 
-                              id="festThumbnailUrl" 
-                              required 
-                              class="form-control" 
-                              placeholder="https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?q=80"
-                            />
-                          </div>
-    
-                          <!-- 기획사/신청자 정보 -->
-                          <div class="col-md-6 col-12 mb-3">
-                            <label class="form-label fw-bold text-secondary">기획사 / 신청 기관 *</label>
-                            <input 
-                              type="text" 
-                              id="festAgency" 
-                              required 
-                              class="form-control" 
-                              placeholder="ex: (주)페스티오 엔터테인먼트"
-                            />
-                          </div>
-    
-                          <!-- 시작 일자 -->
-                          <div class="col-md-3 col-6 mb-3">
-                            <label class="form-label fw-bold text-secondary">시작 일자 *</label>
-                            <input 
-                              type="date" 
-                              id="festStartDate" 
-                              required 
-                              class="form-control"
-                            />
-                          </div>
-    
-                          <!-- 종료 일자 -->
-                          <div class="col-md-3 col-6 mb-3">
-                            <label class="form-label fw-bold text-secondary">종료 일자 *</label>
-                            <input 
-                              type="date" 
-                              id="festEndDate" 
-                              required 
-                              class="form-control"
-                            />
-                          </div>
-    
-                          <!-- 시작 시간 -->
-                          <div class="col-md-3 col-6 mb-3">
-                            <label class="form-label fw-bold text-secondary">시작 시간 *</label>
-                            <input 
-                              type="time" 
-                              id="festStartTime" 
-                              required 
-                              class="form-control"
-                              value="13:00"
-                            />
-                          </div>
-    
-                          <!-- 종료 시간 -->
-                          <div class="col-md-3 col-6 mb-3">
-                            <label class="form-label fw-bold text-secondary">종료 시간 *</label>
-                            <input 
-                              type="time" 
-                              id="festEndTime" 
-                              required 
-                              class="form-control"
-                              value="22:00"
-                            />
-                          </div>
-    
-                          <!-- 배지 라벨 -->
-                          <div class="col-md-6 col-12 mb-3">
-                            <label class="form-label fw-bold text-secondary">배지 라벨</label>
-                            <select id="festBadgeLabel" class="form-select">
-                              <option value="">(없음)</option>
-                              <option value="HOT">HOT</option>
-                              <option value="신규">신규</option>
-                              <option value="타임세일">타임세일</option>
-                            </select>
-                          </div>
-    
-                          <!-- 인기/활성화 체크박스 라인 -->
-                          <div class="col-md-6 col-12 mb-3 d-flex flex-column justify-content-center">
-                            <div class="form-check form-switch mb-2">
-                              <input class="form-check-input" type="checkbox" id="festIsActive" checked>
-                              <label class="form-check-label fw-semibold" for="festIsActive">즉시 소비자 예매 사이트에 공개 및 활성화 (`is_active = TRUE` 상태)</label>
-                            </div>
-                            <div class="form-check form-switch">
-                              <input class="form-check-input" type="checkbox" id="festIsHot">
-                              <label class="form-check-label fw-semibold" for="festIsHot">인기 행사 지정 (`is_hot = TRUE` 상태)</label>
-                            </div>
-                          </div>
-    
-                          <!-- 등록 제출 버튼 -->
-                          <div class="col-12 d-flex justify-content-end">
-                            <button type="submit" class="btn btn-warning text-white px-6 py-2.5 fw-bold shadow-sm">
-                              <i class="bx bx-paper-plane me-1"></i> 심사 신청서 제출 완료
-                            </button>
-                          </div>
-    
-                        </div>
-                      </form>
-                    </div>
-                  </div>
-
                 </div>
 
                 <!-- [대메뉴 2: 운영 상태 관리 패널] -->
@@ -615,6 +457,30 @@
     // operationalStatus: 'UPCOMING' | 'ONGOING' | 'COMPLETED'
     let mockFestivals = [];
 
+    /**
+     * DB에 저장된 실제 대표 이미지(thumbnail_url / thumbnailUrl) 반환 및 정밀 검증 함수
+     */
+    function getFestivalPoster(f) {
+      const dbThumbnail = f.thumbnailUrl || f.thumbnail_url;
+      
+      if (dbThumbnail && dbThumbnail.trim() !== "") {
+        // data:image 규격의 base64 데이터에 대한 초정밀 디코딩 유효성 검사 (깨진 base64 사전 필터링)
+        if (dbThumbnail.startsWith("data:")) {
+          try {
+            const parts = dbThumbnail.split(",");
+            if (parts.length < 2 || !parts[0].includes("base64")) {
+              throw new Error("Invalid format");
+            }
+            window.atob(parts[1].replace(/\s/g, ""));
+          } catch (e) {
+            return "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=500";
+          }
+        }
+        return dbThumbnail;
+      }
+      return "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=500";
+    }
+
     // DB로부터 모든 페스티벌 데이터 목록을 로드하는 함수
     function loadFestivalsFromDB() {
       fetch("/api/festival")
@@ -696,7 +562,7 @@
           <td>
             <div class="d-flex align-items-center gap-3">
               <div class="avatar avatar-md rounded overflow-hidden bg-light" style="width: 40px; height: 50px;">
-                <img src="${fest.thumbnailUrl || 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?q=80'}" class="w-100 h-100" style="object-fit: cover;">
+                <img src="${getFestivalPoster(fest)}" class="w-100 h-100" style="object-fit: cover;" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=500';">
               </div>
               <span class="fw-bold fs-6 text-dark">${fest.name}</span>
             </div>
@@ -800,7 +666,7 @@
           <td><strong class="font-mono text-success">#${fest.id}</strong></td>
           <td>
             <div class="avatar avatar-md rounded overflow-hidden bg-light" style="width: 40px; height: 50px;">
-              <img src="${fest.thumbnailUrl || 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?q=80'}" class="w-100 h-100" style="object-fit: cover;">
+              <img src="${getFestivalPoster(fest)}" class="w-100 h-100" style="object-fit: cover;" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=500';">
             </div>
           </td>
           <td>
@@ -984,6 +850,12 @@
       })
       .then(savedFest => {
         alert(`🎉 [${savedFest.name}] 축제 등록 신청서가 실제 Supabase DB에 성공적으로 등록되었습니다!\n1단계 심사 대기열(PENDING)에서 확인해 주세요.`);
+        
+        // 모달 닫기 처리
+        const modalEl = document.getElementById("createFestivalModal");
+        const modal = bootstrap.Modal.getInstance(modalEl);
+        if (modal) modal.hide();
+
         document.getElementById("createFestivalForm").reset();
         switchReviewSubTab('PENDING'); // 대기중 탭으로 이동
         loadFestivalsFromDB(); // 실제 DB 데이터 새로고침
@@ -1303,11 +1175,11 @@
   <div class="modal fade" id="publishFestivalModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
       <div class="modal-content border-0 shadow-lg" style="border-radius: 12px; overflow: hidden;">
-        <div class="modal-header premium-gradient py-4">
+        <div class="modal-header premium-gradient py-4" style="position: relative;">
           <h5 class="modal-title text-white fw-bold" id="publishModalLabel">
             <i class="bx bx-edit-alt me-2 fs-4"></i>축제 공식 발행 및 상세 정보 기입
           </h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" style="position: absolute; top: 1.5rem; right: 1.5rem; margin: 0; z-index: 10;"></button>
         </div>
         <div class="modal-body p-5">
           <form id="publishFestivalForm" onsubmit="event.preventDefault(); submitPublishFestival();">
@@ -1352,6 +1224,178 @@
               <button type="submit" class="btn btn-warning text-white fw-bold px-4 shadow-sm">
                 <i class="bx bx-rocket me-1"></i> 최종 발행
               </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- [신규 축제 등록 신청 모달] -->
+  <div class="modal fade" id="createFestivalModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+      <div class="modal-content border-0 shadow-lg" style="border-radius: 12px; overflow: hidden;">
+        <div class="modal-header premium-gradient py-4" style="position: relative;">
+          <h5 class="modal-title text-white fw-bold" id="createModalLabel">
+            <i class="bx bx-plus-circle me-2 fs-4"></i>신규 축제 등록 신청서 제출 (기획사 신청용)
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" style="position: absolute; top: 1.5rem; right: 1.5rem; margin: 0; z-index: 10;"></button>
+        </div>
+        <div class="modal-body p-5">
+          <form id="createFestivalForm" onsubmit="event.preventDefault(); addFestival();">
+            <div class="row g-4">
+              
+              <!-- 축제 명칭 -->
+              <div class="col-md-6 col-12 mb-3">
+                <label class="form-label fw-bold text-secondary">축제 명칭 *</label>
+                <input 
+                  type="text" 
+                  id="festName" 
+                  required 
+                  class="form-control" 
+                  placeholder="ex: 2026 워터밤 대전 (Waterbomb)"
+                />
+              </div>
+              
+              <!-- 카테고리 -->
+              <div class="col-md-6 col-12 mb-3">
+                <label class="form-label fw-bold text-secondary">카테고리 *</label>
+                <select id="festCategory" class="form-select" required>
+                  <option value="콘서트/뮤지컬">콘서트/뮤지컬</option>
+                  <option value="지역축제">지역축제</option>
+                  <option value="대학축제">대학축제</option>
+                  <option value="박람회">박람회</option>
+                  <option value="스포츠">스포츠</option>
+                </select>
+              </div>
+
+              <!-- 개최 장소 -->
+              <div class="col-md-6 col-12 mb-3">
+                <label class="form-label fw-bold text-secondary">개최 장소 *</label>
+                <input 
+                  type="text" 
+                  id="festVenue" 
+                  required 
+                  class="form-control" 
+                  placeholder="ex: DCC 대전컨벤션센터 야외무대"
+                />
+              </div>
+
+              <!-- 최소 티켓 가격 -->
+              <div class="col-md-6 col-12 mb-3">
+                <label class="form-label fw-bold text-secondary">최소 티켓 가격 (원) *</label>
+                <input 
+                  type="number" 
+                  id="festMinPrice" 
+                  required 
+                  class="form-control" 
+                  placeholder="ex: 55000"
+                />
+              </div>
+
+              <!-- 썸네일 이미지 URL -->
+              <div class="col-md-6 col-12 mb-3">
+                <label class="form-label fw-bold text-secondary">포스터 썸네일 이미지 URL *</label>
+                <input 
+                  type="url" 
+                  id="festThumbnailUrl" 
+                  required 
+                  class="form-control" 
+                  placeholder="https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?q=80"
+                />
+              </div>
+
+              <!-- 기획사/신청자 정보 -->
+              <div class="col-md-6 col-12 mb-3">
+                <label class="form-label fw-bold text-secondary">기획사 / 신청 기관 *</label>
+                <input 
+                  type="text" 
+                  id="festAgency" 
+                  required 
+                  class="form-control" 
+                  placeholder="ex: (주)페스티오 엔터테인먼트"
+                />
+              </div>
+
+              <!-- 시작 일자 -->
+              <div class="col-md-3 col-6 mb-3">
+                <label class="form-label fw-bold text-secondary">시작 일자 *</label>
+                <input 
+                  type="date" 
+                  id="festStartDate" 
+                  required 
+                  class="form-control"
+                />
+              </div>
+
+              <!-- 종료 일자 -->
+              <div class="col-md-3 col-6 mb-3">
+                <label class="form-label fw-bold text-secondary">종료 일자 *</label>
+                <input 
+                  type="date" 
+                  id="festEndDate" 
+                  required 
+                  class="form-control"
+                />
+              </div>
+
+              <!-- 시작 시간 -->
+              <div class="col-md-3 col-6 mb-3">
+                <label class="form-label fw-bold text-secondary">시작 시간 *</label>
+                <input 
+                  type="time" 
+                  id="festStartTime" 
+                  required 
+                  class="form-control"
+                  value="13:00"
+                />
+              </div>
+
+              <!-- 종료 시간 -->
+              <div class="col-md-3 col-6 mb-3">
+                <label class="form-label fw-bold text-secondary">종료 시간 *</label>
+                <input 
+                  type="time" 
+                  id="festEndTime" 
+                  required 
+                  class="form-control"
+                  value="22:00"
+                />
+              </div>
+
+              <!-- 배지 라벨 -->
+              <div class="col-md-6 col-12 mb-3">
+                <label class="form-label fw-bold text-secondary">배지 라벨</label>
+                <select id="festBadgeLabel" class="form-select">
+                  <option value="">(없음)</option>
+                  <option value="HOT">HOT</option>
+                  <option value="신규">신규</option>
+                  <option value="타임세일">타임세일</option>
+                </select>
+              </div>
+
+              <!-- 인기/활성화 체크박스 라인 -->
+              <div class="col-md-6 col-12 mb-3 d-flex flex-column justify-content-center">
+                <div class="form-check form-switch mb-2">
+                  <input class="form-check-input" type="checkbox" id="festIsActive" checked>
+                  <label class="form-check-label fw-semibold" for="festIsActive">즉시 소비자 예매 사이트에 공개 및 활성화 (`is_active = TRUE` 상태)</label>
+                </div>
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" id="festIsHot">
+                  <label class="form-check-label fw-semibold" for="festIsHot">인기 행사 지정 (`is_hot = TRUE` 상태)</label>
+                </div>
+              </div>
+
+              <!-- 취소 및 제출 버튼 라인 -->
+              <div class="col-12 d-flex justify-content-end gap-2 pt-3 border-top mt-4">
+                <button type="button" class="btn btn-secondary fw-semibold px-4" data-bs-dismiss="modal">
+                  <i class="bx bx-x me-1"></i> 취소
+                </button>
+                <button type="submit" class="btn btn-warning text-white fw-bold px-4 shadow-sm">
+                  <i class="bx bx-paper-plane me-1"></i> 심사 신청서 제출 완료
+                </button>
+              </div>
+
             </div>
           </form>
         </div>

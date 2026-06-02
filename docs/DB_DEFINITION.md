@@ -20,6 +20,7 @@
 | **balance** | `INT` | N | - | N | 0 | 💸 페스티벌 페이 잔액 (chk_balance_positive 제약조건 적용) |
 | **face_vector** | `TEXT` | N | - | Y | - | 👤 안면인식 데이터 고유 벡터값 |
 | **created_at** | `TIMESTAMP` | N | - | N | CURRENT_TIMESTAMP | 회원 가입 일시 |
+| **status** | `varchar` | N | - | N | | 계정 상태 |
 
 ---
 
@@ -34,6 +35,10 @@
 | **is_active** | `BOOLEAN` | N | - | N | False | 현재 앱에서 활성화되어 운영 중인 축제 여부 |
 | **map_image_url** | `TEXT` | N | - | Y | - | 축제 행사장 배경 도면 이미지 경로 |
 | **created_at** | `TIMESTAMP` | N | - | N | CURRENT_TIMESTAMP | 축제 데이터 등록 일시 |
+| **proposal_file_url** | `TEXT` | N | - | N |  | 제안서 파일 URL |
+| **company_intro_url** | `TEXT` | N | - | N |  | 기획서 파일 YRL |
+| **view_count** | `BIGINT` | N | - | N |  | 조회수 |
+
 
 ---
 
@@ -258,3 +263,23 @@
 | **content** | `TEXT` | N | - | N | - | 긴급 상황 전파 대피 행동 요령 가이드 메시지 |
 | **urgency_level** | `VARCHAR(20)` | N | - | N | INFO | 긴급도 구분 등급 (INFO, CAUTION, EMERGENCY) |
 | **created_at** | `TIMESTAMP` | N | - | N | CURRENT_TIMESTAMP | 방송 송출 처리 타임스탬프 |
+
+
+## 🕒 테이블 변경 이력 (Alter History)
+
+### 2026-06-02 업데이트
+축제 운영 상태 관리 및 대시보드 고도화를 위한 컬럼 추가
+
+```sql
+-- 1. festival (축제) 테이블 변경
+ALTER TABLE festival ADD COLUMN proposal_file_url TEXT;          -- 제안서 파일 URL
+ALTER TABLE festival ADD COLUMN company_intro_url TEXT;          -- 기획사 소개서 URL
+ALTER TABLE festival ADD COLUMN view_count BIGINT DEFAULT 0;     -- 축제 상세 조회수
+
+-- 2. app_user (사용자) 테이블 변경
+ALTER TABLE app_user ADD COLUMN status VARCHAR(20) DEFAULT 'ACTIVE'; -- 계정 상태 (ACTIVE, PENDING 등)
+
+-- 3. store (가맹 상점) 테이블 변경
+ALTER TABLE store ADD COLUMN festival_id BIGINT;                 -- 소속 페스티벌 ID (구역 미지정 상태 필터링용)
+ALTER TABLE store ADD COLUMN booth_number VARCHAR(50);           -- 입점 부스 번호 지정용
+```

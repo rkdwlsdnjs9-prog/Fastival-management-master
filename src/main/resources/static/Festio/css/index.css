@@ -1631,9 +1631,10 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(to top, rgba(30, 30, 30, 0.95) 0%, rgba(30, 30, 30, 0.6) 70%, transparent 100%);
+    background: linear-gradient(to top, rgba(15, 15, 15, 0.98) 0%, rgba(20, 20, 20, 0.8) 50%, rgba(30, 30, 30, 0.4) 80%, transparent 100%);
     opacity: 0;
-    transition: opacity 0.3s ease;
+    transform: translateY(15px);
+    transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1), transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
@@ -1647,6 +1648,44 @@
 
   .whats-hot-img-wrap:hover .whats-hot-overlay {
     opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* 내부 정보 요소들의 부드러운 순차적 등장 애니메이션 */
+  .overlay-title,
+  .overlay-badges,
+  .overlay-date,
+  .overlay-price,
+  .overlay-views {
+    transform: translateY(12px);
+    opacity: 0;
+    transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease;
+  }
+
+  .whats-hot-img-wrap:hover .overlay-title,
+  .whats-hot-img-wrap:hover .overlay-badges,
+  .whats-hot-img-wrap:hover .overlay-date,
+  .whats-hot-img-wrap:hover .overlay-price,
+  .whats-hot-img-wrap:hover .overlay-views {
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  /* 순차적 Delay 정의로 고급스러운 모션 구현 */
+  .whats-hot-img-wrap:hover .overlay-title {
+    transition-delay: 0.05s;
+  }
+  .whats-hot-img-wrap:hover .overlay-badges {
+    transition-delay: 0.1s;
+  }
+  .whats-hot-img-wrap:hover .overlay-date {
+    transition-delay: 0.15s;
+  }
+  .whats-hot-img-wrap:hover .overlay-price {
+    transition-delay: 0.2s;
+  }
+  .whats-hot-img-wrap:hover .overlay-views {
+    transition-delay: 0.25s;
   }
 
   .overlay-title {

@@ -146,32 +146,28 @@ document.addEventListener("DOMContentLoaded", function () {
             url: "/features/payment/staff/qr-gate-log.html"
         },
         {
-            type: "header",
-            text: "입점사 사장님 (Owner)"
-        },
-        {
             type: "item",
             text: "점포 설정 및 영업 관리",
             icon: "bx bx-store-alt",
-            url: "/features/order/owner/store-management.html"
+            url: "/features/payment/staff/store-management.html"
         },
         {
             type: "item",
             text: "메뉴 및 옵션 마스터 등록",
             icon: "bx bx-list-plus",
-            url: "/features/order/owner/menu-registration.html"
+            url: "/features/payment/staff/menu-registration.html"
         },
         {
             type: "item",
             text: "실시간 재고 및 품절 제어",
             icon: "bx bx-package",
-            url: "/features/order/owner/inventory-control.html"
+            url: "/features/payment/staff/inventory-control.html"
         },
         {
             type: "item",
             text: "O2O 실시간 주문 수락",
             icon: "bx bx-receipt",
-            url: "/features/order/owner/o2o-orders.html"
+            url: "/features/payment/staff/o2o-orders.html"
         }
     ];
 

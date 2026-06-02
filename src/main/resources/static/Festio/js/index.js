@@ -188,7 +188,7 @@ function renderWhatsHot() {
   if (!grid) return;
 
   // We need 7 popular items: 1 large, 6 small
-  const popularEvents = [..._events].sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 7);
+  const popularEvents = [..._events].sort((a, b) => (b.viewCount || b.views || 0) - (a.viewCount || a.views || 0)).slice(0, 7);
   if (popularEvents.length < 7) {
     grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px;">데이터가 부족합니다.</div>';
     return;
@@ -202,12 +202,17 @@ function renderWhatsHot() {
     const infoHtml = isLarge ? `
       <div class="whats-hot-info">
         <div class="whats-hot-item-title">${ev.eventName || ev.name}</div>
-        <div class="whats-hot-item-desc">${ev.eventDate || '2026. 07. 16.'} ${ev.venue || 'FESTIO LIVE HALL'} / <span>단독판매</span></div>
+        <div class="whats-hot-item-desc">${ev.startDate || ev.eventDate || '2026. 07. 16.'} ${ev.venue || 'FESTIO LIVE HALL'} / <span>단독판매</span></div>
       </div>
     ` : '';
 
-    const priceText = ev.price ? ev.price.toLocaleString() + '원' : '30,000원';
-    const viewsText = ev.views ? ev.views.toLocaleString() : '2,100';
+    const price = ev.minPrice !== undefined ? ev.minPrice : (ev.price !== undefined ? ev.price : 30000);
+    const priceText = price === 0 ? '무료' : price.toLocaleString() + '원';
+    const viewsText = (ev.viewCount !== undefined ? ev.viewCount : (ev.views || 2100)).toLocaleString();
+
+    const isNewHtml = ev.isNew ? '<span class="ob-new">신규</span>' : '';
+    const ddayHtml = ev.dday ? `<span class="ob-dday">${ev.dday}</span>` : '';
+    const formattedDate = ev.startDate ? formatDate(ev.startDate) : (ev.eventDate ? formatDate(ev.eventDate) : '-');
 
     return `
       <a href="detail.html?eventNo=${ev.eventNo || ev.id}" class="whats-hot-item ${isLarge ? 'large' : ''}">
@@ -218,12 +223,12 @@ function renderWhatsHot() {
           <div class="whats-hot-overlay">
             <h3 class="overlay-title">${(ev.eventName || ev.name || '').replace('HOT', '<span style="color:red">HOT</span>')}</h3>
             <div class="overlay-badges">
-              <span class="ob-new">신규</span>
-              <span class="ob-dday">D-115</span>
+              ${isNewHtml}
+              ${ddayHtml}
             </div>
             <div class="overlay-date">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-              ${ev.eventDate || '2026.09.20'}
+              ${formattedDate}
             </div>
             <div class="overlay-price">${priceText}</div>
             <div class="overlay-views">

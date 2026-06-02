@@ -76,6 +76,17 @@ public class FestivalVo {
     @Column(name = "company_intro_url", columnDefinition = "TEXT")
     private String companyIntroUrl; // 회사 소개서 PDF 파일 경로
 
+    @Transient
+    @Builder.Default
+    private Boolean isNew = false;
+
+    @Transient
+    private String dday;
+
+    @Column(name = "view_count", nullable = true)
+    @Builder.Default
+    private Long viewCount = 0L;
+
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
@@ -97,6 +108,32 @@ public class FestivalVo {
         }
         if (this.operationalStatus == null) {
             this.operationalStatus = "UPCOMING"; // 기존 데이터는 기본적으로 UPCOMING 상태로 초기화
+        }
+
+        // 1. 신규 여부 계산 (등록일 기준 7일 이내)
+        if (this.createdAt != null) {
+            this.isNew = this.createdAt.isAfter(LocalDateTime.now().minusDays(7));
+        } else {
+            this.isNew = false;
+        }
+
+        // 2. D-Day 계산
+        if (this.startDate != null) {
+            LocalDate now = LocalDate.now();
+            long days = java.time.temporal.ChronoUnit.DAYS.between(now, this.startDate);
+            if (days > 0) {
+                this.dday = "D-" + days;
+            } else if (days == 0) {
+                this.dday = "D-Day";
+            } else {
+                if (this.endDate != null && now.isAfter(this.endDate)) {
+                    this.dday = "종료";
+                } else {
+                    this.dday = "진행중";
+                }
+            }
+        } else {
+            this.dday = "-";
         }
     }
 }

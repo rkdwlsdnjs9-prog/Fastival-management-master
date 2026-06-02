@@ -3,7 +3,10 @@ package festival.support.service;
 import festival.festival.domain.FestivalVo;
 import festival.festival.repository.FestivalRepository;
 import festival.support.domain.PartnerInquiryVo;
+import festival.festival.domain.FestivalZoneEntity;
+import festival.festival.repository.FestivalZoneRepository;
 import festival.support.repository.PartnerInquiryRepository;
+import festival.order.repository.StoreRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,6 +18,8 @@ public class PartnerInquiryService {
 
     private final PartnerInquiryRepository repo;
     private final FestivalRepository festivalRepository;
+    private final StoreRepository storeRepository;
+    private final FestivalZoneRepository festivalZoneRepository;
 
     /** 전체 문의 목록 */
     public List<PartnerInquiryVo> getAll() {
@@ -37,7 +42,7 @@ public class PartnerInquiryService {
     @Transactional
     public PartnerInquiryVo create(PartnerInquiryVo vo) {
         PartnerInquiryVo saved = repo.save(vo);
-        
+
         // 만약 문의 유형이 'EVENT' (행사 제휴) 인 경우, 축제 테이블에 심사 대기(PENDING) 상태로 자동 입고!
         if ("EVENT".equalsIgnoreCase(vo.getInquiryType())) {
             FestivalVo newFestival = FestivalVo.builder()
@@ -59,7 +64,7 @@ public class PartnerInquiryService {
                     .build();
             festivalRepository.save(newFestival);
         }
-        
+
         return saved;
     }
 
@@ -68,7 +73,46 @@ public class PartnerInquiryService {
     public PartnerInquiryVo updateStatus(Long id, String newStatus) {
         PartnerInquiryVo inquiry = repo.findById(id)
                 .orElseThrow(() -> new RuntimeException("신청서를 찾을 수 없습니다: " + id));
+
+        String oldStatus = inquiry.getStatus();
         inquiry.setStatus(newStatus);
-        return repo.save(inquiry);
+        PartnerInquiryVo updated = repo.save(inquiry);
+
+        // PENDING 상태에서 APPROVED 상태로 최종 승인 전환되는 시점에만 작동 (중복 입력 방지)
+        if ("APPROVED".equalsIgnoreCase(newStatus) && !"APPROVED".equalsIgnoreCase(oldStatus)) {
+            String type = inquiry.getInquiryType();
+
+            // FOODTRUCK(먹거리) 또는 GOODS(기획상품) 입점신청인 경우 store 테이블에 자동 삽입!
+            if ("FOODTRUCK".equalsIgnoreCase(type) || "GOODS".equalsIgnoreCase(type)) {
+                String category = "GOODS";
+                if ("FOODTRUCK".equalsIgnoreCase(type)) {
+                    category = "FOOD";
+                }
+
+                // 구역 정보 조회 (기본 fallback: 1L)
+                Long zoneId = 1L;
+                if (inquiry.getFestivalId() != null) {
+                    List<FestivalZoneEntity> zones = festivalZoneRepository.findByFestivalId(inquiry.getFestivalId());
+                    if (zones != null && !zones.isEmpty()) {
+                        zoneId = zones.get(0).getId();
+                    }
+                }
+
+                festival.order.domain.StoreEntity newStore = festival.order.domain.StoreEntity.builder()
+                        .name(inquiry.getCompanyName())
+                        .category(category)
+                        .festivalId(inquiry.getFestivalId()) // 신청서에 매핑된 행사 ID 연동
+                        .zoneId(zoneId)
+                        .mapXPercent(0.0)
+                        .mapYPercent(0.0)
+                        .operatingHours("10:00 - 22:00 (행사 진행 기간 운영)")
+                        .isOpen(true)
+                        .build();
+
+                storeRepository.save(newStore);
+            }
+        }
+
+        return updated;
     }
 }
