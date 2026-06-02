@@ -45,6 +45,9 @@ public class UserVo {
     @Builder.Default
     private String status = "ACTIVE"; // "ACTIVE" or "BANNED"
 
+    @Column(name = "store_id")
+    private Long storeId;
+
     @Column(name = "face_vector", columnDefinition = "TEXT")
     private String faceVector;
 

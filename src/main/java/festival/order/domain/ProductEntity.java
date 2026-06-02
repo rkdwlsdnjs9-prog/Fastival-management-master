@@ -38,11 +38,20 @@ public class ProductEntity {
     @Column(name = "available_stock")
     private Integer availableStock; // 가용 재고수량
 
-    @Column(name = "image_url", length = 1000)
+    @Column(name = "image_url", columnDefinition = "TEXT")
     private String imageUrl; // 이미지 주소
 
     @Column(name = "status", length = 20)
     private String status; // 판매 상태 (ON_SALE, SOLD_OUT 등)
+
+    @Column(name = "is_soldout")
+    private Boolean isSoldout = false;
+
+    @Column(name = "is_representative")
+    private Boolean isRepresentative = false;
+
+    @Column(name = "option_groups_json", length = 4000)
+    private String optionGroupsJson; // 옵션 그룹 정보 (JSON 문자열)
 
     // 기본 생성자 (JPA 필수)
     protected ProductEntity() {
@@ -101,8 +110,22 @@ public class ProductEntity {
     public void toggleFnbStatus() {
         if ("SOLD_OUT".equals(this.status)) {
             this.status = "ON_SALE";
+            this.isSoldout = false;
         } else {
             this.status = "SOLD_OUT";
+            this.isSoldout = true;
         }
     }
+
+    public Boolean getIsSoldout() { return isSoldout != null ? isSoldout : false; }
+    public void setIsSoldout(Boolean soldout) { 
+        this.isSoldout = soldout; 
+        this.status = soldout ? "SOLD_OUT" : "ON_SALE";
+    }
+
+    public Boolean getIsRepresentative() { return isRepresentative != null ? isRepresentative : false; }
+    public void setIsRepresentative(Boolean representative) { this.isRepresentative = representative; }
+
+    public String getOptionGroupsJson() { return optionGroupsJson; }
+    public void setOptionGroupsJson(String optionGroupsJson) { this.optionGroupsJson = optionGroupsJson; }
 }

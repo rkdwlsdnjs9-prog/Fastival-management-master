@@ -50,7 +50,72 @@
   const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true' || sessionStorage.getItem('isLoggedIn') === 'true' || !!localStorage.getItem('userToken') || !!sessionStorage.getItem('userToken');
   const userRole = localStorage.getItem('userRole') || sessionStorage.getItem('userRole') || 'CLIENT';
 
-  // 5. 페이지 유형에 따른 헤더 분기 렌더링
+  // 5. 권한별 모드 전환 버튼 생성 (ADMIN / STAFF 만 렌더링)
+  const adminModeBtnSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="3" x2="9" y2="21"/></svg>`;
+  const staffModeBtnSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`;
+
+  let modeSwitchBtnHtml = '';
+  if (isLoggedIn && userRole === 'ADMIN') {
+    modeSwitchBtnHtml = `
+      <a href="/features/user/admin/dashboard.html" id="modeSwitchBtn" class="header-mode-switch-btn header-mode-switch-admin" aria-label="관리자 모드로 전환">
+        ${adminModeBtnSvg}
+        <span class="mode-btn-label">관리자 모드</span>
+      </a>`;
+  } else if (isLoggedIn && userRole === 'STAFF') {
+    modeSwitchBtnHtml = `
+      <a href="/features/payment/staff/store-management.html" id="modeSwitchBtn" class="header-mode-switch-btn header-mode-switch-staff" aria-label="업주 모드로 전환">
+        ${staffModeBtnSvg}
+        <span class="mode-btn-label">업주 모드</span>
+      </a>`;
+  }
+
+  // 모드 전환 버튼 CSS 인라인 주입 (별도 CSS 파일 불필요)
+  if (modeSwitchBtnHtml && !document.getElementById('mode-switch-styles')) {
+    const style = document.createElement('style');
+    style.id = 'mode-switch-styles';
+    style.textContent = `
+      .header-mode-switch-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 6px 13px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 12.5px;
+        text-decoration: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+        line-height: 1;
+      }
+      .header-mode-switch-admin {
+        background: rgba(255, 42, 122, 0.12);
+        color: #FF2A7A;
+        border: 1.5px solid rgba(255, 42, 122, 0.35);
+      }
+      .header-mode-switch-admin:hover {
+        background: rgba(255, 42, 122, 0.22);
+        transform: translateY(-1px);
+        box-shadow: 0 3px 10px rgba(255,42,122,0.2);
+      }
+      .header-mode-switch-staff {
+        background: rgba(42, 193, 188, 0.12);
+        color: #2ac1bc;
+        border: 1.5px solid rgba(42, 193, 188, 0.35);
+      }
+      .header-mode-switch-staff:hover {
+        background: rgba(42, 193, 188, 0.22);
+        transform: translateY(-1px);
+        box-shadow: 0 3px 10px rgba(42,193,188,0.2);
+      }
+      @media (max-width: 480px) {
+        .mode-btn-label { display: none; }
+        .header-mode-switch-btn { padding: 8px; border-radius: 50%; }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
   if (isDetail) {
     // 4-1. 상세 페이지 헤더 (뒤로가기, 찜, 공유 버튼 레이아웃)
     headerHtml = `
@@ -59,15 +124,7 @@
         <button class="header-back-btn" aria-label="뒤로가기">${backSvg}<span class="header-title">행사 상세</span></button>
         <div class="header-spacer"></div>
         <div class="header-actions">
-          ${isLoggedIn && userRole === 'ADMIN' ? `
-            <a href="/features/user/admin/dashboard.html" class="header-text-btn admin-mode-btn" style="background: rgba(255, 42, 122, 0.15); color: #FF2A7A; border: 1px solid rgba(255, 42, 122, 0.3); margin-right: 8px; border-radius: 6px; padding: 6px 12px; display: inline-flex; align-items: center; gap: 4px; font-weight: 500; font-size: 13px;">
-              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px;">
-                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                <line x1="9" y1="3" x2="9" y2="21" />
-              </svg>
-              관리자모드
-            </a>
-          ` : ''}
+          ${modeSwitchBtnHtml}
           <button class="header-icon-btn" id="btn-wish-detail" data-wished="false" aria-label="찜">${wishSvg}</button>
           <button class="header-icon-btn" aria-label="공유">${shareSvg}</button>
         </div>
@@ -82,15 +139,7 @@
         ${catNavHtml}
         <div class="header-spacer"></div>
         <div class="header-actions">
-          ${isLoggedIn && userRole === 'ADMIN' ? `
-            <a href="/features/user/admin/dashboard.html" class="header-text-btn admin-mode-btn" style="background: rgba(255, 42, 122, 0.15); color: #FF2A7A; border: 1px solid rgba(255, 42, 122, 0.3); margin-right: 8px; border-radius: 6px; padding: 6px 12px; display: inline-flex; align-items: center; gap: 4px; font-weight: 500; font-size: 13px;">
-              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px;">
-                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                <line x1="9" y1="3" x2="9" y2="21" />
-              </svg>
-              관리자모드
-            </a>
-          ` : ''}
+          ${modeSwitchBtnHtml}
           <a href="mypage.html" class="header-text-btn" aria-label="MY티켓">${ticketSvg}MY티켓</a>
           <div class="header-search-bar" role="search">${searchSvg}<input type="search" class="header-search-input" id="headerSearch" placeholder="행사명, 아티스트 검색" autocomplete="off" aria-label="검색"></div>
           <button class="header-icon-btn mobile-search-btn" aria-label="검색">${searchSvg}</button>
@@ -122,15 +171,7 @@
         ${catNavHtml}
         <div class="header-spacer"></div>
         <div class="header-actions">
-          ${isLoggedIn && userRole === 'ADMIN' ? `
-            <a href="/features/user/admin/dashboard.html" class="header-text-btn admin-mode-btn" style="background: rgba(255, 42, 122, 0.15); color: #FF2A7A; border: 1px solid rgba(255, 42, 122, 0.3); margin-right: 8px; border-radius: 6px; padding: 6px 12px; display: inline-flex; align-items: center; gap: 4px; font-weight: 500; font-size: 13px;">
-              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px;">
-                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                <line x1="9" y1="3" x2="9" y2="21" />
-              </svg>
-              관리자모드
-            </a>
-          ` : ''}
+          ${modeSwitchBtnHtml}
           <div class="header-search-bar">${searchSvg}<input type="search" class="header-search-input" placeholder="행사명, 아티스트 검색" aria-label="검색"></div>
           <button class="header-icon-btn" aria-label="알림">${alarmSvg}</button>
           ${rightAction}

@@ -1,3 +1,25 @@
+// ===================================================
+// [클라이언트 사이드 인가 가드] 스탭 포털 접근 제어
+// ===================================================
+// Spring Security는 서버 세션 기반으로 동작하지만, 이 프로젝트는
+// localStorage JWT 토큰 방식을 사용하기 때문에 Spring Security로는
+// HTML 정적 파일을 보호할 수 없습니다.
+// 따라서 페이지 레벨 접근 제어는 JavaScript에서 수행합니다.
+(function staffAuthGuard() {
+    const userRole = localStorage.getItem('userRole') || sessionStorage.getItem('userRole');
+    const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true' 
+                    || sessionStorage.getItem('isLoggedIn') === 'true'
+                    || !!localStorage.getItem('userToken')
+                    || !!sessionStorage.getItem('userToken');
+    
+    const isAllowed = isLoggedIn && (userRole === 'STAFF' || userRole === 'ADMIN');
+    
+    if (!isAllowed) {
+        // 미인증 또는 권한 없는 사용자 → 로그인 페이지로 안전하게 리다이렉트
+        window.location.replace('/Festio/login.html?error=unauthorized');
+    }
+})();
+
 document.addEventListener("DOMContentLoaded", function () {
     const layoutMenu = document.getElementById("layout-menu");
     if (!layoutMenu) return;

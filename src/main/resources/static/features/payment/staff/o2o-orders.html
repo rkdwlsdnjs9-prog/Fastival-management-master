@@ -107,48 +107,7 @@
         <span class="badge bg-white text-primary fs-6 fw-bold px-3" id="newOrdersCount">2</span>
       </div>
       <div class="card-body py-4 px-3 bg-light bg-opacity-25" id="newOrdersCol">
-        
-        <!-- Order 1 -->
-        <div class="card border border-2 rounded-3 p-4 mb-4 shadow-sm bg-white order-card animate__animated animate__fadeIn" id="card-4091">
-          <div class="d-flex justify-content-between mb-3">
-            <strong class="text-primary fs-6">#O2O-4091</strong>
-            <span class="text-muted fw-bold"><i class="bx bx-time me-1"></i>16:35</span>
-          </div>
-          <h5 class="mb-2 fw-bold text-dark">원조 매운 떡볶이 - 1개</h5>
-          <p class="text-muted fs-7 mb-3"><i class="bx bx-detail me-1"></i>옵션: 보통 매운맛 (신라면 맵기) / 일회용품 제외</p>
-          
-          <!-- Baemin style cooking time buttons -->
-          <div class="mt-3">
-            <small class="text-muted d-block mb-2 fw-bold text-center">조리 예상 소요 시간을 누르면 즉시 수락됩니다.</small>
-            <div class="d-flex gap-1 justify-content-between flex-wrap">
-              <button class="btn btn-outline-primary btn-sm py-2 px-3 fw-bold flex-grow-1 time-accept-btn" data-time="10" data-id="4091" data-name="원조 매운 떡볶이">10분</button>
-              <button class="btn btn-outline-primary btn-sm py-2 px-3 fw-bold flex-grow-1 time-accept-btn" data-time="15" data-id="4091" data-name="원조 매운 떡볶이">15분</button>
-              <button class="btn btn-outline-primary btn-sm py-2 px-3 fw-bold flex-grow-1 time-accept-btn" data-time="20" data-id="4091" data-name="원조 매운 떡볶이">20분</button>
-              <button class="btn btn-outline-primary btn-sm py-2 px-3 fw-bold flex-grow-1 time-accept-btn" data-time="30" data-id="4091" data-name="원조 매운 떡볶이">30분</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Order 2 -->
-        <div class="card border border-2 rounded-3 p-4 shadow-sm bg-white order-card animate__animated animate__fadeIn" id="card-4092">
-          <div class="d-flex justify-content-between mb-3">
-            <strong class="text-primary fs-6">#O2O-4092</strong>
-            <span class="text-muted fw-bold"><i class="bx bx-time me-1"></i>16:34</span>
-          </div>
-          <h5 class="mb-2 fw-bold text-dark">수제 모둠 튀김 - 2세트</h5>
-          <p class="text-muted fs-7 mb-3"><i class="bx bx-calendar me-1"></i>희망 픽업 타임: [17:00 ~ 17:15]</p>
-          
-          <div class="mt-3">
-            <small class="text-muted d-block mb-2 fw-bold text-center">조리 예상 소요 시간을 누르면 즉시 수락됩니다.</small>
-            <div class="d-flex gap-1 justify-content-between flex-wrap">
-              <button class="btn btn-outline-primary btn-sm py-2 px-3 fw-bold flex-grow-1 time-accept-btn" data-time="10" data-id="4092" data-name="수제 모둠 튀김">10분</button>
-              <button class="btn btn-outline-primary btn-sm py-2 px-3 fw-bold flex-grow-1 time-accept-btn" data-time="15" data-id="4092" data-name="수제 모둠 튀김">15분</button>
-              <button class="btn btn-outline-primary btn-sm py-2 px-3 fw-bold flex-grow-1 time-accept-btn" data-time="20" data-id="4092" data-name="수제 모둠 튀김">20분</button>
-              <button class="btn btn-outline-primary btn-sm py-2 px-3 fw-bold flex-grow-1 time-accept-btn" data-time="30" data-id="4092" data-name="수제 모둠 튀김">30분</button>
-            </div>
-          </div>
-        </div>
-
+        <!-- Dynamic Load -->
       </div>
     </div>
   </div>
@@ -158,23 +117,10 @@
     <div class="card h-100 border border-2 border-warning shadow-sm">
       <div class="card-header bg-warning py-3 d-flex justify-content-between align-items-center">
         <h5 class="card-title m-0 fw-bold text-dark"><i class="bx bx-dish me-2"></i>2. 조리 중</h5>
-        <span class="badge bg-dark text-warning fs-6 fw-bold px-3" id="prepOrdersCount">1</span>
+        <span class="badge bg-dark text-warning fs-6 fw-bold px-3" id="prepOrdersCount">0</span>
       </div>
       <div class="card-body py-4 px-3 bg-light bg-opacity-25" id="prepOrdersCol">
-        
-        <!-- Prep 1 -->
-        <div class="card border border-2 border-warning rounded-3 p-4 mb-4 shadow-sm bg-white order-card" id="card-4089">
-          <div class="d-flex justify-content-between mb-3">
-            <strong class="text-warning fs-6">#O2O-4089</strong>
-            <span class="badge bg-label-warning py-1 px-2 fs-7 fw-bold" id="prep-badge-4089"><i class="bx bx-timer me-1"></i>조리중 8분 경과</span>
-          </div>
-          <h5 class="mb-2 fw-bold text-dark">매운 떡볶이 1 + 모둠 튀김 1</h5>
-          <p class="text-muted fs-7 mb-4"><i class="bx bx-user me-1"></i>고객: 박소희 (010-2345-XXXX)</p>
-          <button class="btn btn-warning btn-lg w-100 py-3 fw-bold shadow-sm ready-btn text-dark" style="min-height: 52px; font-size: 1.05rem;" onclick="completeCooking('4089', '매운 떡볶이 1 + 모둠 튀김 1')">
-            <i class="bx bx-bell me-2 fs-5"></i>조리 완료 (픽업 알림 전송)
-          </button>
-        </div>
-
+        <!-- Dynamic Load -->
       </div>
     </div>
   </div>
@@ -184,27 +130,10 @@
     <div class="card h-100 border border-2 border-success shadow-sm">
       <div class="card-header bg-success py-3 d-flex justify-content-between align-items-center">
         <h5 class="card-title m-0 fw-bold text-white"><i class="bx bx-gift me-2"></i>3. 완료 (수령 대기)</h5>
-        <span class="badge bg-white text-success fs-6 fw-bold px-3" id="readyOrdersCount">1</span>
+        <span class="badge bg-white text-success fs-6 fw-bold px-3" id="readyOrdersCount">0</span>
       </div>
       <div class="card-body py-4 px-3 bg-light bg-opacity-25" id="readyOrdersCol">
-        
-        <!-- Ready 1 -->
-        <div class="card border border-2 border-success rounded-3 p-4 mb-4 shadow-sm bg-success bg-opacity-10 order-card" id="card-4085">
-          <div class="d-flex justify-content-between mb-3">
-            <strong class="text-success fs-6">#O2O-4085</strong>
-            <span class="badge bg-success py-1 px-2 fs-7 fw-bold"><i class="bx bx-check-double me-1"></i>픽업 대기중</span>
-          </div>
-          <h5 class="mb-2 fw-bold text-dark">어묵 튀김 추가 떡볶이 세트</h5>
-          <p class="text-muted fs-7 mb-4"><i class="bx bx-time-five me-1"></i>픽업 타임슬롯: [16:30 ~ 16:45]</p>
-          <button class="btn btn-success btn-lg w-100 py-3 fw-bold shadow-sm complete-btn" style="min-height: 52px; font-size: 1.05rem;" onclick="finishOrder('4085')">
-            <i class="bx bx-package me-2 fs-5"></i>수령 완료 (전달 완료)
-          </button>
-        </div>
-
-      </div>
-    </div>
-  </div>
-</div>
+        <!-- Dynamic Load -->
 
             </div>
 
@@ -288,135 +217,188 @@
     }, 3000);
   });
 
-  // 2. Cooking Time Selection & Asynchronous Order Acceptance API Call
-  document.querySelectorAll('.time-accept-btn').forEach(btn => {
-    btn.addEventListener('click', function(e) {
-      const orderId = e.target.getAttribute('data-id');
-      const orderName = e.target.getAttribute('data-name');
-      const cookingTime = e.target.getAttribute('data-time');
-      const orderCard = document.getElementById(`card-${orderId}`);
+  // Token Getter
+  function getAuthHeader() {
+    return localStorage.getItem('userToken') || sessionStorage.getItem('userToken') || 'festio-admin-jwt-token-7777';
+  }
 
-      // 비동기 주문 수락 Fetch API 호출
-      fetch(`/api/payment/staff/order/${orderId}/accept`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ cookingTime: parseInt(cookingTime) })
-      })
-      .then(response => {
-        // 실제 API 미구현 대비 완벽 데모 시뮬레이션
-        if (response.ok) {
-          return response.json().catch(() => ({ success: true }));
-        }
-        return { success: true };
-      })
-      .then(data => {
-        alert(`👨‍🍳 [${orderName}] 주문이 정상 수락되었습니다.\n예상 조리시간: ${cookingTime}분 | 고객 알림 발송 완료!`);
-        
-        // Dynamic DOM Move with transition
-        orderCard.classList.add('animate__fadeOutLeft');
-        setTimeout(() => {
-          orderCard.classList.remove('animate__fadeOutLeft', 'animate__fadeIn');
-          orderCard.classList.add('animate__fadeInRight');
-          
-          // Re-assemble buttons to Cooking Complete button
-          const actionArea = orderCard.querySelector('.mt-3');
-          actionArea.innerHTML = `
-            <button class="btn btn-warning btn-lg w-100 py-3 fw-bold shadow-sm ready-btn text-dark" style="min-height: 52px; font-size: 1.05rem;" onclick="completeCooking('${orderId}', '${orderName}')">
-              <i class="bx bx-bell me-2 fs-5"></i>조리 완료 (픽업 알림 전송)
-            </button>
-          `;
-          
-          // Move status badge
-          const statusHeader = orderCard.querySelector('.d-flex');
-          statusHeader.innerHTML = `
-            <strong class="text-warning fs-6">#O2O-${orderId}</strong>
-            <span class="badge bg-label-warning py-1 px-2 fs-7 fw-bold" id="prep-badge-${orderId}"><i class="bx bx-timer me-1"></i>조리중 ${cookingTime}분</span>
-          `;
-          
-          prepOrdersCol.appendChild(orderCard);
-          updateCounters();
-        }, 300);
-      })
-      .catch(err => {
-        console.error("Accept API Error:", err);
-      });
-    });
+  // DOM Elements and Counters
+  const newOrdersCount = document.getElementById('newOrdersCount');
+  const prepOrdersCount = document.getElementById('prepOrdersCount');
+  const readyOrdersCount = document.getElementById('readyOrdersCount');
+  const newOrdersCol = document.getElementById('newOrdersCol');
+  const prepOrdersCol = document.getElementById('prepOrdersCol');
+  const readyOrdersCol = document.getElementById('readyOrdersCol');
+
+  let activeOrdersCache = [];
+
+  document.addEventListener('DOMContentLoaded', () => {
+    // 최초 조회 후 3초마다 폴링으로 실시간 주문 감지
+    loadOrders();
+    setInterval(loadOrders, 3000);
   });
 
-  // 3. Complete Cooking API Call & Move to Delivery Ready
-  function completeCooking(orderId, orderName) {
-    const orderCard = document.getElementById(`card-${orderId}`);
-
-    fetch(`/api/payment/staff/order/${orderId}/ready`, {
-      method: 'PUT',
+  function loadOrders() {
+    fetch('/api/payment/staff/orders', {
       headers: {
-        'Content-Type': 'application/json'
+        'Authorization': getAuthHeader()
       }
     })
-    .then(response => {
-      if (response.ok) return response.json().catch(() => ({ success: true }));
-      return { success: true };
+    .then(res => {
+      if (!res.ok) throw new Error("주문 목록 로드 실패");
+      return res.json();
+    })
+    .then(orders => {
+      // 딩동! 알림 로직 (이전 캐시 대비 새로운 ORDERED 주문이 들어왔는지 감지)
+      const currentOrderedIds = orders.filter(o => o.status === 'ORDERED').map(o => o.id);
+      const cachedOrderedIds = activeOrdersCache.filter(o => o.status === 'ORDERED').map(o => o.id);
+      
+      const newItemsDetected = currentOrderedIds.filter(id => !cachedOrderedIds.includes(id));
+      if (newItemsDetected.length > 0) {
+        playDingDongAlert(newItemsDetected.length);
+      }
+
+      activeOrdersCache = orders;
+      renderKanban(orders);
+    })
+    .catch(err => console.error("주문 로드 에러:", err));
+  }
+
+  function playDingDongAlert(count) {
+    // 팝업 알림 생성
+    const popup = document.createElement('div');
+    popup.style.position = 'fixed';
+    popup.style.top = '24px';
+    popup.style.right = '24px';
+    popup.style.zIndex = '9999';
+    popup.style.width = '360px';
+    popup.className = 'card border border-primary shadow-lg animate__animated animate__bounceInRight';
+    popup.innerHTML = `
+      <div class="card-body p-4 text-white" style="background-color: #2ac1bc; border-radius: 6px;">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h5 class="m-0 fw-bold text-white"><i class="bx bx-volume-full me-2"></i>신규 스마트 오더</h5>
+          <button type="button" class="btn-close btn-close-white" onclick="this.closest('.card').remove()"></button>
+        </div>
+        <p class="mb-0 fs-6 fw-bold">📢 딩동! 실시간 신규 주문 ${count}건이 들어왔습니다!</p>
+      </div>
+    `;
+    document.body.appendChild(popup);
+    setTimeout(() => popup.remove(), 5000);
+
+    // 사운드 알림
+    try {
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = audioCtx.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(880, audioCtx.currentTime); // A5
+      osc.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.2);
+    } catch(e) {}
+  }
+
+  function renderKanban(orders) {
+    // 3개 컬럼 내용물 초기화
+    newOrdersCol.innerHTML = "";
+    prepOrdersCol.innerHTML = "";
+    readyOrdersCol.innerHTML = "";
+
+    orders.forEach(order => {
+      const itemsText = order.items.map(it => `${it.name} ${it.quantity}개`).join(', ');
+      const priceText = (order.price || 0).toLocaleString();
+      const timestamp = order.timestamp ? order.timestamp.substring(11, 16) : '';
+
+      const cardHtml = `
+        <div class="card border border-2 rounded-3 p-4 mb-4 shadow-sm bg-white order-card animate__animated animate__fadeIn" id="card-${order.id}">
+          <div class="d-flex justify-content-between mb-3">
+            <strong class="${order.status === 'ORDERED' ? 'text-primary' : (order.status === 'COOKING' ? 'text-warning' : 'text-success')} fs-6">
+              #O2O-${order.id}
+            </strong>
+            <span class="text-muted fw-bold"><i class="bx bx-time me-1"></i>${timestamp}</span>
+          </div>
+          <h5 class="mb-2 fw-bold text-dark">${itemsText}</h5>
+          <p class="text-muted fs-7 mb-3"><i class="bx bx-user me-1 text-info"></i>${order.customer} | ₩ ${priceText}</p>
+          
+          <div class="action-area mt-3">
+            ${renderActionButtons(order)}
+          </div>
+        </div>
+      `;
+
+      if (order.status === 'ORDERED') {
+        newOrdersCol.insertAdjacentHTML('beforeend', cardHtml);
+      } else if (order.status === 'COOKING') {
+        prepOrdersCol.insertAdjacentHTML('beforeend', cardHtml);
+      } else if (order.status === 'READY') {
+        readyOrdersCol.insertAdjacentHTML('beforeend', cardHtml);
+      }
+    });
+
+    updateCounters();
+  }
+
+  function renderActionButtons(order) {
+    if (order.status === 'ORDERED') {
+      const itemsText = order.items.map(it => `${it.name} ${it.quantity}개`).join(', ');
+      return `
+        <small class="text-muted d-block mb-2 fw-bold text-center">조리 예상 소요 시간을 누르면 즉시 수락됩니다.</small>
+        <div class="d-flex gap-1 justify-content-between flex-wrap">
+          <button class="btn btn-outline-primary btn-sm py-2 px-3 fw-bold flex-grow-1" onclick="updateStatus(${order.id}, 'COOKING', 10, '${itemsText}')">10분</button>
+          <button class="btn btn-outline-primary btn-sm py-2 px-3 fw-bold flex-grow-1" onclick="updateStatus(${order.id}, 'COOKING', 15, '${itemsText}')">15분</button>
+          <button class="btn btn-outline-primary btn-sm py-2 px-3 fw-bold flex-grow-1" onclick="updateStatus(${order.id}, 'COOKING', 20, '${itemsText}')">20분</button>
+          <button class="btn btn-outline-primary btn-sm py-2 px-3 fw-bold flex-grow-1" onclick="updateStatus(${order.id}, 'COOKING', 30, '${itemsText}')">30분</button>
+        </div>
+      `;
+    } else if (order.status === 'COOKING') {
+      const itemsText = order.items.map(it => `${it.name} ${it.quantity}개`).join(', ');
+      return `
+        <button class="btn btn-warning btn-lg w-100 py-3 fw-bold shadow-sm ready-btn text-dark" style="min-height: 52px; font-size: 1.05rem;" onclick="updateStatus(${order.id}, 'READY', null, '${itemsText}')">
+          <i class="bx bx-bell me-2 fs-5"></i>조리 완료 (픽업 알림 전송)
+        </button>
+      `;
+    } else if (order.status === 'READY') {
+      return `
+        <button class="btn btn-success btn-lg w-100 py-3 fw-bold shadow-sm complete-btn text-white" style="min-height: 52px; font-size: 1.05rem;" onclick="updateStatus(${order.id}, 'SERVED', null, '')">
+          <i class="bx bx-package me-2 fs-5"></i>수령 완료 (전달 완료)
+        </button>
+      `;
+    }
+    return '';
+  }
+
+  function updateStatus(orderId, nextStatus, cookingTime, orderName) {
+    fetch(`/api/payment/staff/orders/${orderId}/status`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': getAuthHeader()
+      },
+      body: JSON.stringify({ status: nextStatus })
+    })
+    .then(res => {
+      if (!res.ok) throw new Error("주문 처리 오류");
+      return res.json();
     })
     .then(data => {
-      alert(`🔔 [${orderName}] 조리가 완료되었습니다!\n고객 스마트폰으로 [포장/배달 준비 완료] 실시간 카카오톡/푸시 알림이 발송되었습니다.`);
-      
-      orderCard.classList.add('animate__fadeOutLeft');
-      setTimeout(() => {
-        orderCard.classList.remove('animate__fadeOutLeft');
-        orderCard.classList.add('animate__fadeInRight', 'bg-success', 'bg-opacity-10');
-        
-        // Re-assemble action button
-        const actionArea = orderCard.querySelector('.mt-3');
-        actionArea.innerHTML = `
-          <button class="btn btn-success btn-lg w-100 py-3 fw-bold shadow-sm complete-btn" style="min-height: 52px; font-size: 1.05rem;" onclick="finishOrder('${orderId}')">
-            <i class="bx bx-package me-2 fs-5"></i>수령 완료 (전달 완료)
-          </button>
-        `;
-        
-        // Move status badge
-        const statusHeader = orderCard.querySelector('.d-flex');
-        statusHeader.innerHTML = `
-          <strong class="text-success fs-6">#O2O-${orderId}</strong>
-          <span class="badge bg-success py-1 px-2 fs-7 fw-bold"><i class="bx bx-check-double me-1"></i>픽업 대기중</span>
-        `;
-        
-        readyOrdersCol.appendChild(orderCard);
-        updateCounters();
-      }, 300);
+      if (nextStatus === 'COOKING') {
+        alert(`👨‍🍳 [${orderName}] 주문을 수락하였습니다.\n예상 조리시간: ${cookingTime}분 | 실시간 안내 발송 완료.`);
+      } else if (nextStatus === 'READY') {
+        alert(`🔔 [${orderName}] 조리가 완료되어 대외 픽업 안내가 실시간 송출되었습니다.`);
+      } else if (nextStatus === 'SERVED') {
+        alert(`✅ 주문 수령 완료 처리가 성공적으로 접수되었습니다. 정산 집계에 자동 산입됩니다.`);
+      }
+      loadOrders(); // 리로딩
     })
     .catch(err => {
-      console.error("Ready API Error:", err);
+      console.error(err);
+      alert("❌ 주문 상태 업데이트에 실패했습니다. 권한을 확인해주세요.");
     });
   }
 
-  // 4. Finish Order (Delivery Complete)
-  function finishOrder(orderId) {
-    const orderCard = document.getElementById(`card-${orderId}`);
-
-    fetch(`/api/payment/staff/order/${orderId}/complete`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    })
-    .then(response => {
-      if (response.ok) return response.json().catch(() => ({ success: true }));
-      return { success: true };
-    })
-    .then(data => {
-      alert(`✅ 주문 #${orderId} 번의 정산 및 전달이 완료 처리되었습니다.\n수고하셨습니다!`);
-      
-      orderCard.classList.add('animate__fadeOutDown');
-      setTimeout(() => {
-        orderCard.remove();
-        updateCounters();
-      }, 400);
-    })
-    .catch(err => {
-      console.error("Complete API Error:", err);
-    });
+  function updateCounters() {
+    newOrdersCount.innerText = newOrdersCol.querySelectorAll('.order-card').length;
+    prepOrdersCount.innerText = prepOrdersCol.querySelectorAll('.order-card').length;
+    readyOrdersCount.innerText = readyOrdersCol.querySelectorAll('.order-card').length;
   }
 </script>
 

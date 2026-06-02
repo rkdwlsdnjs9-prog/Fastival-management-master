@@ -1,24 +1,58 @@
 package festival.config;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
+    @Autowired
+    private StaffTokenAuthFilter staffTokenAuthFilter;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+            // [커스텀 토큰 인증 필터 등록]
+            // Authorization 헤더의 토큰을 읽어 Spring Security 인증 컨텍스트를 설정합니다.
+            // 이 필터 덕분에 localStorage 토큰이 hasRole() 인가 규칙과 연동됩니다.
+            .addFilterBefore(staffTokenAuthFilter, UsernamePasswordAuthenticationFilter.class)
+
             .authorizeHttpRequests(authorize -> authorize
-                .anyRequest().permitAll() // 모든 페이지에 대해 로그인 없이 접근 허용
+                // ===================================================
+                // [API 인가 장벽] REST API 엔드포인트만 Spring Security로 보호
+                // ===================================================
+                // 어드민 REST API: ROLE_ADMIN 만 허용
+                .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                // 스탭 REST API: ROLE_STAFF, ROLE_ADMIN 허용
+                .requestMatchers("/api/payment/staff/**").hasAnyRole("STAFF", "ADMIN")
+
+                // 그 외 모든 경로 (HTML 정적 파일, 리소스, 로그인 등): 모두 허용
+                .anyRequest().permitAll()
             )
-            .csrf(csrf -> csrf.disable()) // 개발 편의를 위해 CSRF 보안 비활성화
-            .headers(headers -> headers.frameOptions(frame -> frame.disable())); // H2 콘솔 등을 사용할 경우 대비 프레임 제한 해제
-        
+            // REST API 방식 사용 → Spring Security 내장 formLogin / httpBasic 비활성화
+            .formLogin(form -> form.disable())
+            .httpBasic(basic -> basic.disable())
+            .exceptionHandling(ex -> ex
+                .authenticationEntryPoint((request, response, authException) -> {
+                    response.setStatus(401);
+                    response.setContentType("application/json;charset=UTF-8");
+                    response.getWriter().write("{\"error\":\"unauthorized\",\"message\":\"로그인이 필요합니다.\"}");
+                })
+                .accessDeniedHandler((request, response, accessDeniedException) -> {
+                    response.setStatus(403);
+                    response.setContentType("application/json;charset=UTF-8");
+                    response.getWriter().write("{\"error\":\"forbidden\",\"message\":\"접근 권한이 없습니다.\"}");
+                })
+            )
+            .csrf(csrf -> csrf.disable())
+            .headers(headers -> headers.frameOptions(frame -> frame.disable()));
+
         return http.build();
     }
 

@@ -48,6 +48,9 @@ public class StoreEntity {
     @Column(name = "booth_number", length = 50)
     private String boothNumber;
 
+    @Column(name = "notice", length = 255)
+    private String notice;
+
     @Column(name = "created_at")
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();

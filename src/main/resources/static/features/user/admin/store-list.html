@@ -189,6 +189,51 @@
       </div>
     </div>
 
+    <!-- [스탭 계정 발급 확인 모달 - Modal] -->
+    <div class="modal fade" id="staffCredentialsModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content border-0 shadow-lg">
+          <div class="modal-header bg-primary py-4">
+            <h5 class="modal-title text-white fw-bold"><i class="bx bx-key me-2 fs-4"></i>스탭 로그인 권한 발급 완료</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body p-5">
+            <div class="text-center mb-4">
+              <span class="badge bg-label-primary fs-6 py-2 px-3"><span id="credentialStoreName">상점명</span> 점주 계정</span>
+              <p class="text-muted mt-2 small">해당 업주가 스탭 포털에 로그인하여 주문 및 재고를 관리할 수 있는 계정입니다.</p>
+            </div>
+            
+            <div class="mb-4">
+              <label class="form-label fw-bold text-secondary">📧 로그인 이메일 (아이디)</label>
+              <div class="input-group">
+                <input type="text" class="form-control border-primary bg-light fw-bold text-dark" id="credentialEmail" readonly />
+                <button class="btn btn-outline-primary" type="button" onclick="copyText('credentialEmail')">복사</button>
+              </div>
+            </div>
+            
+            <div class="mb-4">
+              <label class="form-label fw-bold text-secondary">🔒 임시 비밀번호</label>
+              <div class="input-group">
+                <input type="text" class="form-control border-primary bg-light fw-bold text-dark" id="credentialPassword" readonly />
+                <button class="btn btn-outline-primary" type="button" onclick="copyText('credentialPassword')">복사</button>
+              </div>
+            </div>
+
+            <div class="alert alert-warning border-0 d-flex align-items-center mb-0" role="alert">
+              <i class="bx bx-info-circle me-2 fs-4"></i>
+              <div class="small">
+                위 발급된 스탭 계정(아이디와 임시비밀번호)을 복사하여 점주님께 안전하게 전달해 주시기 바랍니다.
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer border-top-0 pt-0 pb-4 justify-content-center">
+            <button type="button" class="btn btn-primary px-5 fw-bold" data-bs-dismiss="modal">확인 및 닫기</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
     <!-- Scripts -->
     <script src="/assets/vendor/libs/jquery/jquery.js"></script>
     <script src="/assets/vendor/libs/popper/popper.js"></script>
@@ -419,8 +464,11 @@
                     </div>
                   </div>
                   <div class="d-flex gap-2">
-                    <button class="btn btn-warning text-white btn-sm flex-grow-1 fw-bold shadow-sm" onclick="savePlacement(${store.id})">
-                      <i class="bx bx-save me-1"></i> 구역 배치 저장
+                    <button class="btn btn-warning text-white btn-sm flex-grow-1 fw-bold shadow-sm" style="font-size: 11px;" onclick="savePlacement(${store.id})">
+                      <i class="bx bx-save me-1"></i> 구역 저장
+                    </button>
+                    <button class="btn btn-primary btn-sm flex-grow-1 fw-bold shadow-sm" style="font-size: 11px;" onclick="issueStaffCredentials(${store.id})">
+                      <i class="bx bx-key me-1"></i> 스탭 권한 발급
                     </button>
                   </div>
                 </div>
@@ -549,6 +597,54 @@
               </tr>
             `;
           });
+      }
+
+      // 스탭 권한 발급 및 계정 확인 모달 송출 함수
+      function issueStaffCredentials(storeId) {
+        if (!confirm("🔑 해당 입점사에 대해 스탭 로그인 권한 및 계정을 생성/활성화하시겠습니까?")) {
+          return;
+        }
+
+        fetch(`/api/admin/stores/${storeId}/staff-credentials`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          }
+        })
+        .then(res => {
+          if (!res.ok) throw new Error("스탭 권한 발급 실패");
+          return res.json();
+        })
+        .then(data => {
+          // 모달 데이터 매핑
+          document.getElementById("credentialStoreName").innerText = data.storeName;
+          document.getElementById("credentialEmail").value = data.email;
+          document.getElementById("credentialPassword").value = data.password;
+
+          // 모달 창 활성화
+          const staffModal = new bootstrap.Modal(document.getElementById('staffCredentialsModal'));
+          staffModal.show();
+        })
+        .catch(err => {
+          console.error("스탭 권한 발급 중 오류:", err);
+          alert("❌ 스탭 권한 계정 생성 중 오류가 발생했습니다. DB 및 백엔드 로그를 확인해 주십시오.");
+        });
+      }
+
+      // 텍스트 복사 헬퍼 함수
+      function copyText(elementId) {
+        const inputEl = document.getElementById(elementId);
+        inputEl.select();
+        inputEl.setSelectionRange(0, 99999); // 모바일 디바이스 지원
+
+        try {
+          navigator.clipboard.writeText(inputEl.value);
+          alert("📋 클립보드에 성공적으로 복사되었습니다!");
+        } catch (err) {
+          // navigator.clipboard 미지원 브라우저 대비 fallback
+          document.execCommand('copy');
+          alert("📋 복사되었습니다!");
+        }
       }
     </script>
   </body>

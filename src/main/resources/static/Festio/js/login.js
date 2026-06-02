@@ -156,37 +156,45 @@ document.addEventListener('DOMContentLoaded', () => {
           const keepLogin = document.getElementById('keepLogin').checked;
           const storage = keepLogin ? localStorage : sessionStorage;
 
-          const isAdmin = email === 'admin@gmail.com';
+          const userRole = result.userRole || 'ROLE_USER';
+          const isAdmin = email === 'admin@gmail.com' || userRole === 'ROLE_ADMIN' || userRole === 'ADMIN';
+          const isStaff = userRole === 'ROLE_STAFF' || userRole === 'STAFF';
+
+          storage.setItem('userToken', result.token);
+          storage.setItem('userName', result.userName || '유저');
+          storage.setItem('email', result.email);
+          storage.setItem('userPhone', result.phone || '');
+          storage.setItem('isLoggedIn', 'true');
 
           if (isAdmin) {
-            storage.setItem('userToken', 'festio-admin-jwt-token-7777');
-            storage.setItem('userEmail', 'admin@gmail.com');
-            storage.setItem('email', 'admin@gmail.com');
-            storage.setItem('userName', result.userName || '관리자');
             storage.setItem('userRole', 'ADMIN');
-            storage.setItem('isLoggedIn', 'true');
+            storage.setItem('userToken', 'festio-admin-jwt-token-7777');
+          } else if (isStaff) {
+            storage.setItem('userRole', 'STAFF');
           } else {
-            storage.setItem('userToken', result.token);
-            storage.setItem('userName', result.userName);
-            storage.setItem('userRole', result.userRole || 'CLIENT');
-            storage.setItem('email', result.email);
-            storage.setItem('userPhone', result.phone || '');
-            storage.setItem('isLoggedIn', 'true');
+            storage.setItem('userRole', 'CLIENT');
           }
 
           // (동기화) sessionStorage 에도 데이터 동기화 저장
           if (window.Auth) {
             window.Auth.save({
-              email: isAdmin ? 'admin@gmail.com' : result.email,
-              name: isAdmin ? (result.userName || '관리자') : result.userName,
-              role: isAdmin ? 'ADMIN' : (result.userRole || 'CLIENT')
+              email: result.email,
+              name: result.userName || '유저',
+              role: isAdmin ? 'ADMIN' : (isStaff ? 'STAFF' : 'CLIENT')
             });
           }
 
-          const redirectUrl = 'index.html';
-          const successMsg = isAdmin
-            ? '관리자 로그인 성공! 메인 화면으로 이동합니다.'
-            : '로그인에 성공하였습니다! 메인 화면으로 이동합니다.';
+          // 권한별 목적지 리다이렉트 설정 (항상 홈 화면으로 진입 후 헤더 버튼으로 모드 전환)
+          let redirectUrl = '/index.html'; // ※ 반드시 절대 경로 사용 (login.html 위치 기준 상대경로 문제 방지)
+          let successMsg = '로그인에 성공하였습니다!';
+
+          if (isAdmin) {
+            successMsg = '관리자 로그인 성공! 메인화면 상단의 [관리자 모드 전환] 버튼을 통해 관리 콘솔로 이동할 수 있습니다.';
+          } else if (isStaff) {
+            successMsg = '가맹점주(STAFF) 로그인 성공! 메인화면 상단의 [업주 모드 전환] 버튼을 통해 매장 관리 포털로 이동할 수 있습니다.';
+          } else {
+            successMsg = '로그인에 성공하였습니다! 축제를 마음껏 즐겨보세요.';
+          }
 
           if (window.Toast) {
             window.Toast.success(successMsg);
@@ -194,10 +202,10 @@ document.addEventListener('DOMContentLoaded', () => {
             alert(successMsg);
           }
 
-          // 약간의 딜레이를 주어 로그인 완료 토스트/알림을 볼 수 있게 한 후 메인 또는 어드민으로 리다이렉트
+          // 약간의 딜레이를 주어 로그인 완료 토스트/알림을 볼 수 있게 한 후 홈화면으로 리다이렉트
           setTimeout(() => {
             window.location.href = redirectUrl;
-          }, 800);
+          }, 1200);
         } else {
           const errText = await response.text();
           if (window.Toast) {
