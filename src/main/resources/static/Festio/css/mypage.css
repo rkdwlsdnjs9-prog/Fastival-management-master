@@ -1,7 +1,7 @@
 ﻿/* ============================================================
-   mypage.css ??留덉씠?섏씠吏
-   ?곗뒪?ы넲: 2??(醫? ?꾨줈??硫붾돱 / ?? 肄섑뀗痢?
-   紐⑤컮?? ?⑥씪 ?ㅽ겕濡?   ============================================================ */
+   mypage.css - 마이페이지 스타일시트
+   레이아웃: 2단 (데스크톱 사이드바 / 메인 콘텐츠)
+   최신 디자인 시스템 적용   ============================================================ */
 
 /* ?? ?곗뒪?ы넲 2?????????????????????????????????????????????? */
 @media (min-width:1024px) {
@@ -28,19 +28,20 @@
   }
 }
 
-/* ?? 紐⑤컮???ㅻ뜑 (濡쒓렇???좎? ?뺣낫) ?????????????????????????? */
+/* 모바일 히어로 섹션 (풀 너비) */
 .mypage-hero {
-  background: linear-gradient(135deg, var(--color-primary-dark), var(--color-primary));
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   padding: var(--sp-6) var(--sp-4) var(--sp-5);
+  box-shadow: 0 20px 60px rgba(102, 126, 234, 0.3);
 }
 
 @media (min-width:1024px) {
   .mypage-hero {
-    border-radius: 16px;
+    border-radius: 24px;
     margin: var(--sp-6) auto var(--sp-6);
     width: calc(100% - (var(--sp-6) * 2));
     max-width: calc(1300px - (var(--sp-6) * 2));
-    padding: 30px 40px;
+    padding: 40px 48px;
   }
 }
 
@@ -59,16 +60,17 @@
 }
 
 .mypage-avatar {
-  width: 64px;
-  height: 64px;
+  width: 72px;
+  height: 72px;
   border-radius: var(--radius-full);
-  background: rgba(255, 255, 255, 0.15);
-  border: 2px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.2);
+  border: 3px solid rgba(255, 255, 255, 0.4);
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
 }
 
 .mypage-avatar img {
@@ -124,18 +126,21 @@
 .mypage-grade-bar-fill {
   height: 100%;
   border-radius: var(--radius-full);
-  background: rgba(255, 255, 255, 0.85);
+  background: linear-gradient(90deg, #f093fb 0%, #f5576c 100%);
   transition: width 0.8s ease;
+  box-shadow: 0 2px 8px rgba(240, 147, 251, 0.4);
 }
 
-/* ?붿빟 ?ㅽ꺈 */
+/* 통계 카드 */
 .mypage-stats-row {
   display: flex;
-  background: rgba(0, 0, 0, 0.15);
-  border-radius: var(--radius-lg);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
   overflow: hidden;
   margin-top: var(--sp-4);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
 }
 
 .mypage-stat-item {
@@ -154,9 +159,10 @@
 
 .mypage-stat-val {
   font-family: var(--font-display);
-  font-size: 1.125rem;
-  font-weight: 700;
+  font-size: 1.25rem;
+  font-weight: 800;
   color: #fff;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .mypage-stat-lbl {
@@ -165,13 +171,14 @@
   color: rgba(255, 255, 255, 0.55);
 }
 
-/* ?? ?곗뒪?ы넲 ?ъ씠??硫붾돱 ???????????????????????????????????? */
+/* 데스크톱 사이드 메뉴 */
 .mypage-sidenav {
-  background: var(--bg-surface1);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-xl);
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 20px;
   overflow: hidden;
   height: 100%;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
 }
 
 @media (max-width:1023px) {
@@ -199,23 +206,26 @@
 }
 
 .mypage-sidenav-item:hover {
-  background: var(--bg-surface2);
-  color: var(--text-primary);
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%);
+  color: #667eea;
+  transform: translateX(4px);
 }
 
 .mypage-sidenav-item.active {
-  color: var(--color-primary);
-  background: transparent;
+  color: #667eea;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.12) 0%, rgba(118, 75, 162, 0.12) 100%);
+  font-weight: 700;
 }
 
 .mypage-sidenav-item.active::after {
   content: '';
   position: absolute;
-  left: var(--sp-4);
-  right: var(--sp-4);
+  left: 0;
+  top: 0;
   bottom: 0;
-  height: 2px;
-  background: var(--color-primary);
+  width: 4px;
+  background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+  border-radius: 0 4px 4px 0;
 }
 
 .mypage-sidenav-item .icon {
@@ -229,16 +239,17 @@
   background: var(--border-subtle);
 }
 
-/* ?? ??컮 (紐⑤컮?? ??????????????????????????????????????????? */
+/* 모바일 탭바 (데스크톱에서는 숨김) */
 .mypage-tabs {
   display: flex;
-  background: var(--bg-surface1);
-  border-bottom: 1px solid var(--border-subtle);
+  background: #ffffff;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
   overflow-x: auto;
   scrollbar-width: none;
   position: sticky;
   top: var(--header-h);
   z-index: var(--z-sticky);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .mypage-tabs::-webkit-scrollbar {
@@ -272,21 +283,23 @@
 }
 
 .mypage-tab.active {
-  color: var(--color-primary);
-  border-bottom-color: var(--color-primary);
+  color: #667eea;
+  border-bottom-color: #667eea;
+  font-weight: 700;
 }
 
-/* ?? ??肄섑뀗痢???????????????????????????????????????????????? */
+/* 탭 콘텐츠 영역 */
 .mypage-content {
   min-height: 400px;
 }
 
 @media (min-width:1024px) {
   .mypage-content {
-    background: var(--bg-surface1);
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-xl);
+    background: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 24px;
     overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
   }
 }
 
@@ -302,8 +315,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--sp-4) var(--sp-4) var(--sp-3);
-  border-bottom: 1px solid var(--border-subtle);
+  padding: var(--sp-5) var(--sp-5) var(--sp-4);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  background: linear-gradient(180deg, rgba(102, 126, 234, 0.02) 0%, rgba(255, 255, 255, 0) 100%);
 }
 
 @media (min-width:1024px) {
@@ -313,12 +327,13 @@
 }
 
 .content-section-title {
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--text-primary);
+  font-size: 1.125rem;
+  font-weight: 800;
+  color: #1a1a2e;
+  letter-spacing: -0.5px;
 }
 
-/* ?? ?곗폆 紐⑸줉 ??????????????????????????????????????????????? */
+/* 예매 내역 카드 */
 .ticket-list {
   display: flex;
   flex-direction: column;
@@ -340,7 +355,8 @@
 }
 
 .ticket-item:hover {
-  background: var(--bg-surface2);
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.04) 0%, rgba(118, 75, 162, 0.04) 100%);
+  transform: translateX(4px);
 }
 
 .ticket-item:last-child {
@@ -400,14 +416,14 @@
 }
 
 .ticket-status.paid {
-  background: rgba(34, 197, 94, 0.12);
-  color: var(--color-success);
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(16, 185, 129, 0.15) 100%);
+  color: #10b981;
   border: 1px solid rgba(34, 197, 94, 0.3);
 }
 
 .ticket-status.pending {
-  background: rgba(245, 158, 11, 0.12);
-  color: var(--color-warning);
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(251, 191, 36, 0.15) 100%);
+  color: #f59e0b;
   border: 1px solid rgba(245, 158, 11, 0.3);
 }
 
@@ -435,9 +451,9 @@
 }
 
 .ticket-price {
-  font-size: 0.875rem;
-  font-weight: 700;
-  color: var(--color-primary);
+  font-size: 0.9375rem;
+  font-weight: 800;
+  color: #667eea;
   margin-top: auto;
 }
 
@@ -496,7 +512,7 @@
   height: 16px;
 }
 
-/* ?? 荑좏룿 紐⑸줉 ??????????????????????????????????????????????? */
+/* 쿠폰 목록 카드 */
 .coupon-list {
   display: flex;
   flex-direction: column;
@@ -512,10 +528,12 @@
 
 .coupon-card {
   display: flex;
-  border-radius: var(--radius-lg);
-  background: var(--bg-card);
-  border: 1px solid var(--border-default);
+  border-radius: 16px;
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
   overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
 }
 
 .coupon-card.used {
@@ -529,13 +547,14 @@
 .coupon-left {
   width: 90px;
   flex-shrink: 0;
-  background: linear-gradient(135deg, var(--color-primary-dark), var(--color-primary));
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: var(--sp-4);
   position: relative;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
 
 .coupon-card.used .coupon-left {
