@@ -231,10 +231,10 @@ function renderStats() {
   if (statWishlists) statWishlists.textContent = '0';
 
   // 쿠폰 - 목데이터 사용
-  if (statCoupons) statCoupons.textContent = MOCK_COUPONS.length;
+  if (statCoupons) statCoupons.textContent = (typeof MOCK_COUPONS !== 'undefined') ? MOCK_COUPONS.length : 0;
 
   // 리뷰 - 목데이터 사용
-  if (statReviews) statReviews.textContent = '0';
+  if (statReviews) statReviews.textContent = (typeof MOCK_REVIEWS !== 'undefined') ? MOCK_REVIEWS.length : 0;
 
   const ticketCount = document.getElementById('ticketCount');
   if (ticketCount) ticketCount.textContent = `${MOCK_TICKETS.length + MOCK_FOOD_ORDERS.length}건`;
@@ -458,42 +458,24 @@ function generateHeroQR(token) {
   container.innerHTML = '';
   console.log('QR 생성 시작, 토큰:', token);
 
-  // 여러 QR API 시도 (폴백 로직)
-  const apis = [
-    `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(token)}&margin=4&format=png`,
-    `https://quickchart.io/qr?text=${encodeURIComponent(token)}&size=180`,
-    `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(token)}&margin=0&format=png`
-  ];
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(token)}&margin=4&format=png`;
 
-  let currentApiIndex = 0;
+  const img = document.createElement('img');
+  img.src = qrUrl;
+  img.alt = 'QR Code';
+  img.className = 'hero-qr-image';
+  img.crossOrigin = 'anonymous';
 
-  function tryNextApi() {
-    if (currentApiIndex >= apis.length) {
-      console.error('모든 QR API 실패');
-      container.innerHTML = '<div class="qr-error-message">QR 로드 실패</div>';
-      return;
-    }
+  img.onload = function () {
+    console.log('QR 이미지 로드 성공');
+  };
 
-    const img = document.createElement('img');
-    img.src = apis[currentApiIndex];
-    img.alt = 'QR Code';
-    img.className = 'hero-qr-image';
-    img.crossOrigin = 'anonymous';
+  img.onerror = function () {
+    console.error('QR 이미지 로드 실패');
+    container.innerHTML = '<div class="qr-error-message">QR 로드 실패</div>';
+  };
 
-    img.onload = function() {
-      console.log(`QR 이미지 로드 성공 (API ${currentApiIndex + 1})`);
-    };
-
-    img.onerror = function() {
-      console.error(`QR API ${currentApiIndex + 1} 실패, 다음 API 시도`);
-      currentApiIndex++;
-      tryNextApi();
-    };
-
-    container.appendChild(img);
-  }
-
-  tryNextApi();
+  container.appendChild(img);
 }
 
 /* QR 모달에 QR 코드 생성 */
@@ -506,42 +488,24 @@ function generateModalQR(token) {
   container.innerHTML = '';
   console.log('모달 QR 생성 시작, 토큰:', token);
 
-  // 여러 QR API 시도 (폴백 로직)
-  const apis = [
-    `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(token)}&margin=4&format=png`,
-    `https://quickchart.io/qr?text=${encodeURIComponent(token)}&size=400`,
-    `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(token)}&margin=0&format=png`
-  ];
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(token)}&margin=4&format=png`;
 
-  let currentApiIndex = 0;
+  const img = document.createElement('img');
+  img.src = qrUrl;
+  img.alt = 'QR Code';
+  img.className = 'modal-qr-image';
+  img.crossOrigin = 'anonymous';
 
-  function tryNextApi() {
-    if (currentApiIndex >= apis.length) {
-      console.error('모든 모달 QR API 실패');
-      container.innerHTML = '<div class="modal-qr-error-message">QR 로드 실패</div>';
-      return;
-    }
+  img.onload = function () {
+    console.log('모달 QR 이미지 로드 성공');
+  };
 
-    const img = document.createElement('img');
-    img.src = apis[currentApiIndex];
-    img.alt = 'QR Code';
-    img.className = 'modal-qr-image';
-    img.crossOrigin = 'anonymous';
+  img.onerror = function () {
+    console.error('모달 QR 이미지 로드 실패');
+    container.innerHTML = '<div class="modal-qr-error-message">QR 로드 실패</div>';
+  };
 
-    img.onload = function() {
-      console.log(`모달 QR 이미지 로드 성공 (API ${currentApiIndex + 1})`);
-    };
-
-    img.onerror = function() {
-      console.error(`모달 QR API ${currentApiIndex + 1} 실패, 다음 API 시도`);
-      currentApiIndex++;
-      tryNextApi();
-    };
-
-    container.appendChild(img);
-  }
-
-  tryNextApi();
+  container.appendChild(img);
 }
 
 /* 히어로 QR + 모달 QR 피해 토큰 공유 */
@@ -661,9 +625,26 @@ function updateQRTimerDisplay(sec) {
 
   // 히어로 타이머 바 업데이트
   const heroTimerBar = document.getElementById('heroQrTimerBar');
+  const timerWrap = document.querySelector('.hero-qr-timer-bar-wrap');
   if (heroTimerBar) {
     const pct = ((180 - sec) / 180) * 100;
     heroTimerBar.style.width = `${pct}%`;
+  }
+  if (timerWrap) {
+    if (sec <= 60) {
+      timerWrap.style.background = '#ff4757';
+    } else {
+      timerWrap.style.background = 'linear-gradient(135deg, #00d2ff 0%, #8930F8 100%)';
+    }
+  }
+
+  if (heroTimer) {
+    if (sec <= 60) {
+      heroTimer.classList.add('timer-shake');
+    } else {
+      heroTimer.classList.remove('timer-shake');
+      heroTimer.style.color = '#555';
+    }
   }
 
   // 모달 내부도 동기화
@@ -823,7 +804,19 @@ function renderInquiryList() {
     inquiryList.innerHTML = `<div class="mypage-empty"><p class="mypage-empty-title">내역이 없습니다</p></div>`;
     return;
   }
-  inquiryList.innerHTML = MOCK_INQUIRIES.map(q => `
+  inquiryList.innerHTML = MOCK_INQUIRIES.map(q => {
+    const isHelpful = q.helpful || false;
+    const rating = q.rating || 0;
+    let ratingText = '';
+    if (rating > 0) {
+      if (rating <= 1) ratingText = '매우 불만족';
+      else if (rating <= 2) ratingText = '불만족';
+      else if (rating <= 3) ratingText = '보통';
+      else if (rating <= 4) ratingText = '만족';
+      else ratingText = '매우 만족';
+    }
+
+    return `
     <div class="mp-card" style="margin-bottom:16px;">
       <div class="mp-card-header" style="cursor:pointer; display:flex; justify-content:space-between; align-items:center;" onclick="toggleAccordion(${q.id})">
         <h4 class="mp-inquiry-title" style="font-size:1.1rem; margin:0; font-weight:600; flex:1;">${q.title}</h4>
@@ -835,23 +828,25 @@ function renderInquiryList() {
       </div>
       <div id="acc-${q.id}" style="display:none; margin-top:16px; padding-top:16px; border-top:1px solid var(--border-subtle);">
         <p class="mp-inquiry-preview" style="color:var(--text-secondary); margin-bottom:16px;">${q.content}</p>
-        ${q.answer ? `<div class="mp-inquiry-answer" style="background:#f9f9fc; padding:16px; border-radius:8px;"><p style="font-weight:bold; margin-bottom:8px; color:var(--color-primary);">운영센터 답변</p><p style="margin:0;">${q.answer}</p></div>` : ''}
+        ${q.answer ? `<div class="mp-inquiry-answer" style="background:#f8fafc; padding:16px; border-radius:8px; border-left:4px solid var(--color-primary); box-shadow: 0 1px 3px rgba(0,0,0,0.05);"><p style="font-weight:bold; margin-bottom:8px; color:var(--text-primary);">운영센터 답변</p><p style="margin:0; color:var(--text-secondary);">${q.answer}</p></div>` : ''}
         <div style="display:flex; justify-content:space-between; align-items:center; margin-top:16px;">
           ${q.answer ? `<div style="display:flex; gap:12px; align-items:center;">
               <span style="font-size:0.85rem; color:var(--text-muted);">이 답변이 도움이 되셨나요?</span>
-              <button class="btn btn-sm btn-outline" onclick="this.style.background='#f0f0ff'; this.style.color='var(--color-primary)'; this.style.borderColor='var(--color-primary)'; /* Removed Toast */" style="padding:4px 8px; font-size:0.8rem; display:flex; align-items:center; gap:4px;">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>
+              <button class="btn btn-sm btn-outline ${isHelpful ? 'active' : ''}" onclick="window.toggleInquiryHelpful(${q.id}, this)" style="padding:4px 10px; font-size:0.8rem; display:flex; align-items:center; gap:4px; transition: all 0.2s; ${isHelpful ? 'background:var(--color-primary); color:white; border-color:var(--color-primary);' : ''}">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="${isHelpful ? 'white' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>
                 좋아요
               </button>
-              <div style="display:flex; gap:2px;" class="inquiry-stars" data-id="${q.id}">
-                ${[1, 2, 3, 4, 5].map(i => `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffb400" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="cursor:pointer;" onmousemove="hoverInquiryStar(event, this, ${i}, ${q.id})" onmouseleave="resetInquiryStar(${q.id})" onclick="setInquiryStar(event, this, ${i}, ${q.id})"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>`).join('')}
+              <div style="display:flex; gap:2px; align-items:center;" class="inquiry-stars" data-id="${q.id}" data-rating="${rating}">
+                ${[1, 2, 3, 4, 5].map(i => `<svg width="20" height="20" viewBox="0 0 24 24" fill="${i <= Math.floor(rating) ? '#ffb400' : (i === Math.ceil(rating) && !Number.isInteger(rating) ? '#ffb400' : 'none')}" stroke="#ffb400" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="cursor:pointer; opacity:${i === Math.ceil(rating) && !Number.isInteger(rating) ? '0.5' : '1'};" onmousemove="hoverInquiryStar(event, this, ${i}, ${q.id})" onmouseleave="resetInquiryStar(${q.id})" onclick="setInquiryStar(event, this, ${i}, ${q.id})"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>`).join('')}
+                <span class="rating-text" style="margin-left: 6px; font-size: 0.8rem; font-weight: 500; color: ${rating > 0 ? 'var(--color-primary)' : 'var(--text-muted)'};">${ratingText}</span>
               </div>
             </div>` : '<div></div>'}
-          <button class="btn btn-sm" onclick="deleteInquiry(${q.id})" style="padding:4px 10px; font-size:0.8rem; background:#ffebee; color:#d32f2f; border:none;">삭제</button>
+          <button class="btn btn-sm" onclick="deleteInquiry(${q.id})" style="padding:4px 10px; font-size:0.8rem; background:#ffebee; color:#d32f2f; border:none; border-radius:4px;">삭제</button>
         </div>
       </div>
     </div>
-  `).join('');
+    `;
+  }).join('');
 }
 
 window.hoverInquiryStar = function (e, svg, baseVal, qId) {
@@ -875,10 +870,68 @@ window.setInquiryStar = function (e, svg, baseVal, qId) {
   const isHalf = clickX < rect.width / 2;
   const selectedRating = isHalf ? baseVal - 0.5 : baseVal;
   const container = document.querySelector(`.inquiry-stars[data-id="${qId}"]`);
+
   if (container) {
     container.dataset.rating = selectedRating;
+    // 상태 저장 로직 추가
+    const targetQ = MOCK_INQUIRIES.find(q => q.id === qId);
+    if (targetQ) {
+      targetQ.rating = selectedRating;
+      // Store 에 업데이트
+      const storeKey = targetQ.target === 'vendor' ? 'inquiries_customer_to_vendor' : 'inquiries_to_admin';
+      if (window.InquiryStore) window.InquiryStore.update(storeKey, qId, { rating: selectedRating });
+      if (window.wsClient) {
+        window.wsClient.send({ type: 'UPDATE_EVALUATION', payload: { id: qId, rating: selectedRating } });
+      } else {
+        localStorage.setItem('mock_ws_message', JSON.stringify({ type: 'UPDATE_EVALUATION' }));
+        setTimeout(() => localStorage.removeItem('mock_ws_message'), 50);
+      }
+    }
     updateInquiryStars(qId, selectedRating);
 
+    // 상태 텍스트 갱신
+    let ratingText = '';
+    if (selectedRating <= 1) ratingText = '매우 불만족';
+    else if (selectedRating <= 2) ratingText = '불만족';
+    else if (selectedRating <= 3) ratingText = '보통';
+    else if (selectedRating <= 4) ratingText = '만족';
+    else ratingText = '매우 만족';
+
+    const textSpan = container.querySelector('.rating-text');
+    if (textSpan) {
+      textSpan.textContent = ratingText;
+      textSpan.style.color = 'var(--color-primary)';
+    }
+  }
+};
+
+window.toggleInquiryHelpful = function (qId, btnEl) {
+  const targetQ = MOCK_INQUIRIES.find(q => q.id === qId);
+  if (!targetQ) return;
+  targetQ.helpful = !targetQ.helpful;
+
+  // Store 에 업데이트
+  const storeKey = targetQ.target === 'vendor' ? 'inquiries_customer_to_vendor' : 'inquiries_to_admin';
+  if (window.InquiryStore) window.InquiryStore.update(storeKey, qId, { helpful: targetQ.helpful });
+
+  if (window.wsClient) {
+    window.wsClient.send({ type: 'UPDATE_EVALUATION', payload: { id: qId, helpful: targetQ.helpful } });
+  } else {
+    localStorage.setItem('mock_ws_message', JSON.stringify({ type: 'UPDATE_EVALUATION' }));
+    setTimeout(() => localStorage.removeItem('mock_ws_message'), 50);
+  }
+
+  // UI 갱신 (빠른 반응성을 위해 직접 변경 혹은 render)
+  if (targetQ.helpful) {
+    btnEl.style.background = 'var(--color-primary)';
+    btnEl.style.color = 'white';
+    btnEl.style.borderColor = 'var(--color-primary)';
+    btnEl.querySelector('svg').setAttribute('fill', 'white');
+  } else {
+    btnEl.style.background = 'transparent';
+    btnEl.style.color = 'var(--text-primary)';
+    btnEl.style.borderColor = 'var(--border-subtle)';
+    btnEl.querySelector('svg').setAttribute('fill', 'none');
   }
 };
 
@@ -964,6 +1017,7 @@ window.deleteCoupon = function (id) {
   if (window.Toast) window.Toast.success('쿠폰이 삭제(사용 처리) 되었습니다.');
   else alert('삭제되었습니다.');
   renderCouponList();
+  renderStats();
 };
 
 function initCouponForm() {
@@ -978,6 +1032,7 @@ function initCouponForm() {
       if (window.Toast) window.Toast.success('쿠폰이 성공적으로 등록되었습니다.');
       else alert('등록되었습니다.');
       renderCouponList();
+      renderStats();
     });
   }
 }
@@ -1007,7 +1062,7 @@ function renderMyReviewList() {
       <div class="review-edit-wrapper hidden" id="review-edit-${r.id}">
         <textarea class="form-input" id="edit-content-${r.id}" rows="3" style="width:100%; margin-bottom:8px;">${r.content}</textarea>
         <div class="star-rating" id="edit-rating-${r.id}" style="margin-bottom:8px;">
-          ${[1,2,3,4,5].map(star => `
+          ${[1, 2, 3, 4, 5].map(star => `
             <button class="star-btn ${star <= r.rating ? 'active' : ''}" data-star="${star}" onclick="setEditRating(${r.id}, ${star})">⭐</button>
           `).join('')}
         </div>
@@ -1122,6 +1177,7 @@ function initReviewForm() {
         stars.forEach(s => {
           const sVal = parseInt(s.dataset.star);
           const svg = s.querySelector('svg');
+          if (!svg) return;
           if (sVal <= Math.floor(rating)) {
             svg.setAttribute('fill', '#ffb400');
             svg.setAttribute('stroke', '#ffb400');
@@ -1343,8 +1399,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   await renderOtherLists();
   renderInquiryList();
 
+  // initTabs(); 위쪽이나 적당한 곳에 initInquiryForm을 활성화합니다.
   initTabs();
-  // initInquiryForm(); // 함수가 정의되지 않아 주석 처리
+  initInquiryForm();
   initCouponForm();
   initReviewForm();
   initProfileEditSave();
@@ -1368,16 +1425,213 @@ document.addEventListener('DOMContentLoaded', async () => {
   initHeroQr();
   initQrModal();
   initSideSticky();
+
+  // Mock WS 이벤트 리스너 추가 (답변 등록 실시간 갱신용)
+  if (window.MockWebSocket) {
+    window.wsClient = new MockWebSocket('ws://localhost:8080/ws');
+    window.wsClient.addEventListener('message', (e) => {
+      // 문의가 업데이트되면 리스트 갱신 (간단히 localStorage에서 다시 불러와서 렌더링)
+      loadInquiriesFromStore();
+    });
+  } else {
+    // mock-realtime.js가 없을 경우 폴백
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'mock_ws_message') loadInquiriesFromStore();
+    });
+  }
+  // 초기 스토어 로드
+  loadInquiriesFromStore();
 });
+
+// Store 연동
+function loadInquiriesFromStore() {
+  if (!window.InquiryStore) return;
+  // 고객이 남긴 모든 문의를 합쳐서 렌더링 (vendor용 + admin용)
+  const vendorInq = window.InquiryStore.get('inquiries_customer_to_vendor') || [];
+  const adminInq = window.InquiryStore.get('inquiries_to_admin') || [];
+
+  // 내 문의만 가져온다고 가정 (모든 문의 병합)
+  const allMyInq = [...vendorInq, ...adminInq].filter(q => q.author === 'me').sort((a, b) => b.id - a.id);
+
+  // MOCK_INQUIRIES에 덮어쓰기
+  if (allMyInq.length > 0) {
+    MOCK_INQUIRIES.length = 0;
+    allMyInq.forEach(q => MOCK_INQUIRIES.push(q));
+  }
+  renderInquiryList();
+}
+
+function initInquiryForm() {
+  const btnNewInquiry = document.getElementById('btn-new-inquiry');
+  const modalInquiry = document.getElementById('modal-inquiry');
+  const btnSubmitInquiry = document.getElementById('btn-submit-inquiry');
+  const inqImagesInput = document.getElementById('inqImages');
+  const inqImageCount = document.getElementById('inqImageCount');
+
+  if (btnNewInquiry && modalInquiry) {
+    btnNewInquiry.addEventListener('click', () => {
+      modalInquiry.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    });
+  }
+
+  // 모달 닫기 이벤트
+  document.querySelectorAll('[data-close-modal="modal-inquiry"]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      modalInquiry.classList.remove('active');
+      document.body.style.overflow = '';
+    });
+  });
+
+  let selectedFiles = []; // 선택된 파일 관리를 위한 배열
+
+  // 썸네일 캐러셀 스크롤 버튼 로직
+  const imgPreviewContainer = document.getElementById('inqImagePreviewContainer');
+  const btnScrollLeft = document.getElementById('btn-scroll-left');
+  const btnScrollRight = document.getElementById('btn-scroll-right');
+
+  const updateScrollButtons = () => {
+    if (!imgPreviewContainer) return;
+    if (imgPreviewContainer.scrollWidth > imgPreviewContainer.clientWidth) {
+      btnScrollLeft.style.display = 'flex';
+      btnScrollRight.style.display = 'flex';
+    } else {
+      btnScrollLeft.style.display = 'none';
+      btnScrollRight.style.display = 'none';
+    }
+  };
+
+  if (btnScrollLeft && btnScrollRight && imgPreviewContainer) {
+    btnScrollLeft.addEventListener('click', (e) => {
+      e.preventDefault();
+      imgPreviewContainer.scrollBy({ left: -100, behavior: 'smooth' });
+    });
+    btnScrollRight.addEventListener('click', (e) => {
+      e.preventDefault();
+      imgPreviewContainer.scrollBy({ left: 100, behavior: 'smooth' });
+    });
+    window.addEventListener('resize', updateScrollButtons);
+  }
+
+  // 썸네일 렌더링 로직
+  const renderThumbnails = () => {
+    if (!imgPreviewContainer) return;
+
+    // + 버튼 유지 (최대 10개 미만일 때만)
+    const addBtnHtml = selectedFiles.length < 10 ? `
+      <div class="add-img-btn" onclick="document.getElementById('inqImages').click()" style="flex-shrink: 0; width: 60px; height: 60px; border: 1px dashed #cbd5e1; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; background: #f8fafc; transition: all 0.2s;">
+        <span style="font-size: 20px; color: #94a3b8; line-height: 1;">+</span>
+        <span style="font-size: 0.7rem; color: #94a3b8; margin-top: 2px;" id="inqImageCount">${selectedFiles.length}/10</span>
+      </div>
+    ` : '';
+
+    const thumbnailsHtml = selectedFiles.map((file, idx) => {
+      const url = URL.createObjectURL(file);
+      return `
+        <div style="flex-shrink: 0; position: relative; width: 60px; height: 60px; border-radius: 8px; overflow: hidden; border: 1px solid #e2e8f0;">
+          <img src="${url}" style="width: 100%; height: 100%; object-fit: cover;" />
+          <button type="button" onclick="window.removeInquiryImage(${idx})" style="position: absolute; top: 2px; right: 2px; background: rgba(0,0,0,0.5); color: white; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer;">✕</button>
+        </div>
+      `;
+    }).join('');
+
+    imgPreviewContainer.innerHTML = addBtnHtml + thumbnailsHtml;
+
+    // 10개가 꽉 차면 카운트 표시를 업데이트 할 수 없으므로 숨김 버튼을 만들진 않고 렌더링 안 함
+    updateScrollButtons();
+  };
+
+  window.removeInquiryImage = function (idx) {
+    selectedFiles.splice(idx, 1);
+
+    // DataTransfer 객체로 input file 갱신 (실제 폼 전송 시 필요)
+    const dt = new DataTransfer();
+    selectedFiles.forEach(file => dt.items.add(file));
+    inqImagesInput.files = dt.files;
+
+    renderThumbnails();
+  };
+
+  // 이미지 업로드 로직 (배열 누적)
+  if (inqImagesInput) {
+    inqImagesInput.addEventListener('change', function () {
+      const newFiles = Array.from(this.files);
+      if (selectedFiles.length + newFiles.length > 10) {
+        alert('이미지는 최대 10개까지만 업로드 가능합니다.');
+        // 취소된 파일은 추가하지 않음
+      } else {
+        selectedFiles = selectedFiles.concat(newFiles);
+      }
+
+      // 최신 input state 반영
+      const dt = new DataTransfer();
+      selectedFiles.forEach(file => dt.items.add(file));
+      inqImagesInput.files = dt.files;
+
+      renderThumbnails();
+    });
+  }
+
+  if (btnSubmitInquiry) {
+    btnSubmitInquiry.addEventListener('click', () => {
+      const target = document.getElementById('inqTarget').value;
+      const title = document.getElementById('inqTitle').value.trim();
+      const content = document.getElementById('inqContent').value.trim();
+
+      if (!title || !content) {
+        alert('제목과 내용을 모두 입력해주세요.');
+        return;
+      }
+
+      const newInq = {
+        id: Date.now(),
+        author: 'me',
+        title: title,
+        content: content,
+        status: '대기',
+        answer: null,
+        target: target,
+        createdAt: new Date().toISOString()
+      };
+
+      if (window.InquiryStore) {
+        const storeKey = target === 'vendor' ? 'inquiries_customer_to_vendor' : 'inquiries_to_admin';
+        window.InquiryStore.add(storeKey, newInq);
+
+        // Mock WebSocket 브로드캐스트
+        if (window.wsClient) {
+          window.wsClient.send({ type: 'NEW_INQUIRY', payload: newInq });
+        } else {
+          localStorage.setItem('mock_ws_message', JSON.stringify({ type: 'NEW_INQUIRY' }));
+          setTimeout(() => localStorage.removeItem('mock_ws_message'), 50);
+        }
+      }
+
+      if (window.Toast) window.Toast.success('문의가 성공적으로 접수되었습니다.');
+      else alert('문의가 접수되었습니다.');
+
+      // 폼 초기화 및 닫기
+      document.getElementById('inqTitle').value = '';
+      document.getElementById('inqContent').value = '';
+      if (inqImagesInput) inqImagesInput.value = '';
+      if (inqImageCount) inqImageCount.textContent = '선택된 파일 없음';
+
+      modalInquiry.classList.remove('active');
+      document.body.style.overflow = '';
+
+      loadInquiriesFromStore();
+    });
+  }
+}
 
 window.deleteInquiry = function (id) {
   if (!confirm('문의 내역을 삭제하시겠습니까?')) return;
+  // 스토어에서 삭제 로직 추가 필요할 수 있음
   const idx = MOCK_INQUIRIES.findIndex(q => q.id === id);
   if (idx !== -1) MOCK_INQUIRIES.splice(idx, 1);
   renderInquiryList();
-  alert('삭제되었습니다.');
+  if (window.Toast) window.Toast.success('삭제되었습니다.');
 };
-
 
 setTimeout(() => {
   const profileBtn = document.getElementById('btn-profile-update') || document.querySelector('.btn-profile-update');

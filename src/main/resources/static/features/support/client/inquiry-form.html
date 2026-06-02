@@ -1,181 +1,491 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="ko" class="layout-menu-fixed layout-compact" data-assets-path="/assets/" data-template="vertical-menu-template-free">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
-    <title>1:1 고객 문의 접수 - FASTIVAL O2O</title>
 
-    <link rel="icon" type="image/x-icon" href="/assets/img/favicon/favicon.ico" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="/assets/vendor/fonts/iconify-icons.css" />
-    <link rel="stylesheet" href="/assets/vendor/css/core.css" />
-    <link rel="stylesheet" href="/assets/css/demo.css" />
-    <link rel="stylesheet" href="/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
-    <link rel="stylesheet" href="/assets/vendor/libs/apex-charts/apex-charts.css" />
-    <script src="/assets/vendor/js/helpers.js"></script>
-    <script src="/assets/js/config.js"></script>
-    <style>
-      .premium-gradient {
-        background: linear-gradient(135deg, #696cff 0%, #a2a4ff 100%);
-        color: white;
-      }
-      .stat-card {
-        transition: transform 0.2s;
-      }
-      .stat-card:hover {
-        transform: translateY(-5px);
-      }
-    </style>
-  </head>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+  <title>1:1 고객 문의 접수 - FASTIVAL O2O</title>
 
-  <body>
-    <div class="layout-wrapper layout-content-navbar">
-      <div class="layout-container">
-        
-        <!-- Sidebar Menu -->
-        <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
-          <!-- sidebar.js 가 런타임에 동적으로 삽입 -->
-        </aside>
+  <link rel="icon" type="image/x-icon" href="/assets/img/favicon/favicon.ico" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="/assets/vendor/fonts/iconify-icons.css" />
+  <link rel="stylesheet" href="/assets/vendor/css/core.css" />
+  <link rel="stylesheet" href="/assets/css/demo.css" />
+  <link rel="stylesheet" href="/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
+  <link rel="stylesheet" href="/assets/vendor/libs/apex-charts/apex-charts.css" />
+  <script src="/assets/vendor/js/helpers.js"></script>
+  <script src="/assets/js/config.js"></script>
+  <style>
+    .premium-gradient {
+      background: linear-gradient(135deg, #696cff 0%, #a2a4ff 100%);
+      color: white;
+    }
 
-        <div class="layout-page">
-          <!-- Navbar -->
-          <nav class="layout-navbar container-xxl navbar navbar-expand-xl navbar-detached align-items-center bg-navbar-theme" id="layout-navbar">
-            <div class="layout-menu-toggle navbar-nav align-items-xl-center me-4 me-xl-0 d-xl-none">
-              <a class="nav-item nav-link px-0 me-xl-6" href="javascript:void(0)">
-                <i class="bx bx-menu bx-sm"></i>
-              </a>
-            </div>
-            <div class="navbar-nav-right d-flex align-items-center" id="navbar-collapse">
-              <h5 class="mb-0 fw-bold"><i class="bx bx-help-circle me-2 text-primary"></i>1:1 고객 문의 접수</h5>
-              <ul class="navbar-nav flex-row align-items-center ms-auto">
-                <li class="nav-item dropdown-user dropdown">
-                  <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown">
-                    <div class="avatar avatar-online">
-                      <img src="/assets/img/avatars/1.png" class="w-px-40 h-auto rounded-circle" />
-                    </div>
-                  </a>
-                  <ul class="dropdown-menu dropdown-menu-end">
-                    <li>
-                      <a class="dropdown-item" href="#">
-                        <div class="d-flex">
-                          <div class="flex-shrink-0 me-3">
-                            <div class="avatar avatar-online">
-                              <img src="/assets/img/avatars/1.png" class="w-px-40 h-auto rounded-circle" />
-                            </div>
-                          </div>
-                          <div class="flex-grow-1">
-                            <span class="fw-medium d-block">김하율 (VVIP)</span>
-                            <small class="text-muted">Client User</small>
+    .stat-card {
+      transition: transform 0.2s;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-5px);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="layout-wrapper layout-content-navbar">
+    <div class="layout-container">
+
+      <!-- Sidebar Menu -->
+      <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
+        <!-- sidebar.js 가 런타임에 동적으로 삽입 -->
+      </aside>
+
+      <div class="layout-page">
+        <!-- Navbar -->
+        <nav
+          class="layout-navbar container-xxl navbar navbar-expand-xl navbar-detached align-items-center bg-navbar-theme"
+          id="layout-navbar">
+          <div class="layout-menu-toggle navbar-nav align-items-xl-center me-4 me-xl-0 d-xl-none">
+            <a class="nav-item nav-link px-0 me-xl-6" href="javascript:void(0)">
+              <i class="bx bx-menu bx-sm"></i>
+            </a>
+          </div>
+          <div class="navbar-nav-right d-flex align-items-center" id="navbar-collapse">
+            <h5 class="mb-0 fw-bold"><i class="bx bx-help-circle me-2 text-primary"></i>1:1 고객 문의 접수</h5>
+            <ul class="navbar-nav flex-row align-items-center ms-auto">
+              <li class="nav-item dropdown-user dropdown">
+                <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown">
+                  <div class="avatar avatar-online">
+                    <img src="/assets/img/avatars/1.png" class="w-px-40 h-auto rounded-circle" />
+                  </div>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end">
+                  <li>
+                    <a class="dropdown-item" href="#">
+                      <div class="d-flex">
+                        <div class="flex-shrink-0 me-3">
+                          <div class="avatar avatar-online">
+                            <img src="/assets/img/avatars/1.png" class="w-px-40 h-auto rounded-circle" />
                           </div>
                         </div>
-                      </a>
-                    </li>
-                  </ul>
-                </li>
-              </ul>
-            </div>
-          </nav>
+                        <div class="flex-grow-1">
+                          <span class="fw-medium d-block">김하율 (VVIP)</span>
+                          <small class="text-muted">Client User</small>
+                        </div>
+                      </div>
+                    </a>
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+        </nav>
 
-          <!-- Content wrapper -->
-          <div class="content-wrapper">
-            <div class="container-xxl flex-grow-1 container-p-y">
-              
-<div class="row">
-  <div class="col-lg-6 mb-6">
-    <div class="card h-100">
-      <div class="card-header">
-        <h5 class="card-title m-0 fw-semibold">1:1 고객 문의 접수 폼</h5>
-      </div>
-      <div class="card-body">
-        <form>
-          <div class="mb-3">
-            <label class="form-label">문의 카테고리</label>
-            <select class="form-select" id="inqCategory">
-              <option value="payment">결제 및 환불 문의</option>
-              <option value="gate">게이트 출입 / QR 오류</option>
-              <option value="order">F&B O2O 주문 취소</option>
-              <option value="other">기타 안내사항</option>
-            </select>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">문의 제목</label>
-            <input type="text" class="form-control" id="inqTitle" placeholder="문의 사항의 제목을 적어주세요." />
-          </div>
-          <div class="mb-4">
-            <label class="form-label">문의 상세 내용</label>
-            <textarea class="form-control" id="inqContent" rows="6" placeholder="상담원이 빠른 파악을 할 수 있도록 정확한 상점명 및 주문 번호 등을 적어주시면 큰 도움이 됩니다."></textarea>
-          </div>
-          <button type="button" class="btn btn-primary w-100" id="submitInquiryBtn">1:1 문의 신청하기</button>
-        </form>
-      </div>
-    </div>
-  </div>
+        <!-- Content wrapper -->
+        <div class="content-wrapper">
+          <div class="container-xxl flex-grow-1 container-p-y">
 
-  <div class="col-lg-6 mb-6">
-    <div class="card h-100">
-      <div class="card-header border-bottom">
-        <h5 class="card-title m-0 fw-semibold">나의 최근 1:1 문의 내역</h5>
-      </div>
-      <div class="list-group list-group-flush" id="inquiryList">
-        <div class="list-group-item py-4">
-          <div class="d-flex justify-content-between mb-2">
-            <strong class="text-primary">[결제 및 환불] 가상 페이 즉시 환불 소요 시간 문의</strong>
-            <span class="badge bg-success">답변완료</span>
-          </div>
-          <p class="text-muted fs-7 mb-2">안녕하세요. 안 쓰고 남은 페이는 축제 폐막 후에 카드사 수수료가 드는지, 그리고 언제 통장으로 돌려받을 수 있는지 궁금해요.</p>
-          <div class="bg-light p-3 rounded mt-2">
-            <strong class="text-dark fs-7 d-block mb-1">상담사 답변 (2026-05-27 16:32)</strong>
-            <span class="text-muted fs-7">안녕하세요, 김하율 고객님! 충전 후 남은 금액은 폐막과 동시에 결제 수단으로 수수료 0원 전액 환불됩니다. 계좌 환불의 경우 즉시, 카드의 경우 영업일 기준 2~3일 소요됩니다.</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-            </div>
-
-            <!-- Footer -->
-            <footer class="content-footer footer bg-footer-theme">
-              <div class="container-xxl d-flex flex-wrap justify-content-between py-2 flex-md-row flex-column">
-                <div class="mb-2 mb-md-0">
-                  © <script>document.write(new Date().getFullYear());</script> FASTIVAL O2O
+            <!-- 대시보드 요약 통계 -->
+            <div class="row mb-4">
+              <div class="col-sm-6 col-lg-3 mb-4">
+                <div class="card card-border-shadow-primary h-100"
+                  style="box-shadow: 0 4px 14px rgba(0,0,0,0.05); border-radius: 12px; border-left: 4px solid var(--bs-primary);">
+                  <div class="card-body">
+                    <div class="d-flex align-items-center mb-2 pb-1">
+                      <div class="avatar me-2">
+                        <span class="avatar-initial rounded bg-label-primary"><i class="bx bx-message-dots"></i></span>
+                      </div>
+                      <h4 class="ms-1 mb-0" id="statTotalInquiries">0</h4>
+                    </div>
+                    <p class="mb-1" style="font-weight: 500;">접수된 총 문의</p>
+                    <p class="mb-0 text-muted" style="font-size: 0.8rem;">고객이 남긴 전체 행사 문의</p>
+                  </div>
                 </div>
               </div>
-            </footer>
+              <div class="col-sm-6 col-lg-3 mb-4">
+                <div class="card card-border-shadow-warning h-100"
+                  style="box-shadow: 0 4px 14px rgba(0,0,0,0.05); border-radius: 12px; border-left: 4px solid var(--bs-warning);">
+                  <div class="card-body">
+                    <div class="d-flex align-items-center mb-2 pb-1">
+                      <div class="avatar me-2">
+                        <span class="avatar-initial rounded bg-label-warning"><i class="bx bx-time-five"></i></span>
+                      </div>
+                      <h4 class="ms-1 mb-0" id="statUnanswered">0</h4>
+                    </div>
+                    <p class="mb-1" style="font-weight: 500;">미답변 문의</p>
+                    <p class="mb-0 text-muted" style="font-size: 0.8rem;">신속한 답변이 필요합니다</p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-sm-6 col-lg-3 mb-4">
+                <div class="card card-border-shadow-success h-100"
+                  style="box-shadow: 0 4px 14px rgba(0,0,0,0.05); border-radius: 12px; border-left: 4px solid var(--bs-success);">
+                  <div class="card-body">
+                    <div class="d-flex align-items-center mb-2 pb-1">
+                      <div class="avatar me-2">
+                        <span class="avatar-initial rounded bg-label-success"><i class="bx bx-star"></i></span>
+                      </div>
+                      <h4 class="ms-1 mb-0" id="statAvgRating">0.0</h4>
+                    </div>
+                    <p class="mb-1" style="font-weight: 500;">고객 만족도</p>
+                    <p class="mb-0 text-muted" style="font-size: 0.8rem;">답변 평가 평균 별점</p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-sm-6 col-lg-3 mb-4">
+                <div class="card card-border-shadow-danger h-100"
+                  style="box-shadow: 0 4px 14px rgba(0,0,0,0.05); border-radius: 12px; border-left: 4px solid var(--bs-danger);">
+                  <div class="card-body">
+                    <div class="d-flex align-items-center mb-2 pb-1">
+                      <div class="avatar me-2">
+                        <span class="avatar-initial rounded bg-label-danger"><i class="bx bx-error"></i></span>
+                      </div>
+                      <h4 class="ms-1 mb-0" id="statComplaints">0</h4>
+                    </div>
+                    <p class="mb-1" style="font-weight: 500;">악성/컴플레인 문의</p>
+                    <p class="mb-0 text-muted" style="font-size: 0.8rem;">본사/관리자 주의 요망</p>
+                  </div>
+                </div>
+              </div>
+            </div>
 
-            <div class="content-backdrop fade"></div>
+            <div class="row">
+              <!-- 좌측: 관리자 문의 작성 폼 -->
+              <div class="col-lg-5 mb-6">
+                <div class="card h-100">
+                  <div class="card-header">
+                    <h5 class="card-title m-0 fw-semibold">1:1 관리자 문의 접수 폼</h5>
+                  </div>
+                  <div class="card-body">
+                    <form>
+                      <div class="mb-3">
+                        <label class="form-label">문의 카테고리</label>
+                        <select class="form-select" id="inqCategory">
+                          <option value="payment">결제 및 환불 문의</option>
+                          <option value="gate">게이트 출입 / QR 오류</option>
+                          <option value="order">F&B O2O 주문 취소</option>
+                          <option value="other">기타 안내사항</option>
+                        </select>
+                      </div>
+                      <div class="mb-3">
+                        <label class="form-label">문의 제목</label>
+                        <input type="text" class="form-control" id="inqTitle" placeholder="문의 사항의 제목을 적어주세요." />
+                      </div>
+                      <div class="mb-4">
+                        <label class="form-label">문의 상세 내용</label>
+                        <textarea class="form-control" id="inqContent" rows="6"
+                          placeholder="상담원이 빠른 파악을 할 수 있도록 정확한 상점명 및 주문 번호 등을 적어주시면 큰 도움이 됩니다."></textarea>
+                      </div>
+                      <button type="button" class="btn btn-primary w-100" id="submitInquiryBtn">1:1 문의 신청하기</button>
+                    </form>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 우측: 고객 문의 수신 및 내 문의 내역 -->
+              <div class="col-lg-7 mb-6">
+                <div class="nav-align-top mb-4">
+                  <ul class="nav nav-tabs" role="tablist">
+                    <li class="nav-item">
+                      <button type="button" class="nav-link active" role="tab" data-bs-toggle="tab"
+                        data-bs-target="#navs-customer-inquiry" aria-controls="navs-customer-inquiry"
+                        aria-selected="true">
+                        고객 행사 문의 수신 내역
+                        <span class="badge rounded-pill badge-center h-px-20 w-px-20 bg-danger ms-1"
+                          id="customerInqCount">0</span>
+                      </button>
+                    </li>
+                    <li class="nav-item">
+                      <button type="button" class="nav-link" role="tab" data-bs-toggle="tab"
+                        data-bs-target="#navs-my-inquiry" aria-controls="navs-my-inquiry" aria-selected="false">
+                        나의 관리자 문의 내역
+                      </button>
+                    </li>
+                  </ul>
+                  <div class="tab-content" style="padding: 1.5rem 0;">
+                    <!-- 고객 행사 문의 수신 내역 탭 -->
+                    <div class="tab-pane fade show active" id="navs-customer-inquiry" role="tabpanel">
+                      <div class="list-group list-group-flush" id="customerInquiryList">
+                        <!-- JS 동적 렌더링 -->
+                      </div>
+                    </div>
+
+                    <!-- 나의 관리자 문의 내역 탭 -->
+                    <div class="tab-pane fade" id="navs-my-inquiry" role="tabpanel">
+                      <div class="list-group list-group-flush" id="myInquiryList">
+                        <!-- JS 동적 렌더링 -->
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
           </div>
+
+          <!-- Footer -->
+          <footer class="content-footer footer bg-footer-theme">
+            <div class="container-xxl d-flex flex-wrap justify-content-between py-2 flex-md-row flex-column">
+              <div class="mb-2 mb-md-0">
+                ©
+                <script>document.write(new Date().getFullYear());</script> FASTIVAL O2O
+              </div>
+            </div>
+          </footer>
+
+          <div class="content-backdrop fade"></div>
         </div>
       </div>
-      <div class="layout-overlay layout-menu-toggle"></div>
     </div>
+    <div class="layout-overlay layout-menu-toggle"></div>
+  </div>
 
-    <!-- Scripts -->
-    <script src="/assets/vendor/libs/jquery/jquery.js"></script>
-    <script src="/assets/vendor/libs/popper/popper.js"></script>
-    <script src="/assets/vendor/js/bootstrap.js"></script>
-    <script src="/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
-    <script src="/assets/vendor/js/menu.js"></script>
-    <script src="/assets/vendor/libs/apex-charts/apexcharts.js"></script>
-    <script src="/assets/js/main.js"></script>
-    <script src="/assets/js/sidebar.js"></script>
-    
-<script>
-  document.getElementById('submitInquiryBtn').addEventListener('click', function() {
-    const title = document.getElementById('inqTitle').value;
-    const content = document.getElementById('inqContent').value;
-    if(!title || !content) {
-      alert("⚠️ 문의 제목과 상세 내용을 입력해 주세요.");
-      return;
+  <!-- Scripts -->
+  <script src="/assets/vendor/libs/jquery/jquery.js"></script>
+  <script src="/assets/vendor/libs/popper/popper.js"></script>
+  <script src="/assets/vendor/js/bootstrap.js"></script>
+  <script src="/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
+  <script src="/assets/vendor/js/menu.js"></script>
+  <script src="/assets/vendor/libs/apex-charts/apexcharts.js"></script>
+  <script src="/assets/js/mock-realtime.js"></script>
+  <script src="/assets/js/main.js"></script>
+  <script src="/assets/js/sidebar.js"></script>
+
+  <script>
+    let wsClient = null;
+
+    document.addEventListener("DOMContentLoaded", () => {
+      // Mock WebSocket 초기화
+      if (window.MockWebSocket) {
+        wsClient = new MockWebSocket('ws://localhost:8080/ws');
+        wsClient.addEventListener('message', (e) => {
+          loadInquiries();
+        });
+      } else {
+        window.addEventListener('storage', (e) => {
+          if (e.key === 'mock_ws_message') loadInquiries();
+        });
+      }
+
+      loadInquiries();
+
+      document.getElementById('submitInquiryBtn').addEventListener('click', function () {
+        const title = document.getElementById('inqTitle').value.trim();
+        const content = document.getElementById('inqContent').value.trim();
+        const category = document.getElementById('inqCategory').options[document.getElementById('inqCategory').selectedIndex].text;
+
+        if (!title || !content) {
+          alert("⚠️ 문의 제목과 상세 내용을 입력해 주세요.");
+          return;
+        }
+
+        const newInq = {
+          id: Date.now(),
+          author: 'vendor', // 가맹점이 관리자에게
+          category: category,
+          title: title,
+          content: content,
+          status: '대기',
+          answer: null,
+          target: 'admin',
+          createdAt: new Date().toISOString()
+        };
+
+        if (window.InquiryStore) {
+          window.InquiryStore.add('inquiries_to_admin', newInq);
+          if (wsClient) {
+            wsClient.send({ type: 'NEW_VENDOR_INQUIRY', payload: newInq });
+          } else {
+            localStorage.setItem('mock_ws_message', JSON.stringify({ type: 'NEW_VENDOR_INQUIRY' }));
+            setTimeout(() => localStorage.removeItem('mock_ws_message'), 50);
+          }
+        }
+
+        alert("💬 문의가 성공적으로 접수되었습니다. 통합 마스터 챗 관제탑에 전달되었으며 답변 시 즉시 푸시 알림이 발송됩니다!");
+        document.getElementById('inqTitle').value = "";
+        document.getElementById('inqContent').value = "";
+        loadInquiries();
+      });
+    });
+
+    function loadInquiries() {
+      if (!window.InquiryStore) return;
+
+      // 고객 -> 업체로 온 문의
+      const customerInqs = window.InquiryStore.get('inquiries_customer_to_vendor') || [];
+      const sortedCustomerInqs = customerInqs.sort((a, b) => b.id - a.id);
+
+      // 대시보드 통계 계산
+      const totalInqs = sortedCustomerInqs.length;
+      const unansweredInqs = sortedCustomerInqs.filter(q => q.status !== '답변완료').length;
+
+      const ratedInqs = sortedCustomerInqs.filter(q => q.rating > 0);
+      const avgRating = ratedInqs.length > 0
+        ? (ratedInqs.reduce((acc, curr) => acc + parseFloat(curr.rating), 0) / ratedInqs.length).toFixed(1)
+        : '0.0';
+
+      const complaintsCount = sortedCustomerInqs.filter(q => q.isComplaint).length;
+
+      // 통계 UI 갱신
+      document.getElementById('statTotalInquiries').textContent = totalInqs;
+      document.getElementById('statUnanswered').textContent = unansweredInqs;
+      document.getElementById('statAvgRating').textContent = avgRating;
+      document.getElementById('statComplaints').textContent = complaintsCount;
+
+      renderCustomerInquiries(sortedCustomerInqs);
+
+      // 업체 -> 관리자로 보낸 내 문의
+      const myInqs = window.InquiryStore.get('inquiries_to_admin') || [];
+      renderMyInquiries(myInqs.filter(q => q.author === 'vendor').sort((a, b) => b.id - a.id));
     }
-    alert("💬 문의가 성공적으로 접수되었습니다. 통합 마스터 챗 관제탑에 전달되었으며 답변 시 즉시 푸시 알림이 발송됩니다!");
-    document.getElementById('inqTitle').value = "";
-    document.getElementById('inqContent').value = "";
-  });
-</script>
 
-  </body>
+
+    window.toggleAccordion = function (id) {
+      const content = document.getElementById('acc-' + id);
+      const arrow = document.getElementById('arrow-' + id);
+      if (content.style.display === 'none') {
+        content.style.display = 'block';
+        if (arrow) arrow.style.transform = 'rotate(180deg)';
+      } else {
+        content.style.display = 'none';
+        if (arrow) arrow.style.transform = 'rotate(0deg)';
+      }
+    };
+
+    function renderCustomerInquiries(list) {
+      const container = document.getElementById('customerInquiryList');
+      document.getElementById('customerInqCount').textContent = list.length;
+
+      if (list.length === 0) {
+        container.innerHTML = `<div class="text-center p-4 text-muted">아직 수신된 고객 행사 문의가 없습니다.</div>`;
+        return;
+      }
+
+      container.innerHTML = list.map(q => {
+        const ratingStr = q.rating > 0 ? `<span style="color:#ffb400; font-weight:600;">★ ${q.rating}</span>` : `<span class="text-muted" style="font-size:0.8rem;">평가 없음</span>`;
+        const helpfulStr = q.helpful ? `<span class="badge bg-primary ms-2" style="font-size:0.7rem;">👍 도움됨</span>` : '';
+        const complaintStr = q.isComplaint ? `<span class="badge bg-danger ms-2" style="font-size:0.7rem;">악성 신고</span>` : '';
+
+        return `
+        <div class="card mb-3 shadow-sm" style="border-radius:12px; border:1px solid #f1f1f5;">
+          <div class="card-header bg-white py-3" style="cursor:pointer; display:flex; justify-content:space-between; align-items:center; border-bottom: none;" onclick="toggleAccordion('cust-${q.id}')">
+            <div>
+              <h5 class="mb-1 fw-bold text-dark" style="font-size:1.05rem;">${q.title}</h5>
+              <div style="font-size:0.8rem; color:var(--text-muted);">
+                ${new Date(q.createdAt).toLocaleString()} 
+                <span class="ms-2">|</span> 
+                <span class="ms-2">고객 만족도: ${ratingStr} ${helpfulStr} ${complaintStr}</span>
+              </div>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+              <span class="badge ${q.status === '답변완료' ? 'bg-success' : 'bg-warning'}">${q.status}</span>
+              <svg id="arrow-cust-${q.id}" class="icon text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px; height:20px; transition:transform 0.3s;"><path d="M6 9l6 6 6-6"/></svg>
+            </div>
+          </div>
+          
+          <div id="acc-cust-${q.id}" style="display:none; padding: 0 1.5rem 1.5rem 1.5rem; border-top:1px solid #f1f1f5; padding-top:1rem;">
+            <p class="text-dark fs-6 mb-3">${q.content}</p>
+            <div class="d-flex mb-3">
+              <div style="width:60px; height:60px; background:#f8fafc; border-radius:8px; display:flex; align-items:center; justify-content:center; color:#94a3b8; font-size:0.7rem; border:1px dashed #cbd5e1;">이미지(0)</div>
+            </div>
+            
+            ${q.answer ? `
+              <div class="bg-label-primary p-3 rounded mt-3" style="border-left: 4px solid var(--bs-primary);">
+                <strong class="text-primary fs-6 d-block mb-2">나의 답변</strong>
+                <span class="text-dark fs-6">${q.answer}</span>
+              </div>
+            ` : `
+              <div class="mt-4 p-3 bg-light rounded" style="border: 1px solid #e2e8f0;">
+                <label class="form-label fw-bold text-dark">고객에게 답변 달기</label>
+                <textarea id="reply-input-${q.id}" class="form-control mb-2" rows="3" placeholder="친절한 답변을 작성해주세요..."></textarea>
+                <div class="d-flex justify-content-between align-items-center">
+                  <div class="form-check form-switch mb-0">
+                    <input class="form-check-input" type="checkbox" id="complaint-check-${q.id}">
+                    <label class="form-check-label text-danger" for="complaint-check-${q.id}" style="font-size:0.85rem;">악성/컴플레인 문의로 분류 (본사에 통보)</label>
+                  </div>
+                  <button class="btn btn-primary btn-sm px-4" onclick="sendReply(${q.id}, 'customer')"><i class="bx bx-paper-plane me-1"></i>답변 등록</button>
+                </div>
+              </div>
+            `}
+          </div>
+        </div>
+      `;
+      }).join('');
+    }
+
+    function renderMyInquiries(list) {
+      const container = document.getElementById('myInquiryList');
+      if (list.length === 0) {
+        container.innerHTML = `<div class="text-center p-4 text-muted">등록한 관리자 문의 내역이 없습니다.</div>`;
+        return;
+      }
+
+      container.innerHTML = list.map(q => `
+        <div class="card mb-3 shadow-sm" style="border-radius:12px; border:1px solid #f1f1f5;">
+          <div class="card-header bg-white py-3" style="cursor:pointer; display:flex; justify-content:space-between; align-items:center; border-bottom: none;" onclick="toggleAccordion('my-${q.id}')">
+            <div>
+              <span class="badge bg-label-secondary mb-1">${q.category || '문의'}</span>
+              <h5 class="mb-1 fw-bold text-dark" style="font-size:1.05rem;">${q.title}</h5>
+              <div style="font-size:0.8rem; color:var(--text-muted);">
+                ${new Date(q.createdAt).toLocaleString()}
+              </div>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+              <span class="badge ${q.status === '답변완료' ? 'bg-success' : 'bg-warning'}">${q.status}</span>
+              <svg id="arrow-my-${q.id}" class="icon text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:20px; height:20px; transition:transform 0.3s;"><path d="M6 9l6 6 6-6"/></svg>
+            </div>
+          </div>
+          
+          <div id="acc-my-${q.id}" style="display:none; padding: 0 1.5rem 1.5rem 1.5rem; border-top:1px solid #f1f1f5; padding-top:1rem;">
+            <p class="text-dark fs-6 mb-3">${q.content}</p>
+            
+            ${q.answer ? `
+              <div class="bg-label-info p-3 rounded mt-3" style="border-left: 4px solid var(--bs-info);">
+                <strong class="text-info fs-6 d-block mb-2">본사 관리자 답변</strong>
+                <span class="text-dark fs-6">${q.answer}</span>
+              </div>
+            ` : `
+              <div class="text-muted fs-7 mt-3"><i class="bx bx-time me-1"></i>본사 답변을 기다리고 있습니다.</div>
+            `}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    window.sendReply = function (id, type) {
+      if (type === 'customer') {
+        const input = document.getElementById(`reply-input-${id}`);
+        const chk = document.getElementById(`complaint-check-${id}`);
+        if (!input || !input.value.trim()) {
+          alert('답변 내용을 입력해주세요.');
+          return;
+        }
+
+        const answerText = input.value.trim();
+        const isComplaint = chk ? chk.checked : false;
+
+        window.InquiryStore.update('inquiries_customer_to_vendor', id, {
+          answer: answerText,
+          status: '답변완료',
+          isComplaint: isComplaint
+        });
+
+        if (wsClient) {
+          wsClient.send({ type: 'REPLY_INQUIRY', payload: { id } });
+        } else {
+          localStorage.setItem('mock_ws_message', JSON.stringify({ type: 'REPLY_INQUIRY' }));
+          setTimeout(() => localStorage.removeItem('mock_ws_message'), 50);
+        }
+
+        loadInquiries();
+      }
+    }
+  </script>
+
+</body>
+
 </html>

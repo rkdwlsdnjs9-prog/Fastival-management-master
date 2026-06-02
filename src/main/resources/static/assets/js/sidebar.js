@@ -124,10 +124,15 @@ document.addEventListener("DOMContentLoaded", function () {
             url: "/features/user/client/pay-ledger.html"
         },
         {
-            type: "item",
-            text: "[문의] 1:1 고객 문의 접수",
+            type: "submenu",
+            text: "[문의] 1:1 답변 및 상담",
             icon: "bx bx-help-circle",
-            url: "/features/support/client/inquiry-form.html"
+            children: [
+                {
+                    text: "1:1 업체 문의 및 상담",
+                    url: "/features/support/client/inquiry-form.html"
+                }
+            ]
         },
         {
             type: "header",
@@ -205,7 +210,7 @@ document.addEventListener("DOMContentLoaded", function () {
         } else if (node.type === "item") {
             const hasTabParam = node.url.includes("?tab=festivals");
             const isCurrentTabFestivals = window.location.search.includes("tab=festivals");
-            
+
             let isActive = false;
             if (path === "/features/user/admin/dashboard.html") {
                 if (hasTabParam && isCurrentTabFestivals) {
@@ -216,13 +221,37 @@ document.addEventListener("DOMContentLoaded", function () {
             } else {
                 isActive = path === node.url || (node.url === "/features/user/admin/dashboard.html" && (path === "/" || path === "/html/index.html" || path === "/index.html"));
             }
-            
+
             html += `
             <li class="menu-item ${isActive ? 'active' : ''}">
                 <a href="${node.url}" class="menu-link">
                     <i class="menu-icon tf-icons ${node.icon}"></i>
                     <div class="text-truncate">${node.text}</div>
                 </a>
+            </li>
+            `;
+        } else if (node.type === "submenu") {
+            let isActiveSubmenu = node.children.some(child => path === child.url);
+            html += `
+            <li class="menu-item ${isActiveSubmenu ? 'active open' : ''}">
+                <a href="javascript:void(0);" class="menu-link menu-toggle">
+                    <i class="menu-icon tf-icons ${node.icon}"></i>
+                    <div class="text-truncate">${node.text}</div>
+                </a>
+                <ul class="menu-sub">
+            `;
+            node.children.forEach(child => {
+                let isActiveChild = path === child.url;
+                html += `
+                    <li class="menu-item ${isActiveChild ? 'active' : ''}">
+                        <a href="${child.url}" class="menu-link">
+                            <div class="text-truncate">${child.text}</div>
+                        </a>
+                    </li>
+                `;
+            });
+            html += `
+                </ul>
             </li>
             `;
         }
@@ -237,12 +266,12 @@ document.addEventListener("DOMContentLoaded", function () {
             if (window.Helpers && window.Helpers.mainMenu && typeof window.Helpers.mainMenu.destroy === 'function') {
                 window.Helpers.mainMenu.destroy();
             }
-            
+
             const menuInstance = new Menu(layoutMenu, {
                 orientation: 'vertical',
                 closeChildren: false
             });
-            
+
             if (window.Helpers) {
                 window.Helpers.scrollToActive(false);
                 window.Helpers.mainMenu = menuInstance;

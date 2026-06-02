@@ -1,162 +1,389 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="ko" class="layout-menu-fixed layout-compact" data-assets-path="/assets/" data-template="vertical-menu-template-free">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
-    <title>1:1 고객센터 - FASTIVAL O2O</title>
 
-    <link rel="icon" type="image/x-icon" href="/assets/img/favicon/favicon.ico" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="/assets/vendor/fonts/iconify-icons.css" />
-    <link rel="stylesheet" href="/assets/vendor/css/core.css" />
-    <link rel="stylesheet" href="/assets/css/demo.css" />
-    <link rel="stylesheet" href="/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
-    <link rel="stylesheet" href="/assets/vendor/libs/apex-charts/apex-charts.css" />
-    <script src="/assets/vendor/js/helpers.js"></script>
-    <script src="/assets/js/config.js"></script>
-    <style>
-      .premium-gradient {
-        background: linear-gradient(135deg, #696cff 0%, #a2a4ff 100%);
-        color: white;
-      }
-      .stat-card {
-        transition: transform 0.2s;
-      }
-      .stat-card:hover {
-        transform: translateY(-5px);
-      }
-    </style>
-  </head>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+  <title>1:1 고객센터 - FASTIVAL O2O</title>
 
-  <body>
-    <div class="layout-wrapper layout-content-navbar">
-      <div class="layout-container">
-        
-        <!-- Sidebar Menu -->
-        <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
-          <!-- sidebar.js 가 런타임에 동적으로 삽입 -->
-        </aside>
+  <link rel="icon" type="image/x-icon" href="/assets/img/favicon/favicon.ico" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="/assets/vendor/fonts/iconify-icons.css" />
+  <link rel="stylesheet" href="/assets/vendor/css/core.css" />
+  <link rel="stylesheet" href="/assets/css/demo.css" />
+  <link rel="stylesheet" href="/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
+  <link rel="stylesheet" href="/assets/vendor/libs/apex-charts/apex-charts.css" />
+  <script src="/assets/vendor/js/helpers.js"></script>
+  <script src="/assets/js/config.js"></script>
+  <style>
+    .premium-gradient {
+      background: linear-gradient(135deg, #696cff 0%, #a2a4ff 100%);
+      color: white;
+    }
 
-        <div class="layout-page">
-          <!-- Navbar -->
-          <nav class="layout-navbar container-xxl navbar navbar-expand-xl navbar-detached align-items-center bg-navbar-theme" id="layout-navbar">
-            <div class="layout-menu-toggle navbar-nav align-items-xl-center me-4 me-xl-0 d-xl-none">
-              <a class="nav-item nav-link px-0 me-xl-6" href="javascript:void(0)">
-                <i class="bx bx-menu bx-sm"></i>
-              </a>
-            </div>
-            <div class="navbar-nav-right d-flex align-items-center" id="navbar-collapse">
-              <h5 class="mb-0 fw-bold"><i class="bx bx-support me-2 text-primary"></i>1:1 고객센터</h5>
-              <ul class="navbar-nav flex-row align-items-center ms-auto">
-                <li class="nav-item dropdown-user dropdown">
-                  <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown">
-                    <div class="avatar avatar-online">
-                      <img src="/assets/img/avatars/1.png" class="w-px-40 h-auto rounded-circle" />
-                    </div>
-                  </a>
-                  <ul class="dropdown-menu dropdown-menu-end">
-                    <li>
-                      <a class="dropdown-item" href="#">
-                        <div class="d-flex">
-                          <div class="flex-shrink-0 me-3">
-                            <div class="avatar avatar-online">
-                              <img src="/assets/img/avatars/1.png" class="w-px-40 h-auto rounded-circle" />
-                            </div>
-                          </div>
-                          <div class="flex-grow-1">
-                            <span class="fw-medium d-block">최고 관리자</span>
-                            <small class="text-muted">Master Admin</small>
+    .stat-card {
+      transition: transform 0.2s;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-5px);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="layout-wrapper layout-content-navbar">
+    <div class="layout-container">
+
+      <!-- Sidebar Menu -->
+      <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
+        <!-- sidebar.js 가 런타임에 동적으로 삽입 -->
+      </aside>
+
+      <div class="layout-page">
+        <!-- Navbar -->
+        <nav
+          class="layout-navbar container-xxl navbar navbar-expand-xl navbar-detached align-items-center bg-navbar-theme"
+          id="layout-navbar">
+          <div class="layout-menu-toggle navbar-nav align-items-xl-center me-4 me-xl-0 d-xl-none">
+            <a class="nav-item nav-link px-0 me-xl-6" href="javascript:void(0)">
+              <i class="bx bx-menu bx-sm"></i>
+            </a>
+          </div>
+          <div class="navbar-nav-right d-flex align-items-center" id="navbar-collapse">
+            <h5 class="mb-0 fw-bold"><i class="bx bx-support me-2 text-primary"></i>1:1 고객센터</h5>
+            <ul class="navbar-nav flex-row align-items-center ms-auto">
+              <li class="nav-item dropdown-user dropdown">
+                <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown">
+                  <div class="avatar avatar-online">
+                    <img src="/assets/img/avatars/1.png" class="w-px-40 h-auto rounded-circle" />
+                  </div>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end">
+                  <li>
+                    <a class="dropdown-item" href="#">
+                      <div class="d-flex">
+                        <div class="flex-shrink-0 me-3">
+                          <div class="avatar avatar-online">
+                            <img src="/assets/img/avatars/1.png" class="w-px-40 h-auto rounded-circle" />
                           </div>
                         </div>
-                      </a>
-                    </li>
-                  </ul>
-                </li>
-              </ul>
-            </div>
-          </nav>
-
-          <!-- Content wrapper -->
-          <div class="content-wrapper">
-            <div class="container-xxl flex-grow-1 container-p-y">
-              
-<div class="row">
-  <div class="col-lg-4 mb-6">
-    <div class="card h-100">
-      <div class="card-header">
-        <h5 class="card-title m-0 fw-semibold">실시간 문의 대기열</h5>
-      </div>
-      <div class="list-group list-group-flush">
-        <a href="javascript:void(0);" class="list-group-item list-group-item-action active d-flex justify-content-between align-items-center">
-          <div>
-            <h6 class="mb-1 text-white">홍길동 (VVIP)</h6>
-            <small class="text-white-50">O2O 픽업 상품 취소 문의</small>
+                        <div class="flex-grow-1">
+                          <span class="fw-medium d-block">최고 관리자</span>
+                          <small class="text-muted">Master Admin</small>
+                        </div>
+                      </div>
+                    </a>
+                  </li>
+                </ul>
+              </li>
+            </ul>
           </div>
-          <span class="badge bg-danger rounded-pill">신규</span>
-        </a>
-        <a href="javascript:void(0);" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-          <div>
-            <h6 class="mb-1">김철수 (GOLD)</h6>
-            <small class="text-muted">가상 페이 환불 소요 시간 문의</small>
-          </div>
-          <span class="badge bg-warning rounded-pill">대기</span>
-        </a>
-        <a href="javascript:void(0);" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-          <div>
-            <h6 class="mb-1">이영희 (일반)</h6>
-            <small class="text-muted">MD 대기줄 위치 안내 요청</small>
-          </div>
-          <span class="badge bg-secondary rounded-pill">완료</span>
-        </a>
-      </div>
-    </div>
-  </div>
+        </nav>
 
-  <div class="col-lg-8 mb-6">
-    <div class="card h-100">
-      <div class="card-header d-flex justify-content-between align-items-center border-bottom">
-        <h5 class="card-title m-0 fw-semibold">실시간 답변 등록 & 채팅</h5>
-        <span class="badge bg-label-danger">홍길동 회원과 상담 중</span>
-      </div>
-      <div class="card-body py-4" style="min-height: 250px; max-height: 250px; overflow-y: auto;">
-        <div class="d-flex flex-column align-items-start mb-4">
-          <div class="bg-label-secondary rounded p-2 px-3 mb-1">안녕하세요, 푸드트럭 B-3 구역 떡볶이를 주문했는데 갑자기 스탠딩 입장 대기줄이 밀려 픽업을 못 갈 것 같습니다. 주문 취소 및 환불이 가능한가요?</div>
-          <small class="text-muted">홍길동 - 16:30</small>
-        </div>
-        <div class="d-flex flex-column align-items-end mb-4">
-          <div class="bg-primary text-white rounded p-2 px-3 mb-1">안녕하세요, 고객님! 확인 결과 현재 조리가 시작되기 전 단계로 정상 취소가 가능합니다. 현장 예매 데스크 및 앱 내에서 바로 가상 페이로 즉시 취소/환불 도와드렸습니다.</div>
-          <small class="text-muted">상담사(봇) - 16:32</small>
-        </div>
-      </div>
-      <div class="card-footer border-top">
-        <div class="d-flex">
-          <input type="text" class="form-control me-2" placeholder="답변을 입력해 주세요..." />
-          <button class="btn btn-primary"><i class="bx bx-paper-plane"></i></button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
+        <!-- Content wrapper -->
+        <div class="content-wrapper">
+          <div class="container-xxl flex-grow-1 container-p-y">
 
-            </div>
-
-            <!-- Footer -->
-            <footer class="content-footer footer bg-footer-theme">
-              <div class="container-xxl d-flex flex-wrap justify-content-between py-2 flex-md-row flex-column">
-                <div class="mb-2 mb-md-0">
-                  © <script>document.write(new Date().getFullYear());</script> FASTIVAL O2O
+            <!-- 대시보드 요약 통계 -->
+            <div class="row mb-4">
+              <div class="col-sm-6 col-lg-3 mb-4">
+                <div class="card card-border-shadow-primary h-100"
+                  style="box-shadow: 0 4px 14px rgba(0,0,0,0.05); border-radius: 12px; border-left: 4px solid var(--bs-primary);">
+                  <div class="card-body">
+                    <div class="d-flex align-items-center mb-2 pb-1">
+                      <div class="avatar me-2">
+                        <span class="avatar-initial rounded bg-label-primary"><i class="bx bx-list-ul"></i></span>
+                      </div>
+                      <h4 class="ms-1 mb-0" id="statAdminTotal">0</h4>
+                    </div>
+                    <p class="mb-1" style="font-weight: 500;">전체 문의 수</p>
+                    <p class="mb-0 text-muted" style="font-size: 0.8rem;">고객 및 업체 발송 문의 총합</p>
+                  </div>
                 </div>
               </div>
-            </footer>
+              <div class="col-sm-6 col-lg-3 mb-4">
+                <div class="card card-border-shadow-warning h-100"
+                  style="box-shadow: 0 4px 14px rgba(0,0,0,0.05); border-radius: 12px; border-left: 4px solid var(--bs-warning);">
+                  <div class="card-body">
+                    <div class="d-flex align-items-center mb-2 pb-1">
+                      <div class="avatar me-2">
+                        <span class="avatar-initial rounded bg-label-warning"><i class="bx bx-time-five"></i></span>
+                      </div>
+                      <h4 class="ms-1 mb-0" id="statAdminUnanswered">0</h4>
+                    </div>
+                    <p class="mb-1" style="font-weight: 500;">답변 대기 중</p>
+                    <p class="mb-0 text-muted" style="font-size: 0.8rem;">신속한 처리가 필요합니다</p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-sm-6 col-lg-3 mb-4">
+                <div class="card card-border-shadow-success h-100"
+                  style="box-shadow: 0 4px 14px rgba(0,0,0,0.05); border-radius: 12px; border-left: 4px solid var(--bs-success);">
+                  <div class="card-body">
+                    <div class="d-flex align-items-center mb-2 pb-1">
+                      <div class="avatar me-2">
+                        <span class="avatar-initial rounded bg-label-success"><i class="bx bx-star"></i></span>
+                      </div>
+                      <h4 class="ms-1 mb-0" id="statAdminAvgRating">0.0</h4>
+                    </div>
+                    <p class="mb-1" style="font-weight: 500;">통합 만족도</p>
+                    <p class="mb-0 text-muted" style="font-size: 0.8rem;">답변 평가 평균 별점</p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-sm-6 col-lg-3 mb-4">
+                <div class="card card-border-shadow-danger h-100"
+                  style="box-shadow: 0 4px 14px rgba(0,0,0,0.05); border-radius: 12px; border-left: 4px solid var(--bs-danger);">
+                  <div class="card-body">
+                    <div class="d-flex align-items-center mb-2 pb-1">
+                      <div class="avatar me-2">
+                        <span class="avatar-initial rounded bg-label-danger"><i class="bx bx-error-alt"></i></span>
+                      </div>
+                      <h4 class="ms-1 mb-0" id="statAdminComplaints">0</h4>
+                    </div>
+                    <p class="mb-1" style="font-weight: 500;">악성/컴플레인 (블랙)</p>
+                    <p class="mb-0 text-muted" style="font-size: 0.8rem;">신고 접수된 주의 문의</p>
+                  </div>
+                </div>
+              </div>
+            </div>
 
-            <div class="content-backdrop fade"></div>
+            <div class="row">
+              <div class="col-lg-4 mb-6">
+                <div class="card h-100">
+                  <div class="card-header">
+                    <h5 class="card-title m-0 fw-semibold">실시간 문의 대기열</h5>
+                  </div>
+                  <div class="list-group list-group-flush" id="inquiryQueueList">
+                    <!-- JS 동적 렌더링 -->
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-lg-8 mb-6">
+                <div class="card h-100">
+                  <div class="card-header d-flex justify-content-between align-items-center border-bottom">
+                    <h5 class="card-title m-0 fw-semibold" id="chatHeaderTitle">실시간 답변 등록 & 채팅</h5>
+                  </div>
+                  <div class="card-body py-4" id="chatBody"
+                    style="min-height: 250px; max-height: 250px; overflow-y: auto;">
+                    <!-- JS 동적 렌더링 -->
+                  </div>
+                  <div class="card-footer border-top bg-light"
+                    style="border-radius: 0 0 0.5rem 0.5rem; display: flex; flex-direction: column; gap: 8px;">
+                    <div class="form-check form-switch mb-0" id="adminComplaintBox">
+                      <input class="form-check-input" type="checkbox" id="adminComplaintCheck">
+                      <label class="form-check-label text-danger" for="adminComplaintCheck"
+                        style="font-size: 0.85rem; font-weight: 500;">악성/컴플레인 문의로 분류</label>
+                    </div>
+                    <div class="d-flex">
+                      <input type="text" id="replyInput" class="form-control me-2" placeholder="답변을 입력해 주세요." />
+                      <button class="btn btn-primary" id="replyBtn"><i class="bx bx-paper-plane"></i></button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
           </div>
+
+          <!-- Footer -->
+          <footer class="content-footer footer bg-footer-theme">
+            <div class="container-xxl d-flex flex-wrap justify-content-between py-2 flex-md-row flex-column">
+              <div class="mb-2 mb-md-0">
+                ©
+                <script>document.write(new Date().getFullYear());</script> FASTIVAL O2O
+              </div>
+            </div>
+          </footer>
+
+          <div class="content-backdrop fade"></div>
         </div>
       </div>
-      <div class="layout-overlay layout-menu-toggle"></div>
     </div>
+    <div class="layout-overlay layout-menu-toggle"></div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="/assets/vendor/libs/jquery/jquery.js"></script>
+  <script src="/assets/vendor/libs/popper/popper.js"></script>
+  <script src="/assets/vendor/js/bootstrap.js"></script>
+  <script src="/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
+  <script src="/assets/vendor/js/menu.js"></script>
+  <script src="/assets/vendor/libs/apex-charts/apexcharts.js"></script>
+  <script src="/assets/js/mock-realtime.js"></script>
+  <script src="/assets/js/main.js"></script>
+  <script src="/assets/js/sidebar.js"></script>
+
+  <script>
+    let wsClient = null;
+    let currentInquiryId = null;
+
+    document.addEventListener("DOMContentLoaded", () => {
+      if (window.MockWebSocket) {
+        wsClient = new MockWebSocket('ws://localhost:8080/ws');
+        wsClient.addEventListener('message', (e) => {
+          loadAdminInquiries();
+        });
+      } else {
+        window.addEventListener('storage', (e) => {
+          if (e.key === 'mock_ws_message') loadAdminInquiries();
+        });
+      }
+      loadAdminInquiries();
+    });
+
+    function loadAdminInquiries() {
+      if (!window.InquiryStore) return;
+      const allInqs = window.InquiryStore.get('inquiries_to_admin') || [];
+      const sorted = allInqs.sort((a, b) => b.id - a.id);
+
+      // 대시보드 통계 연산
+      const totalInqs = sorted.length;
+      const unansweredInqs = sorted.filter(q => q.status !== '답변완료').length;
+      const ratedInqs = sorted.filter(q => q.rating > 0);
+      const avgRating = ratedInqs.length > 0 ? (ratedInqs.reduce((acc, curr) => acc + parseFloat(curr.rating), 0) / ratedInqs.length).toFixed(1) : '0.0';
+      const complaintsCount = sorted.filter(q => q.isComplaint).length;
+
+      document.getElementById('statAdminTotal').textContent = totalInqs;
+      document.getElementById('statAdminUnanswered').textContent = unansweredInqs;
+      document.getElementById('statAdminAvgRating').textContent = avgRating;
+      document.getElementById('statAdminComplaints').textContent = complaintsCount;
+
+      renderQueue(sorted);
+
+      if (currentInquiryId) {
+        const selected = sorted.find(q => q.id === currentInquiryId);
+        if (selected) {
+          renderChatDetail(selected);
+        } else {
+          clearChatDetail();
+        }
+      }
+    }
+
+    function renderQueue(list) {
+      const queueList = document.getElementById('inquiryQueueList');
+      if (!queueList) return;
+
+      if (list.length === 0) {
+        queueList.innerHTML = `<div class="p-3 text-center text-muted">대기 중인 문의가 없습니다.</div>`;
+        return;
+      }
+
+      queueList.innerHTML = list.map(q => {
+        const isSelected = q.id === currentInquiryId;
+        const statusBadge = q.status === '대기' ? '<span class="badge bg-danger rounded-pill">대기</span>' : '<span class="badge bg-secondary rounded-pill">완료</span>';
+        const complaintBadge = q.isComplaint ? '<span class="badge bg-danger ms-1" style="font-size:0.7rem;">블랙</span>' : '';
+        const ratingStr = q.rating > 0 ? `<span class="ms-1" style="color:#ffb400; font-size:0.75rem;">★${q.rating}</span>` : '';
+        return `
+        <a href="javascript:void(0);" onclick="selectInquiry(${q.id})" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center ${isSelected ? 'active shadow-sm' : ''}" style="transition: all 0.2s;">
+          <div class="d-flex flex-column" style="width: 75%;">
+            <h6 class="mb-1 text-truncate ${isSelected ? 'text-white' : 'text-dark'}">${q.author === 'vendor' ? '<span class="badge bg-info me-1">업체</span>' : '<span class="badge bg-primary me-1">고객</span>'} ${q.title}</h6>
+            <small class="${isSelected ? 'text-white-50' : 'text-muted'} text-truncate">${q.content}</small>
+          </div>
+          <div class="d-flex flex-column align-items-end">
+            ${statusBadge}
+            <div class="mt-1">${complaintBadge}${ratingStr}</div>
+          </div>
+        </a>
+      `;
+      }).join('');
+    }
+
+    window.selectInquiry = function (id) {
+      currentInquiryId = id;
+      loadAdminInquiries(); // 재렌더링하여 active 표시 및 우측 갱신
+    };
+
+    function renderChatDetail(q) {
+      const headerTitle = document.getElementById('chatHeaderTitle');
+      const chatBody = document.getElementById('chatBody');
+      const replyInput = document.getElementById('replyInput');
+      const replyBtn = document.getElementById('replyBtn');
+
+      if (headerTitle) headerTitle.textContent = `${q.author === 'vendor' ? '가맹점' : '일반고객'} 문의 진행 중 - ${q.title}`;
+
+      if (chatBody) {
+        const dateStr = new Date(q.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        let html = `
+        <div class="d-flex flex-column align-items-start mb-4">
+          <div class="bg-label-secondary rounded p-2 px-3 mb-1" style="max-width: 80%;">${q.content}</div>
+          <small class="text-muted">문의 작성자 - ${dateStr}</small>
+        </div>
+      `;
+
+        if (q.answer) {
+          html += `
+          <div class="d-flex flex-column align-items-end mb-4">
+            <div class="bg-primary text-white rounded p-2 px-3 mb-1" style="max-width: 80%;">${q.answer}</div>
+            <small class="text-muted">관리자(나)</small>
+          </div>
+        `;
+          if (replyInput) replyInput.disabled = true;
+          if (replyInput) replyInput.placeholder = "답변이 완료되었습니다.";
+          if (replyBtn) replyBtn.disabled = true;
+        } else {
+          if (replyInput) replyInput.disabled = false;
+          if (replyInput) replyInput.placeholder = "답변을 입력해 주세요...";
+          if (replyInput) replyInput.value = "";
+          if (replyBtn) replyBtn.disabled = false;
+          // reply btn onclick event attachment
+          if (replyBtn) {
+            replyBtn.onclick = function () {
+              sendAdminReply(q.id);
+            };
+          }
+          if (replyInput) {
+            replyInput.onkeypress = function (e) {
+              if (e.key === 'Enter') sendAdminReply(q.id);
+            }
+          }
+        }
+
+        chatBody.innerHTML = html;
+        chatBody.scrollTop = chatBody.scrollHeight; // 스크롤 맨 아래로
+      }
+    }
+
+    function clearChatDetail() {
+      const headerTitle = document.getElementById('chatHeaderTitle');
+      const chatBody = document.getElementById('chatBody');
+      if (headerTitle) headerTitle.textContent = '선택된 문의가 없습니다';
+      if (chatBody) chatBody.innerHTML = '<div class="text-center text-muted mt-5">좌측에서 문의를 선택해주세요.</div>';
+    }
+
+    window.sendAdminReply = function (id) {
+      const input = document.getElementById('replyInput');
+      const complaintCheck = document.getElementById('adminComplaintCheck');
+      if (!input || !input.value.trim()) return;
+
+      const answerText = input.value.trim();
+      const isComplaint = complaintCheck ? complaintCheck.checked : false;
+
+      window.InquiryStore.update('inquiries_to_admin', id, {
+        answer: answerText,
+        status: '답변완료',
+        isComplaint: isComplaint
+      });
+
+      if (wsClient) {
+        wsClient.send({ type: 'REPLY_INQUIRY', payload: { id } });
+      } else {
+        localStorage.setItem('mock_ws_message', JSON.stringify({ type: 'REPLY_INQUIRY' }));
+        setTimeout(() => localStorage.removeItem('mock_ws_message'), 50);
+      }
+
+      input.value = '';
+      if (complaintCheck) complaintCheck.checked = false;
+      loadAdminInquiries();
+    }
+  </script>
 
     <!-- Scripts -->
     <script src="/assets/vendor/libs/jquery/jquery.js"></script>
