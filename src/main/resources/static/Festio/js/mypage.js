@@ -175,11 +175,11 @@ const MOCK_TICKETS = [
     discountAmount: 10000,
     paymentStatus: 'PAID', // PAID, PENDING, CANCELLED
     itemStatus: '예매완료',
-    qrToken: 'WTRB-TKT-5629-8730'
+    qrToken: 'X9Y8Z7W6V5U4'
   },
   {
     reservationId: 'RES-20260530-109',
-    eventName: '2026 퀸즈 락 페스티벌',
+    eventName: '2026 락 페스티벌',
     eventDate: '2026.08.15 (토)',
     zoneName: '지정석 R석',
     quantity: 1,
@@ -187,7 +187,7 @@ const MOCK_TICKETS = [
     discountAmount: 0,
     paymentStatus: 'PAID',
     itemStatus: '입장완료',
-    qrToken: 'QN-ROCK-7712-1093'
+    qrToken: 'TA1B2C3D4E56'
   }
 ];
 
@@ -202,7 +202,7 @@ const MOCK_FOOD_ORDERS = [
     totalPrice: 24000,
     itemStatus: 'PREPARING', // ORDERED, PREPARING, READY, PICKED_UP
     statusText: '조리 중 (대기번호 14번)',
-    qrToken: 'FOOD-TRK-CHUNHYANG-45'
+    qrToken: 'FA1B2C3D4E56'
   },
   {
     orderItemId: 'ORD-20260529-077',
@@ -214,7 +214,7 @@ const MOCK_FOOD_ORDERS = [
     totalPrice: 15000,
     itemStatus: 'PICKED_UP',
     statusText: '수령 완료',
-    qrToken: 'FOOD-TRK-MAXBURGER-77'
+    qrToken: 'FF6E5D4C3B21'
   }
 ];
 
@@ -450,6 +450,7 @@ function getQrImageUrl(text, size) {
 
 /* 히어로 QR 카드에 QR 코드를 생성하는 함수 */
 function generateHeroQR(token) {
+  if (!token) return;
   const container = document.getElementById('qr-code-container');
   if (!container) {
     console.error('QR 컨테이너를 찾을 수 없음');
@@ -512,11 +513,11 @@ function generateModalQR(token) {
 let _currentQrToken = '';
 
 function showTicketQr(token) {
-  openQrModalView(token);
+  openQrModalView(token, 'TICKET');
 }
 
 function showFoodQr(token) {
-  openQrModalView(token);
+  openQrModalView(token, 'FOOD');
 }
 
 /* 모달 열기 (QR 크게보기) */
@@ -654,10 +655,11 @@ function updateQRTimerDisplay(sec) {
 
 /* 히어로 QR 초기화 + 이벤트 바인딩 */
 /* 12자리 대문자+숫자 QR 토큰 생성 (staff-scan-v2.js 호환 형식) */
-function generateQrToken() {
+function generateQrToken(prefix = 'T') {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  let token = '';
-  for (let i = 0; i < 12; i++) {
+  let token = prefix;
+  const remainingLength = 12 - prefix.length;
+  for (let i = 0; i < remainingLength; i++) {
     token += chars.charAt(Math.floor(Math.random() * chars.length));
   }
   return token;
@@ -666,7 +668,7 @@ function generateQrToken() {
 function initHeroQr() {
   // MOCK_TICKETS에 qrToken이 있으면 사용, 없으면 12자리 호환 토큰 생성
   const mockToken = MOCK_TICKETS && MOCK_TICKETS[0] && MOCK_TICKETS[0].qrToken;
-  const initialToken = mockToken || generateQrToken();
+  const initialToken = mockToken || generateQrToken('T');
   _currentQrToken = initialToken;
 
   console.log('QR 초기화, 토큰:', initialToken);
@@ -1050,26 +1052,46 @@ function renderMyReviewList() {
     list.innerHTML = '<div class="mypage-empty"><p class="mypage-empty-title">작성한 리뷰가 없습니다</p></div>';
     return;
   }
-  list.innerHTML = MOCK_REVIEWS.map(r => `
+  list.innerHTML = MOCK_REVIEWS.map(r => {
+    let starsHtml = '';
+    for(let i=1; i<=5; i++) {
+      if (i <= r.rating) starsHtml += '<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
+      else if (i === Math.ceil(r.rating) && !Number.isInteger(r.rating)) starsHtml += `<svg viewBox="0 0 24 24" width="20" height="20"><defs><linearGradient id="halfG-${r.id}-${i}"><stop offset="50%" stop-color="currentColor"/><stop offset="50%" stop-color="#ddd"/></linearGradient></defs><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" fill="url(#halfG-${r.id}-${i})"/></svg>`;
+      else starsHtml += '<svg viewBox="0 0 24 24" width="20" height="20" fill="#ddd"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
+    }
+
+    return `
     <div class="mp-card" id="review-card-${r.id}">
       <div class="mp-flex-between mp-margin-b-8">
         <h4 class="mp-card-title">${r.eventName}</h4>
-        <div class="mp-review-rating" style="color:#ffb400; font-weight:bold;">${'⭐️'.repeat(r.rating)} (${r.rating}.0)</div>
+        <div class="mp-review-rating" style="color:#ffb400; font-weight:bold; display:flex; align-items:center; gap:4px;">
+          <div style="display:flex; gap:2px; color:#ffb400;">${starsHtml}</div>
+          <span style="margin-left:4px;">(${Number(r.rating).toFixed(1)})</span>
+        </div>
       </div>
       <div class="review-content-wrapper" id="review-content-${r.id}">
         <p class="mp-card-meta mp-margin-b-8">${r.content}</p>
       </div>
       <div class="review-edit-wrapper hidden" id="review-edit-${r.id}">
-        <textarea class="form-input" id="edit-content-${r.id}" rows="3" style="width:100%; margin-bottom:8px;">${r.content}</textarea>
-        <div class="star-rating" id="edit-rating-${r.id}" style="margin-bottom:8px;">
+        <textarea class="form-input textarea-resize-y" id="edit-content-${r.id}" rows="3" style="width:100%; margin-bottom:12px; padding:12px; border-radius:12px; border:1px solid #d1d5db; background:#fafafa; transition:border-color 0.2s;">${r.content}</textarea>
+        
+        <div class="star-rating" id="edit-rating-${r.id}" data-selected-rating="${r.rating}" style="display:flex; gap:8px; margin-bottom:16px;">
           ${[1, 2, 3, 4, 5].map(star => `
-            <button class="star-btn ${star <= r.rating ? 'active' : ''}" data-star="${star}" onclick="setEditRating(${r.id}, ${star})">⭐</button>
+            <button class="star-btn ${star <= r.rating ? 'active' : (star === Math.ceil(r.rating) && !Number.isInteger(r.rating) ? 'half' : '')}" data-star="${star}" style="background:none; border:none; padding:0; width:32px; height:32px; cursor:pointer; color:${star <= Math.ceil(r.rating) ? '#ffb400' : '#ddd'};">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+              </svg>
+            </button>
           `).join('')}
         </div>
-        <button class="btn btn-sm btn-primary" onclick="saveInlineEdit(${r.id})" style="padding:4px 10px; font-size:0.8rem; margin-right:4px;">저장</button>
-        <button class="btn btn-sm btn-outline" onclick="cancelInlineEdit(${r.id})" style="padding:4px 10px; font-size:0.8rem;">취소</button>
+        
+        <!-- 버튼 우하단 배치, 크기/스타일 통일 -->
+        <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:8px;">
+          <button class="btn btn-primary" onclick="saveInlineEdit(${r.id})" style="padding:10px 24px; border-radius:12px; font-weight:700; background:linear-gradient(135deg, #8930F8 0%, #6b21c5 100%); color:white; border:none; box-shadow:0 4px 12px rgba(137,48,248,0.3); font-size:0.95rem;">저장</button>
+          <button class="btn btn-outline" onclick="cancelInlineEdit(${r.id})" style="padding:10px 24px; border-radius:12px; font-weight:600; color:#8930F8; border:1px solid #8930F8; background:transparent; font-size:0.95rem;">취소</button>
+        </div>
       </div>
-      <div style="display:flex; justify-content:space-between; align-items:center;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px;" id="review-actions-wrap-${r.id}">
         <span class="mp-inquiry-date">작성일: ${r.date}</span>
         <div id="review-actions-${r.id}">
           <button class="btn btn-sm btn-outline" onclick="enableInlineEdit(${r.id})" style="padding:4px 10px; font-size:0.8rem; margin-right:4px;">수정</button>
@@ -1077,7 +1099,8 @@ function renderMyReviewList() {
         </div>
       </div>
     </div>
-  `).join('');
+    `;
+  }).join('');
 }
 window.deleteReview = function (id) {
   if (!confirm('리뷰를 삭제하시겠습니까?')) return;
@@ -1089,28 +1112,76 @@ window.deleteReview = function (id) {
 window.enableInlineEdit = function (id) {
   const contentWrapper = document.getElementById(`review-content-${id}`);
   const editWrapper = document.getElementById(`review-edit-${id}`);
-  const actionsWrapper = document.getElementById(`review-actions-${id}`);
-  if (contentWrapper && editWrapper && actionsWrapper) {
+  const actionsWrap = document.getElementById(`review-actions-wrap-${id}`);
+  if (contentWrapper && editWrapper && actionsWrap) {
     contentWrapper.classList.add('hidden');
     editWrapper.classList.remove('hidden');
-    actionsWrapper.classList.add('hidden');
+    actionsWrap.classList.add('hidden');
+    
+    // Bind star events for half-rating
+    const ratingWrapper = document.getElementById(`edit-rating-${id}`);
+    if (ratingWrapper && !ratingWrapper.dataset.bound) {
+      ratingWrapper.dataset.bound = 'true';
+      const stars = ratingWrapper.querySelectorAll('.star-btn');
+      
+      const updateReviewStars = (rating) => {
+        ratingWrapper.dataset.selectedRating = rating;
+        stars.forEach(s => {
+          const sVal = parseInt(s.dataset.star);
+          s.classList.remove('active', 'half');
+          if (sVal <= rating) {
+            s.classList.add('active');
+            s.style.color = '#ffb400';
+          } else if (sVal === Math.ceil(rating) && !Number.isInteger(rating)) {
+            s.classList.add('half');
+            s.style.color = '#ffb400';
+          } else {
+            s.style.color = '#ddd';
+          }
+        });
+      };
+
+      stars.forEach(star => {
+        star.addEventListener('mousemove', (e) => {
+          const rect = star.getBoundingClientRect();
+          const clickX = e.clientX - rect.left;
+          const isHalf = clickX < rect.width / 2;
+          const baseVal = parseInt(star.dataset.star);
+          updateReviewStars(isHalf ? baseVal - 0.5 : baseVal);
+        });
+        star.addEventListener('click', (e) => {
+          e.preventDefault();
+          const rect = star.getBoundingClientRect();
+          const clickX = e.clientX - rect.left;
+          const isHalf = clickX < rect.width / 2;
+          const baseVal = parseInt(star.dataset.star);
+          updateReviewStars(isHalf ? baseVal - 0.5 : baseVal);
+        });
+      });
+      
+      ratingWrapper.addEventListener('mouseleave', () => {
+        const review = MOCK_REVIEWS.find(r => r.id === id);
+        updateReviewStars(review ? review.rating : 5);
+      });
+    }
   }
 };
 
 window.cancelInlineEdit = function (id) {
   const contentWrapper = document.getElementById(`review-content-${id}`);
   const editWrapper = document.getElementById(`review-edit-${id}`);
-  const actionsWrapper = document.getElementById(`review-actions-${id}`);
-  if (contentWrapper && editWrapper && actionsWrapper) {
+  const actionsWrap = document.getElementById(`review-actions-wrap-${id}`);
+  if (contentWrapper && editWrapper && actionsWrap) {
     contentWrapper.classList.remove('hidden');
     editWrapper.classList.add('hidden');
-    actionsWrapper.classList.remove('hidden');
+    actionsWrap.classList.remove('hidden');
   }
 };
 
 window.saveInlineEdit = function (id) {
   const content = document.getElementById(`edit-content-${id}`).value;
-  const rating = parseInt(document.querySelector(`#edit-rating-${id} .star-btn.active`)?.dataset.star || 5);
+  const ratingWrapper = document.getElementById(`edit-rating-${id}`);
+  const rating = ratingWrapper ? parseFloat(ratingWrapper.dataset.selectedRating) : 5;
   const review = MOCK_REVIEWS.find(r => r.id === id);
   if (review && content) {
     review.content = content;
@@ -1121,37 +1192,39 @@ window.saveInlineEdit = function (id) {
 };
 
 window.setEditRating = function (id, star) {
-  const ratingWrapper = document.getElementById(`edit-rating-${id}`);
-  if (ratingWrapper) {
-    ratingWrapper.querySelectorAll('.star-btn').forEach(btn => {
-      const btnStar = parseInt(btn.dataset.star);
-      if (btnStar <= star) {
-        btn.classList.add('active');
-      } else {
-        btn.classList.remove('active');
-      }
-    });
-  }
+  // Now handled by enableInlineEdit event binding
 };
 
 window.editReview = function (id) {
   const review = MOCK_REVIEWS.find(r => r.id === id);
   if (!review) return;
   document.getElementById('reviewContent').value = review.content;
-  // trigger UI for edit
+
   const reviewWrap = document.getElementById('reviewFormWrap');
   if (reviewWrap) reviewWrap.classList.remove('hidden');
+
+  const eventList = document.getElementById('reviewEventList');
+  if (eventList) eventList.style.display = 'none';
+
   document.getElementById('btn-submit-review').textContent = '리뷰 수정 완료';
   currentEditReviewId = id;
-  window.scrollTo({ top: document.getElementById('reviewFormWrap').offsetTop, behavior: 'smooth' });
+
+  const modal = document.getElementById('newReviewModal');
+  if (modal) modal.classList.add('active');
 };
 
 function initReviewForm() {
   if (!document.getElementById("half-star-css")) { document.head.insertAdjacentHTML("beforeend", `<style id="half-star-css">.star-btn{position:relative;} .star-btn.half{color:#ffb400;} .star-btn.half::after{content:"";position:absolute;top:0;left:0;width:50%;height:100%;background:currentColor;mix-blend-mode:color;} /* simple mockup */</style>`); }
+  
+  // Inject modal if it doesn't exist
+  if (!document.getElementById('newReviewModal')) {
+    document.body.insertAdjacentHTML('beforeend', `\n<div class="modal-overlay modal-center" id="newReviewModal" style="z-index: 9999;">\n  <div class="modal-sheet" style="max-width: 600px; width: 100%; max-height: 90vh; overflow-y: auto;">\n    <div class="modal-header">\n      <h3 class="modal-title">새로운 리뷰 작성</h3>\n      <button class="modal-close-btn" id="btn-close-review-modal" aria-label="닫기">\n        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">\n          <line x1="18" y1="6" x2="6" y2="18"></line>\n          <line x1="6" y1="6" x2="18" y2="18"></line>\n        </svg>\n      </button>\n    </div>\n    <div class="modal-body">\n      <div class="review-event-select" id="reviewEventList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-bottom: 32px;">\n      </div>\n      <div id="reviewFormWrap" class="hidden" style="background: #ffffff; border: 1px solid #e0e0e0; border-radius: 16px; padding: 32px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); margin-bottom: 40px;">\n        <h4 id="reviewFormEventTitle" style="margin-top: 0; margin-bottom: 24px; font-size: 1.1rem; color: #8930F8; font-weight: 700; border-bottom: 2px solid #f0f0f5; padding-bottom: 12px;">행사 이름</h4>\n        <div class="form-group" style="margin-bottom: 24px;">\n          <label class="form-label" style="color: #444; font-weight: 600; margin-bottom: 12px; display: block;">만족도를 평가해주세요</label>\n          <div class="star-rating" id="starRating" role="group" aria-label="별점 평가" style="display: flex; gap: 8px; justify-content: center; padding: 16px; background: #f9f9fb; border-radius: 12px;">\n            ${[1,2,3,4,5].map(star => `<button class="star-btn" data-star="${star}" aria-label="별점 ${star}점" style="background:none; border:none; color:#ddd; cursor:pointer; width:40px; height:40px; padding:0; transition: color 0.2s, transform 0.2s;">\n              <svg viewBox="0 0 24 24" fill="currentColor">\n                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />\n              </svg>\n            </button>`).join('')}\n          </div>\n        </div>\n        <div class="form-group" style="margin-bottom: 24px;">\n          <label class="form-label" for="reviewContent" style="color: #444; font-weight: 600; margin-bottom: 8px; display: block;">상세 리뷰 작성</label>\n          <textarea class="form-input textarea-resize-y" id="reviewContent" rows="5" placeholder="페스티벌 경험은 어떠셨나요? 솔직한 후기를 남겨주세요." style="width: 100%; padding: 16px; border: 1px solid #d1d5db; border-radius: 12px; font-size: 0.95rem; background: #fafafa; color: #333; transition: border-color 0.2s, box-shadow 0.2s;"></textarea>\n        </div>\n        <div style="display: flex; gap: 12px;">\n          <button class="btn btn-ghost" id="btn-cancel-review" style="flex: 1; padding: 14px; border-radius: 12px; border: 1px solid #d1d5db; color: #555; font-weight: 600; background: #fff;">취소</button>\n          <button class="btn btn-primary" id="btn-submit-review" style="flex: 2; padding: 14px; border-radius: 12px; font-weight: 700; background: linear-gradient(135deg, #8930F8 0%, #6b21c5 100%); color: white; border: none; box-shadow: 0 4px 12px rgba(137,48,248,0.3);">리뷰 등록하기</button>\n        </div>\n      </div>\n    </div>\n  </div>\n</div>\n`);
+  }
+
   const eventList = document.getElementById('reviewEventList');
   const reviewWrap = document.getElementById('reviewFormWrap');
   const submitBtn = document.getElementById('btn-submit-review');
-  const stars = document.querySelectorAll('.star-btn');
+  const stars = document.querySelectorAll('#newReviewModal .star-btn');
   let selectedRating = 5; let selectedEvent = '';
 
   if (eventList) {
@@ -1162,12 +1235,34 @@ function initReviewForm() {
         card.style.border = '2px solid var(--color-primary)';
         selectedEvent = card.dataset.eventName;
         if (reviewWrap) reviewWrap.classList.remove('hidden');
+        eventList.style.display = 'none';
         currentEditReviewId = null;
         document.getElementById('btn-submit-review').textContent = '리뷰 등록';
       }
     });
   }
 
+  // Handle modal open/close via event delegation so it works even if button is replaced
+  document.body.addEventListener('click', (e) => {
+    if (e.target.closest('#btn-open-review-modal')) {
+      const modal = document.getElementById('newReviewModal');
+      if (modal) {
+        if (eventList) {
+          eventList.style.display = 'grid';
+          eventList.querySelectorAll('.mp-card').forEach(c => c.style.border = '1px solid var(--border-subtle)');
+        }
+        if (reviewWrap) reviewWrap.classList.add('hidden');
+        document.getElementById('reviewContent').value = '';
+        currentEditReviewId = null;
+        selectedEvent = '';
+        modal.classList.add('active');
+      }
+    }
+    if (e.target.closest('#btn-close-review-modal')) {
+      const modal = document.getElementById('newReviewModal');
+      if (modal) modal.classList.remove('active');
+    }
+  });
 
   if (stars.length > 0) {
     stars.forEach(star => {
@@ -1178,15 +1273,15 @@ function initReviewForm() {
           const sVal = parseInt(s.dataset.star);
           const svg = s.querySelector('svg');
           if (!svg) return;
-          if (sVal <= Math.floor(rating)) {
-            svg.setAttribute('fill', '#ffb400');
-            svg.setAttribute('stroke', '#ffb400');
+          s.classList.remove('active', 'half');
+          if (sVal <= rating) {
+            s.classList.add('active');
+            s.style.color = '#ffb400';
           } else if (sVal === Math.ceil(rating) && !Number.isInteger(rating)) {
-            svg.setAttribute('fill', 'url(#half-star-grad)');
-            svg.setAttribute('stroke', '#ffb400');
+            s.classList.add('half');
+            s.style.color = '#ffb400';
           } else {
-            svg.setAttribute('fill', 'none');
-            svg.setAttribute('stroke', '#ccc');
+            s.style.color = '#ddd';
           }
         });
       };
@@ -1196,12 +1291,7 @@ function initReviewForm() {
         const clickX = e.clientX - rect.left;
         const isHalf = clickX < rect.width / 2;
         const baseVal = parseInt(star.dataset.star);
-        const hoverVal = isHalf ? baseVal - 0.5 : baseVal;
-        updateReviewStars(hoverVal);
-      });
-
-      star.addEventListener('mouseleave', () => {
-        updateReviewStars(selectedRating);
+        updateReviewStars(isHalf ? baseVal - 0.5 : baseVal);
       });
 
       star.addEventListener('click', (e) => {
@@ -1214,21 +1304,36 @@ function initReviewForm() {
         updateReviewStars(selectedRating);
       });
 
-      // Init styles
+      star.addEventListener('mouseleave', () => {
+        updateReviewStars(selectedRating);
+      });
+      
       const svg = star.querySelector('svg');
       if (svg) {
         svg.style.transition = 'all 0.2s';
-        svg.setAttribute('stroke-width', '2');
-        svg.setAttribute('stroke-linejoin', 'round');
-        svg.setAttribute('stroke-linecap', 'round');
       }
     });
     // Init display
     setTimeout(() => {
-      document.querySelector('.star-btn[data-star="5"]').dispatchEvent(new Event('mouseleave'));
+      updateReviewStars(5);
     }, 100);
   }
 
+  const cancelBtn = document.getElementById('btn-cancel-review');
+  if (cancelBtn) {
+    cancelBtn.addEventListener('click', () => {
+      document.getElementById('reviewContent').value = '';
+      if (reviewWrap) reviewWrap.classList.add('hidden');
+      if (eventList) {
+        eventList.style.display = 'grid';
+        eventList.querySelectorAll('.mp-card').forEach(c => c.style.border = '1px solid var(--border-subtle)');
+      }
+      currentEditReviewId = null;
+      selectedEvent = '';
+      const reviewModal = document.getElementById('newReviewModal');
+      if (reviewModal) reviewModal.classList.remove('active');
+    });
+  }
 
   if (submitBtn) {
     submitBtn.addEventListener('click', () => {
@@ -1246,11 +1351,31 @@ function initReviewForm() {
       }
       document.getElementById('reviewContent').value = '';
       if (reviewWrap) reviewWrap.classList.add('hidden');
-      eventList.querySelectorAll('.mp-card').forEach(c => c.style.border = '1px solid var(--border-subtle)');
+      if (eventList) eventList.querySelectorAll('.mp-card').forEach(c => c.style.border = '1px solid var(--border-subtle)');
       renderMyReviewList();
+      
+      const reviewModal = document.getElementById('newReviewModal');
+      if (reviewModal) reviewModal.classList.remove('active');
     });
   }
 }
+
+// Fix editReview
+window.editReview = function (id) {
+  const review = MOCK_REVIEWS.find(r => r.id === id);
+  if (!review) return;
+  const eventList = document.getElementById('reviewEventList');
+  const reviewWrap = document.getElementById('reviewFormWrap');
+  if (eventList) eventList.style.display = 'none';
+  if (reviewWrap) reviewWrap.classList.remove('hidden');
+  document.getElementById('reviewFormEventTitle').textContent = review.eventName;
+  document.getElementById('reviewContent').value = review.content;
+  document.getElementById('btn-submit-review').textContent = '리뷰 수정';
+  currentEditReviewId = id;
+  
+  const modal = document.getElementById('newReviewModal');
+  if (modal) modal.classList.add('active');
+};
 
 /* ═══════════════════════════════════════════════════════════
    6. 프로필 정보 변경 저장 기능 구현
@@ -1642,3 +1767,359 @@ setTimeout(() => {
     });
   }
 }, 1000);
+
+
+// --- OVERRIDES FOR DYNAMIC QR ---
+
+function generateQrToken() {
+  const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const numbers = '0123456789';
+  let token = '';
+  // 영어 6자 + 숫자 6자를 번갈아 섞어 생성
+  for (let i = 0; i < 12; i++) {
+    if (i % 2 === 0) {
+      token += letters.charAt(Math.floor(Math.random() * letters.length));
+    } else {
+      token += numbers.charAt(Math.floor(Math.random() * numbers.length));
+    }
+  }
+  // 최종 셔플
+  token = token.split('').sort(() => 0.5 - Math.random()).join('');
+  return token;
+}
+
+let _currentQrType = 'TICKET';
+
+function openQrModalView(token, type = 'TICKET') {
+  _currentQrType = type;
+  let modal = document.getElementById('dynamicQrModal');
+  if (!modal) {
+    let name = (window._member && window._member.name) ? window._member.name : '';
+    if (!name) {
+      const profileNameEl = document.getElementById('profileName');
+      if (profileNameEl) name = profileNameEl.innerText.replace(/님|반가워요|,|!/g, '').trim();
+    }
+    if (!name || name === '로딩 중...') name = '회원';
+
+    let masked = name;
+    if (name.length > 2) masked = name.substring(0, 1) + '*' + name.substring(2);
+    else if (name.length === 2) masked = name.substring(0, 1) + '*';
+
+    const mockData = (window.MOCK_TICKETS && window.MOCK_TICKETS[0]) ? window.MOCK_TICKETS[0] : null;
+    const eventName = mockData ? mockData.eventName : '2026 워터밤 서울';
+    let dateStr = '';
+    if (mockData && mockData.reservationId) {
+      const match = mockData.reservationId.match(/RES-(\d{4})(\d{2})(\d{2})/);
+      if (match) dateStr = `${match[1]}.${match[2]}.${match[3]}`;
+    }
+    if (!dateStr) {
+      const today = new Date();
+      dateStr = `${today.getFullYear()}.${String(today.getMonth() + 1).padStart(2, '0')}.${String(today.getDate()).padStart(2, '0')}`;
+    }
+
+    const modalHTML = `
+      <div id="dynamicQrModal" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.65); z-index: 2147483647; display: flex; align-items: center; justify-content: center;">
+        <div style="position: relative; background: transparent; border-radius: 28px; width: 340px; max-width: calc(100vw - 40px); box-shadow: 0 24px 60px rgba(0,0,0,0.3); overflow: hidden; animation: qrSlideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);">
+          <div style="display: flex; align-items: center; justify-content: space-between; padding: 20px 24px 14px; background: linear-gradient(135deg, #00d2ff 0%, #8930F8 100%);">
+            <div style="font-size: 1.05rem; font-weight: 700; color: #fff;">나의 티켓 QR - ${eventName}</div>
+            <button id="dynamicQrClose" class="modal-close-btn" aria-label="닫기">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+          </div>
+          <div style="background: #fff;">
+            <div style="display: flex; flex-direction: column; align-items: center; padding: 28px 24px 24px; gap: 16px;">
+              <div class="qr-canvas-container" style="border-radius: 12px; border: 2px solid #e0d8ff; background: #fff; padding: 8px; position: relative; overflow: hidden; display: flex; justify-content: center; align-items: center; width: 160px; height: 160px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);">
+              <div id="dynamicQrCanvas" style="width: 100%; height: 100%; z-index: 1; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center;"></div>
+            </div>
+            
+            <div style="text-align: center;">
+                <div style="font-family: 'Inter', sans-serif; font-size: 1.1rem; font-weight: 800; letter-spacing: 1px; color: #111;" id="dynamicQrCode"></div>
+                <div style="font-size: 0.85rem; color: #444; margin-top: 6px; font-weight: 600;" id="dynamicQrUserName">${masked}</div>
+                <div style="font-size: 0.8rem; color: #888; margin-top: 2px;" id="dynamicQrPurchaseDate">${dateStr} 구매</div>
+            </div>
+            
+            <div style="width: 100%; display: flex; flex-direction: column; gap: 8px;">
+              <div style="display: flex; align-items: center; gap: 8px; width: 100%;">
+                <div style="flex: 1; height: 6px; background: #EFEFEF; border-radius: 6px; overflow: hidden; position: relative;">
+                  <div id="dynamicQrTimerBar" style="position: absolute; left: 0; top: 0; height: 100%; width: 100%; background: linear-gradient(135deg, #00d2ff, #8930F8); transform-origin: left; transition: transform 1s linear, background 0.3s ease;"></div>
+                </div>
+                <button id="dynamicQrRefresh" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; padding: 2px; color: #8930F8;" title="새로고침">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
+                </button>
+              </div>
+              <div style="display: flex; justify-content: center; align-items: center; position: relative;">
+                <span id="dynamicQrTimerText" style="font-size: 0.9rem; font-weight: 800; transition: color 0.3s ease; display: inline-block;">03:00</span>
+              </div>
+            </div>
+
+            <div class="qr-accordion">
+              <div class="qr-accordion-header" onclick="this.nextElementSibling.classList.toggle('open')">
+                <span>사용 이력 조회</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+              </div>
+              <div class="qr-accordion-body">
+                <div class="qr-history-item"><span>입장 완료 (게이트 A)</span><span>2026.06.04 14:30</span></div>
+                <div class="qr-history-item"><span>MD 부스 인증</span><span>2026.06.04 15:15</span></div>
+                <div class="qr-history-item"><span>재입장 완료</span><span>2026.06.04 18:00</span></div>
+              </div>
+            </div>
+
+            <p style="font-size: 0.7rem; color: #aaa; margin: 0;">3분마다 자동 갱신됩니다</p>
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    modal = document.getElementById('dynamicQrModal');
+
+    document.getElementById('dynamicQrClose').addEventListener('click', () => {
+      modal.style.display = 'none';
+    });
+    document.getElementById('dynamicQrRefresh').addEventListener('click', () => {
+      triggerQrRefresh();
+    });
+  }
+
+  modal.style.display = 'flex';
+  generateDynamicQR('dynamicQrCanvas', token, 140, type); // FIXED: pass 'type' to trigger 45deg tilt!
+  document.getElementById('dynamicQrCode').textContent = token;
+
+  const qrCanvas = document.getElementById('dynamicQrCanvas');
+
+  const accBody = modal.querySelector('.qr-accordion-body');
+  if (accBody) {
+    if (type === 'FOOD') {
+      accBody.innerHTML = `
+        <div class="qr-history-item"><span>푸드트럭 사용 완료</span><span>2026.06.04 14:30</span></div>
+      `;
+    } else if (type === 'GOODS') {
+      accBody.innerHTML = `
+        <div class="qr-history-item"><span>굿즈 수령 완료</span><span>2026.06.04 16:30</span></div>
+      `;
+    } else {
+      accBody.innerHTML = `
+        <div class="qr-history-item"><span>입장 완료 (게이트 A)</span><span>2026.06.04 14:30</span></div>
+        <div class="qr-history-item"><span>MD 부스 인증</span><span>2026.06.04 15:15</span></div>
+        <div class="qr-history-item"><span>재입장 완료</span><span>2026.06.04 18:00</span></div>
+      `;
+    }
+  }
+
+  if (type === 'FOOD' || type === 'GOODS') {
+    const heartSvgDataUrl = "data:image/svg+xml;utf8,<svg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'><path d='M50 88 C 50 88 5 60 5 30 C 5 5 45 5 50 25 C 55 5 95 5 95 30 C 95 60 50 88 50 88 Z' fill='black' /></svg>";
+    qrCanvas.style.maskImage = `url("${heartSvgDataUrl.replace(/#/g, '%23')}")`;
+    qrCanvas.style.maskSize = "contain";
+    qrCanvas.style.maskRepeat = "no-repeat";
+    qrCanvas.style.maskPosition = "center";
+    qrCanvas.style.webkitMaskImage = `url("${heartSvgDataUrl.replace(/#/g, '%23')}")`;
+    qrCanvas.style.webkitMaskSize = "contain";
+    qrCanvas.style.webkitMaskRepeat = "no-repeat";
+    qrCanvas.style.webkitMaskPosition = "center";
+  } else {
+    qrCanvas.style.maskImage = "none";
+    qrCanvas.style.webkitMaskImage = "none";
+  }
+  updateModalTimerText(_qrCountdown);
+  updateModalTimerBar(_qrCountdown);
+}
+
+function generateDynamicQR(containerId, token, size, type = 'TICKET') {
+  if (!token) return;
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.innerHTML = '<div class="qr-scan-line"></div>';
+
+  const isHeart = type === 'FOOD' || type === 'GOODS';
+  const img = document.createElement('img');
+
+  // Use margin=0 for heart so it blends directly with the background, 2 for regular.
+  const margin = isHeart ? 0 : 2;
+  const ts = new Date().getTime();
+
+  img.src = `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(token)}&margin=${margin}&format=${isHeart ? 'svg' : 'png'}&_=${ts}`;
+  img.alt = 'QR Code';
+  img.style.width = '100%';
+  img.style.height = '100%';
+  img.style.objectFit = 'cover';
+  img.style.position = 'relative';
+  img.style.zIndex = '1';
+  img.style.imageRendering = 'pixelated'; // Prevent blurriness when scaled
+
+  if (isHeart) {
+    // 사용자 요청사항: 원본 QR을 45도 기울여서 빈 모서리가 하단 뾰족한 부분으로 가고, 
+    // 네모 마커 3개가 좌/우/상단(2번 이미지 붉은 형광펜 위치)에 오도록 배치
+    // 0.5 스케일 + translateY(9px): 상단 마커는 오목한 곳에 고정(절대 안 움직임)시킨 상태로, 
+    // 좌/우 마커만 겉 테두리선에 완벽하게 닿을 때까지 사이즈를 확대시키는 마법의 공식입니다.
+    img.style.transform = 'translateY(9px) rotate(45deg) scale(0.5)';
+
+    // 마스크는 컨테이너 쪽에 씌워야 기울어진 이미지를 하트모양으로 예쁘게 깎아냄
+    container.classList.add('qr-heart-mask-container');
+
+    // 하트의 남는 여백(상단 등)을 QR 느낌으로 완벽히 채우기 위해, 
+    // 실제 QR 코드와 완벽하게 동일한 회전각과 비율을 가진 가짜 배경 레이어를 추가합니다.
+    const bg = document.createElement('div');
+    bg.style.position = 'absolute';
+    bg.style.width = '300%';
+    bg.style.height = '300%';
+    bg.style.top = '-100%';
+    bg.style.left = '-100%';
+    bg.style.transform = 'translateY(9px) rotate(45deg) scale(0.5)';
+    bg.style.zIndex = '0';
+    bg.style.imageRendering = 'pixelated'; // Prevent background blurriness
+
+    // QR 모듈 1개 크기 계산 (160px / 21모듈 = 약 7.619px)
+    let svg = "<svg xmlns='http://www.w3.org/2000/svg' width='45.71' height='45.71'><rect width='45.71' height='45.71' fill='#fff'/>";
+    for (let y = 0; y < 6; y++) {
+      for (let x = 0; x < 6; x++) {
+        if (Math.random() > 0.4) {
+          svg += `<rect x='${x * 7.619}' y='${y * 7.619}' width='7.62' height='7.62' fill='#000'/>`;
+        }
+      }
+    }
+    svg += "</svg>";
+    bg.style.backgroundImage = `url("data:image/svg+xml;utf8,${encodeURIComponent(svg)}")`;
+    bg.style.backgroundRepeat = 'repeat';
+    // 진짜 QR과 픽셀 격자가 완벽하게 맞아떨어지도록 중앙 오프셋 적용 (7.619 / 2 = 3.81px)
+    bg.style.backgroundPosition = 'calc(50% + 3.81px) calc(50% + 3.81px)';
+
+    container.appendChild(bg);
+  } else {
+    container.classList.remove('qr-heart-mask-container');
+  }
+
+  container.appendChild(img);
+}
+
+function generateHeroQR(token) {
+  if (!token) return;
+  generateDynamicQR('qr-code-container', token, 100);
+}
+
+function triggerQrRefresh() {
+  const prefix = _currentQrType === 'FOOD' ? 'F' : (_currentQrType === 'GOODS' ? 'G' : 'T');
+  const newToken = generateQrToken(prefix);
+  _currentQrToken = newToken;
+
+  generateHeroQR(newToken);
+
+  const modal = document.getElementById('dynamicQrModal');
+  if (modal && modal.style.display !== 'none') {
+    generateDynamicQR('dynamicQrCanvas', newToken, 140, _currentQrType);
+    const codeEl = document.getElementById('dynamicQrCode');
+    if (codeEl) codeEl.textContent = newToken;
+  }
+
+  // 완전한 타이머 주기 리셋을 위해 startQRRefreshCycle 호출
+  startQRRefreshCycle();
+}
+
+let _qrStartTime = 0;
+let _qrRafId = null;
+
+function startQRRefreshCycle() {
+  _qrCountdown = 180;
+  clearInterval(_qrTimer);
+  clearInterval(_qrCountTimer);
+  if (_qrRafId) cancelAnimationFrame(_qrRafId);
+
+  _qrStartTime = Date.now();
+
+  _qrTimer = setInterval(() => {
+    triggerQrRefresh();
+    if (window.Toast) window.Toast.info('보안을 위해 QR이 자동 갱신되었습니다');
+  }, 180000);
+
+  _qrCountTimer = setInterval(() => {
+    _qrCountdown = Math.max(0, Math.ceil((180000 - (Date.now() - _qrStartTime)) / 1000));
+    updateModalTimerText(_qrCountdown);
+    const bg = _qrCountdown < 60 ? 'linear-gradient(135deg, #ff4d4f, #ff7875)' : 'linear-gradient(135deg, #00d2ff, #8930F8)';
+    const bars = [document.getElementById('dynamicQrTimerBar'), document.getElementById('heroQrTimerBar')];
+    bars.forEach(bar => { if (bar) bar.style.background = bg; });
+  }, 1000);
+
+  function animateBar() {
+    const elapsed = Date.now() - _qrStartTime;
+    const remaining = Math.max(0, 180000 - elapsed);
+    const pct = remaining / 180000;
+
+    const bars = [document.getElementById('dynamicQrTimerBar'), document.getElementById('heroQrTimerBar')];
+    bars.forEach(bar => {
+      if (bar) bar.style.transform = `scaleX(${pct})`;
+    });
+
+    if (remaining > 0) {
+      _qrRafId = requestAnimationFrame(animateBar);
+    }
+  }
+  _qrRafId = requestAnimationFrame(animateBar);
+}
+
+function updateModalTimerText(sec) {
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  const timeText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+
+  const els = [document.getElementById('dynamicQrTimerText'), document.getElementById('heroQrTimer')];
+  els.forEach(el => {
+    if (el) {
+      el.textContent = timeText;
+      if (sec < 60) {
+        el.classList.add('qr-danger-text');
+        el.style.color = '#ff4d4f';
+      } else {
+        el.classList.remove('qr-danger-text');
+        el.style.color = '#2D1A54';
+      }
+    }
+  });
+}
+
+function updateModalTimerBar(sec) {
+  // 사용되지 않음 (animateBar에서 처리)
+}
+
+// Modify Hero Card DOM structure on load to match modal completely
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    const heroRefresh = document.getElementById('heroQrRefreshBtn');
+    if (heroRefresh) {
+      heroRefresh.addEventListener('click', (e) => {
+        e.stopPropagation();
+        triggerQrRefresh();
+      });
+    }
+    if (typeof _currentQrToken !== 'undefined') {
+      generateHeroQR(_currentQrToken);
+    }
+  }, 200);
+});
+
+// 전역 모달 닫기 로직 (ESC 키 및 배경 영역 클릭)
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    // 동적 QR 모달 닫기
+    const dynamicQrModal = document.getElementById('dynamicQrModal');
+    if (dynamicQrModal && dynamicQrModal.style.display !== 'none') {
+      dynamicQrModal.style.display = 'none';
+    }
+    // 기타 모든 모달 닫기
+    document.querySelectorAll('.modal-overlay.active').forEach(modal => {
+      modal.classList.remove('active');
+    });
+  }
+});
+
+document.addEventListener('click', (e) => {
+  // 동적 QR 모달 배경 클릭 시 닫기
+  const dynamicQrModal = document.getElementById('dynamicQrModal');
+  if (dynamicQrModal && dynamicQrModal.style.display !== 'none') {
+    if (e.target === dynamicQrModal) {
+      dynamicQrModal.style.display = 'none';
+    }
+  }
+
+  // 기타 모든 모달 배경 클릭 시 닫기
+  if (e.target.classList.contains('modal-overlay')) {
+    e.target.classList.remove('active');
+  }
+});

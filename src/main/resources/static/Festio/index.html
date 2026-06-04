@@ -1,11 +1,11 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
   <meta name="theme-color" content="#0A0A18">
-  <title>FESTIO | 행사 티켓 예매</title>
+  <title>행사 티켓 예매 | FESTIO</title>
   <link rel="stylesheet" href="css/common.css">
   <link rel="stylesheet" href="css/index.css">
 </head>
@@ -318,7 +318,11 @@
           <div class="cd-unit"><span class="cd-val countdown-seconds">00</span><span class="cd-lbl">초</span></div>
         </div>
       </div>
-      <div class="timesale-scroll" id="timesaleCards"></div>
+      <div class="timesale-slider-wrap">
+        <button class="timesale-nav prev" aria-label="이전">&lt;</button>
+        <div class="timesale-scroll" id="timesaleCards"></div>
+        <button class="timesale-nav next" aria-label="다음">&gt;</button>
+      </div>
     </section>
 
     <!-- ══ 제휴·입점 문의 섹션 ════════════════════════════════════ -->
@@ -555,6 +559,15 @@
 
   <!-- ══ 하단 네비 (모바일) ════════════════════════════════════ -->
   <script src="js/components/bottomNav.js"></script>
+
+  <!-- 비즈니스 제휴 플로팅 팝업 -->
+  <button class="partner-floating-popup" id="partnerFloatingPopup">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" />
+    </svg>
+    제휴 신청하기
+  </button>
 
   <script src="js/components/appFooter.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

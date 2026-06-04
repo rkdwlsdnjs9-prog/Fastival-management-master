@@ -1,9 +1,4 @@
-/* ============================================================
-   mypage.css - 마이페이지 스타일시트
-   레이아웃: 2단 (데스크톱 사이드바 / 메인 콘텐츠)
-   최신 디자인 시스템 적용   ============================================================ */
-
-/* ?? ?곗뒪?ы넲 2?????????????????????????????????????????????? */
+/* UI Design Elements */
 @media (min-width:1024px) {
   .mypage-layout {
     display: grid;
@@ -28,7 +23,7 @@
   }
 }
 
-/* 모바일 히어로 섹션 (풀 너비) */
+/* UI Design Elements */
 .mypage-hero {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   padding: var(--sp-6) var(--sp-4) var(--sp-5);
@@ -131,7 +126,38 @@
   box-shadow: 0 2px 8px rgba(240, 147, 251, 0.4);
 }
 
-/* 통계 카드 */
+/* UI Design Elements */
+.modal-close-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 32px;
+  height: 32px;
+  background-color: #fff;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  color: #888;
+  z-index: 9999;
+  transition: all 0.2s ease;
+}
+
+.modal-close-btn:hover {
+  background-color: #f8f9fa;
+  transform: scale(1.05);
+  color: #111;
+}
+
+.modal-close-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* UI Design Elements */
 .mypage-stats-row {
   display: flex;
   background: rgba(255, 255, 255, 0.15);
@@ -171,7 +197,7 @@
   color: rgba(255, 255, 255, 0.55);
 }
 
-/* 데스크톱 사이드 메뉴 */
+/* UI Design Elements */
 .mypage-sidenav {
   background: #ffffff;
   border: 1px solid rgba(0, 0, 0, 0.08);
@@ -239,7 +265,7 @@
   background: var(--border-subtle);
 }
 
-/* 모바일 탭바 (데스크톱에서는 숨김) */
+/* UI Design Elements */
 .mypage-tabs {
   display: flex;
   background: #ffffff;
@@ -288,7 +314,7 @@
   font-weight: 700;
 }
 
-/* 탭 콘텐츠 영역 */
+/* UI Design Elements */
 .mypage-content {
   min-height: 400px;
 }
@@ -333,7 +359,7 @@
   letter-spacing: -0.5px;
 }
 
-/* 예매 내역 카드 */
+/* UI Design Elements */
 .ticket-list {
   display: flex;
   flex-direction: column;
@@ -488,7 +514,7 @@
   border-color: var(--color-error);
 }
 
-/* QR 肄붾뱶 ?꾩씠肄?*/
+/* UI Design Elements */
 .ticket-qr-btn {
   width: 34px;
   height: 34px;
@@ -512,7 +538,7 @@
   height: 16px;
 }
 
-/* 쿠폰 목록 카드 */
+/* UI Design Elements */
 .coupon-list {
   display: flex;
   flex-direction: column;
@@ -629,7 +655,7 @@
   color: var(--color-secondary);
 }
 
-/* ?? 由щ럭 ??????????????????????????????????????????????????? */
+/* UI Design Elements */
 .review-section {
   padding: var(--sp-4);
   display: flex;
@@ -718,7 +744,7 @@
   color: var(--color-gold);
 }
 
-/* ?? 臾몄쓽 紐⑸줉 ??????????????????????????????????????????????? */
+/* UI Design Elements */
 .inquiry-list {
   display: flex;
   flex-direction: column;
@@ -792,7 +818,7 @@
   text-overflow: ellipsis;
 }
 
-/* ?? ?꾨줈???몄쭛 ????????????????????????????????????????????? */
+/* UI Design Elements */
 .profile-section {
   padding: var(--sp-4);
   display: flex;
@@ -873,7 +899,7 @@
   color: var(--text-muted);
 }
 
-/* ?? 鍮??곹깭 ????????????????????????????????????????????????? */
+/* UI Design Elements */
 .mypage-empty {
   display: flex;
   flex-direction: column;
@@ -904,7 +930,7 @@
   line-height: 1.6;
 }
 
-/* ?? mp-card 諛?由щ럭/?덈ℓ?댁뿭 由ъ뒪??而댄룷?뚰듃 異붽? ?ㅽ????? */
+/* UI Design Elements */
 .mp-card {
   background: var(--bg-surface1);
   border-radius: var(--radius-lg);
@@ -1049,23 +1075,23 @@
   height: 16px;
 }
 
-/* ?④꺼吏??곸뿭 ?좏떥由ы떚 */
+/* UI Design Elements */
 .hidden {
   display: none !important;
 }
 
 
 
-/* ?? 留덉씠?섏씠吏 ?꾩껜 ?덉씠?꾩썐 諛??붿옄??媛쒖꽑 (?щ갚/?뺣젹) ?? */
+/* UI Design Elements */
 
-/* ?꾩껜 洹몃━???덉씠?꾩썐 媛꾧꺽 ?볧엳湲?(?듬떟???댁냼) */
+/* UI Design Elements */
 @media (min-width: 1024px) {
   .mypage-layout {
     gap: 48px !important;
   }
 }
 
-/* ?ъ씠?쒕컮 ?щ갚 諛??뺣젹 ?ъ꽕怨?*/
+/* UI Design Elements */
 .mypage-sidenav {
   padding: 24px 16px;
   display: flex;
@@ -1089,22 +1115,22 @@
   color: var(--color-primary) !important;
 }
 
-/* 湲곗〈 諛묒쨪(active::after) ?쒓굅?섍퀬 諛곌꼍??Premium UI)濡??泥?*/
+/* UI Design Elements */
 .mypage-sidenav-item.active::after {
   display: none;
 }
 
-/* ?ъ씠?쒕컮 ?덉쓽 援щ텇??divider) ?붿옄??*/
+/* UI Design Elements */
 .mypage-sidenav-divider {
   margin: 8px 0;
 }
 
-/* 硫붿씤 而⑦뀗痢??곸뿭 ?⑤뵫 異붽? */
+/* UI Design Elements */
 .mypage-content {
   padding: 16px 0 40px 0;
 }
 
-/* mp-card ?꾨━誘몄뾼 ?붿옄??媛뺥솕 (紐⑥꽌由? 洹몃┝?????몃젴?섍쾶) */
+/* UI Design Elements */
 .mp-card {
   border-radius: 20px !important;
   padding: 28px !important;
@@ -1125,16 +1151,16 @@
 
 
 
-/* ?? 2李??붿옄???섏젙 (?ъ씠?쒕컮 ?믪씠 諛?硫붿씤 ?곸뿭 諛곌꼍 ?щ챸?? ?? */
+/* UI Design Elements */
 
-/* ?ъ씠?쒕컮 ?섎떒 鍮?怨듦컙(濡쒓렇?꾩썐 諛? ?쒓굅 */
+/* UI Design Elements */
 @media (min-width: 1024px) {
   .mypage-sidenav {
     height: max-content !important;
   }
 }
 
-/* 硫붿씤 ?곸뿭(.mypage-content) ?뺤떎???곸뿭 援щ텇 諛??됰꼮???대? ?щ갚 */
+/* UI Design Elements */
 @media (min-width: 1024px) {
   .mypage-content {
     background: var(--bg-surface1) !important;
@@ -1142,10 +1168,10 @@
     border-radius: 24px !important;
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04) !important;
     padding: 40px !important;
-    /* 移대뱶?ㅼ씠 ?⑥돱 ???덈뒗 ?됰꼮??怨듦컙 */
+    /* UI Design Elements */
   }
 
-  /* ?곷떒 ???ㅻ뜑 ?붿옄??蹂듦뎄 諛??몃젴??*/
+  /* UI Design Elements */
   .content-section-header {
     border-bottom: 2px solid var(--border-subtle) !important;
     padding: 0 0 20px 0 !important;
@@ -1157,9 +1183,9 @@
   }
 }
 
-/* ?? ?꾨━誘몄뾼 ??諛????대? ?붿냼 ?붿옄??(荑좏룿, 由щ럭, ?꾨줈?? ?? */
+/* UI Design Elements */
 
-/* ?낅젰 ??Input/Textarea) 怨좉툒??*/
+/* UI Design Elements */
 .form-input {
   background-color: #f9f9fc !important;
   border: 1px solid rgba(0, 0, 0, 0.08) !important;
@@ -1178,7 +1204,7 @@
   outline: none !important;
 }
 
-/* ???쇰꺼(Label) 怨좉툒??*/
+/* UI Design Elements */
 .form-label {
   font-size: 0.95rem !important;
   font-weight: 700 !important;
@@ -1191,7 +1217,7 @@
   margin-bottom: 24px !important;
 }
 
-/* ?꾨━誘몄뾼 踰꾪듉 ?붿옄??(踰꾪듉 怨듯넻) */
+/* UI Design Elements */
 .btn-primary,
 #btn-submit-review,
 #btn-register-coupon {
@@ -1213,7 +1239,7 @@
   box-shadow: 0 8px 24px rgba(106, 77, 255, 0.4) !important;
 }
 
-/* 荑좏룿???낅젰 ?뱀뀡 ?덉씠?꾩썐 */
+/* UI Design Elements */
 .coupon-input-section {
   display: flex !important;
   gap: 16px !important;
@@ -1229,7 +1255,7 @@
   min-width: 120px !important;
 }
 
-/* 李?紐⑸줉 ??鍮??곹깭(Empty State) ?꾩씠肄??ш린 諛??щ갚 ?뺤옣 */
+/* UI Design Elements */
 .mypage-empty {
   padding: 80px 20px !important;
   background: #fdfdfd !important;
@@ -1251,7 +1277,7 @@
   color: var(--text-secondary) !important;
 }
 
-/* ?꾨줈???몄쭛 ?붾㈃ ???щ갚 */
+/* UI Design Elements */
 #tab-profile .form-group {
   margin-bottom: 28px !important;
 }
@@ -1261,7 +1287,7 @@
   margin-top: 16px !important;
 }
 
-/* ?좉? ?ㅼ쐞移?怨좉툒??*/
+/* UI Design Elements */
 .switch-label {
   display: flex !important;
   justify-content: space-between !important;
@@ -1285,7 +1311,7 @@
 }
 
 
-/* --- ?꾨━誘몄뾼 ?꾨줈?????붿옄??--- */
+/* UI Design Elements */
 #tab-profile {
   max-width: 600px;
   margin: 0 auto;
@@ -1441,7 +1467,7 @@
   box-shadow: 0 4px 12px rgba(255, 71, 87, 0.15);
 }
 
-/* ── 사이드 메뉴 Sticky 스크롤 (데스크톱) ──────────────────── */
+/* UI Design Elements */
 @media (min-width: 1024px) {
   .mypage-left {
     position: sticky;
@@ -1458,7 +1484,7 @@
   }
 }
 
-/* ── 히어로 QR 카드 ─────────────────────────────────────────── */
+/* UI Design Elements */
 .hero-qr-card {
   background: #ffffff;
   border-radius: 20px;
@@ -1527,7 +1553,7 @@
   font-weight: 500;
 }
 
-/* ── QR 크게보기 모달 ───────────────────────────────────────── */
+/* UI Design Elements */
 .qr-modal-overlay {
   display: none;
   position: fixed;
@@ -1535,7 +1561,7 @@
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: 9999;
+  z-index: 10000;
   background: rgba(0, 0, 0, 0.65);
   backdrop-filter: blur(6px);
   align-items: center;
@@ -1544,6 +1570,7 @@
 }
 
 .qr-modal-overlay.active {
+  z-index: 99999 !important;
   display: flex !important;
   opacity: 1 !important;
   visibility: visible !important;
@@ -1653,7 +1680,7 @@
   justify-content: center;
 }
 
-/* 스캔 라인 애니메이션 */
+/* UI Design Elements */
 .qr-modal-scan-line {
   position: absolute;
   left: 0;
@@ -1696,7 +1723,7 @@
   color: #666;
 }
 
-/* 원형 타이머 */
+/* UI Design Elements */
 .qr-modal-timer-wrap {
   position: relative;
   width: 60px;
@@ -1731,39 +1758,6 @@
 .qr-modal-timer-text {
   position: relative;
   z-index: 1;
-  font-size: 0.85rem;
-  font-weight: 800;
-  color: #ff4757;
-}
-
-.qr-modal-refresh-note {
-  font-size: 0.75rem;
-  color: #aaa;
-  margin: 0;
-}
-
-.qr-modal-timer-bar-wrap {
-  width: 100%;
-  height: 6px;
-  background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
-  border-radius: 3px;
-  overflow: hidden;
-  margin-top: 12px;
-  position: relative;
-}
-
-.qr-modal-timer-bar {
-  position: absolute;
-  right: 0;
-  top: 0;
-  height: 100%;
-  background: #EFEFEF;
-  transition: width 0.5s ease-in-out;
-}
-
-.qr-modal-timer-text-wrap {
-  margin-top: 4px;
-  text-align: center;
 }
 
 .qr-modal-timer-text {
@@ -1772,7 +1766,7 @@
   color: #2D1A54;
 }
 
-/* QR 모달 추가 스타일 */
+/* UI Design Elements */
 .qr-modal-title {
   font-size: 1.1rem;
   font-weight: 700;
@@ -1793,7 +1787,7 @@
   background: #fff;
 }
 
-/* 히어로 QR 추가 스타일 */
+/* UI Design Elements */
 .hero-qr-canvas {
   width: 100px;
   height: 100px;
@@ -1825,7 +1819,7 @@
 
 
 
-/* QR 모달 및 히어로 QR 스타일 */
+/* UI Design Elements */
 .qr-modal-title {
   font-size: 1.1rem;
   font-weight: 700;
@@ -1959,48 +1953,29 @@
   justify-content: center;
 }
 
-.hero-qr-canvas-wrap::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 6px;
-  background: linear-gradient(90deg, transparent 0%, rgba(137, 48, 248, 0.9) 50%, transparent 100%);
-  box-shadow: 0 4px 8px rgba(137, 48, 248, 0.4);
-  animation: qrScan 2s ease-in-out infinite alternate;
-  pointer-events: none;
-  z-index: 10;
-  opacity: 1;
-}
 
-@keyframes qrScan {
-  0% {
-    top: 0;
-  }
 
-  100% {
-    top: calc(100% - 6px);
-  }
-}
+
 
 .hero-qr-timer-bar-wrap {
-  width: 100%;
+  flex: 1;
   height: 6px;
-  background: linear-gradient(135deg, #00d2ff 0%, #8930F8 100%);
-  border-radius: 3px;
-  transition: background 1s linear;
+  background: #EFEFEF;
+  border-radius: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
   overflow: hidden;
-  margin-top: 6px;
   position: relative;
 }
 
 .hero-qr-timer-bar {
   position: absolute;
-  right: 0;
+  left: 0;
   top: 0;
   height: 100%;
-  background: #EFEFEF;
-  transition: width 0.5s ease-in-out;
+  width: 100%;
+  background: linear-gradient(135deg, #00d2ff, #8930F8);
+  transform-origin: left;
+  transition: transform 1s linear, background 0.3s ease;
 }
 
 .hero-qr-timer-text-wrap {
@@ -2022,17 +1997,29 @@
     transform: translateX(0);
   }
 
-  25% {
-    transform: translateX(-3px);
+  10% {
+    transform: translateX(-0.5px);
   }
 
-  75% {
-    transform: translateX(3px);
+  30% {
+    transform: translateX(0.8px);
+  }
+
+  50% {
+    transform: translateX(-0.8px);
+  }
+
+  70% {
+    transform: translateX(0.5px);
+  }
+
+  90% {
+    transform: translateX(-0.3px);
   }
 }
 
 .timer-shake {
-  animation: timerShake 0.4s ease-in-out infinite;
+  animation: timerShake 1.5s ease-in-out infinite;
   color: #ff4757 !important;
 }
 
@@ -2042,4 +2029,294 @@
   font-weight: 600;
   text-align: center;
   margin-top: 2px;
+}
+
+/* UI Design Elements */
+.mypage-history-accordion {
+  margin-top: 8px;
+  width: 100%;
+  min-width: 360px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.mypage-history-accordion summary {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+
+.mypage-history-accordion summary:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.mypage-history-accordion summary::-webkit-details-marker {
+  display: none;
+}
+
+.mypage-history-accordion summary::after {
+  content: '+';
+  font-size: 1rem;
+}
+
+.mypage-history-accordion[open] summary::after {
+  content: '-';
+}
+
+.mypage-history-content {
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+#historyAccordionContent {
+  max-height: 150px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.history-mini-item {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 8px;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.8rem;
+}
+
+.history-mini-item .title {
+  font-weight: bold;
+  margin-bottom: 2px;
+}
+
+.history-mini-item .meta {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.75rem;
+}
+
+
+/* UI Design Elements */
+#modal-inquiry {
+  z-index: 10000 !important;
+}
+
+
+.qr-modal-timer-bar-wrap {
+  width: 100%;
+  height: 6px;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+  border-radius: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  margin-top: 12px;
+  position: relative;
+}
+
+.qr-modal-timer-bar {
+  position: absolute;
+  right: 0;
+  top: 0;
+  height: 100%;
+  background: #EFEFEF;
+  transition: width 0.5s ease-in-out;
+}
+
+@keyframes scanLineAnim {
+  0% {
+    top: 0;
+    opacity: 0;
+  }
+
+  10% {
+    opacity: 1;
+  }
+
+  90% {
+    opacity: 1;
+  }
+
+  100% {
+    top: 100%;
+    opacity: 0;
+  }
+}
+
+.qr-scan-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: rgba(0, 210, 255, 0.5);
+  box-shadow: 0 0 10px rgba(0, 210, 255, 0.8);
+  animation: scanLineAnim 2.5s linear infinite;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.qr-canvas-container {
+  position: relative;
+  border: 2px solid #8930F8;
+  border-radius: 16px;
+  padding: 12px;
+  background: #fff;
+  overflow: hidden;
+  display: inline-block;
+}
+
+.qr-accordion {
+  width: 100%;
+  margin-top: 12px;
+  border: 1px solid #EFEFEF;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.qr-accordion-header {
+  padding: 12px 16px;
+  background: #fdfdfd;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #3b2667;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+.qr-accordion-body {
+  max-height: 0;
+  overflow-y: auto;
+  transition: max-height 0.3s ease;
+  background: #fff;
+}
+
+.qr-accordion-body.open {
+  max-height: 150px;
+  border-top: 1px solid #EFEFEF;
+}
+
+.qr-history-item {
+  padding: 10px 16px;
+  font-size: 0.75rem;
+  color: #555;
+  border-bottom: 1px solid #f5f5f5;
+  display: flex;
+  justify-content: space-between;
+}
+
+.qr-history-item:last-child {
+  border-bottom: none;
+}
+
+@keyframes gentleShake {
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  10% {
+    transform: translateX(-0.5px);
+  }
+
+  30% {
+    transform: translateX(0.8px);
+  }
+
+  50% {
+    transform: translateX(-0.8px);
+  }
+
+  70% {
+    transform: translateX(0.5px);
+  }
+
+  90% {
+    transform: translateX(-0.3px);
+  }
+}
+
+.qr-danger-text {
+  color: #ff4d4f !important;
+  display: inline-block !important;
+  animation: gentleShake 1.5s ease-in-out infinite !important;
+}
+
+/* 통계 카드 호버 효과 (Shimmer) */
+.stat-card-clickable {
+  position: relative;
+  cursor: pointer;
+  overflow: hidden;
+  transition: transform 0.2s ease, background 0.3s ease;
+}
+
+.stat-card-clickable:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.25) !important;
+}
+
+.stat-card-clickable::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(to right, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.4) 50%, rgba(255, 255, 255, 0) 100%);
+  transform: skewX(-25deg);
+}
+
+.stat-card-clickable:hover::after {
+  animation: shimmer 1.5s ease-out infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    left: -100%;
+  }
+
+  100% {
+    left: 200%;
+  }
+}
+/* Heart mask for FOOD/GOODS QR */
+.qr-heart-mask {
+  /* Boxy heart mask that preserves top corners */
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50,20 C50,20 45,0 15,0 C0,0 0,25 0,40 C0,75 50,100 50,100 C50,100 100,75 100,40 C100,25 100,0 85,0 C55,0 50,20 50,20 Z'/%3E%3C/svg%3E");
+  mask-size: 105% 105%;
+  mask-position: center top;
+  mask-repeat: no-repeat;
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50,20 C50,20 45,0 15,0 C0,0 0,25 0,40 C0,75 50,100 50,100 C50,100 100,75 100,40 C100,25 100,0 85,0 C55,0 50,20 50,20 Z'/%3E%3C/svg%3E");
+  -webkit-mask-size: 105% 105%;
+  -webkit-mask-position: center top;
+  -webkit-mask-repeat: no-repeat;
+  transform: scale(1.05); 
+}
+
+
+.qr-heart-mask-container {
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50,90 C50,90 100,50 100,30 C100,10 75,0 50,20 C25,0 0,10 0,30 C0,50 50,90 50,90 Z'/%3E%3C/svg%3E");
+  mask-size: 110% 110%;
+  mask-position: center 10%;
+  mask-repeat: no-repeat;
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50,90 C50,90 100,50 100,30 C100,10 75,0 50,20 C25,0 0,10 0,30 C0,50 50,90 50,90 Z'/%3E%3C/svg%3E");
+  -webkit-mask-size: 110% 110%;
+  -webkit-mask-position: center 10%;
+  -webkit-mask-repeat: no-repeat;
+  overflow: hidden;
+  position: relative;
+  border-radius: 0 !important; /* 모서리 깎임 방지 */
 }

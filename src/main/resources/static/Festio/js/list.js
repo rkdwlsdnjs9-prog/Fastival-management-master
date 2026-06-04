@@ -1,13 +1,16 @@
 /* js/list.js */
 
-const CATEGORIES = [
-  { key: 'all', label: '모든 행사' },
-  { key: '콘서트/뮤지컬', label: '콘서트/뮤지컬' },
-  { key: '지역축제', label: '지역축제' },
-  { key: '대학축제', label: '대학축제' },
-  { key: '박람회', label: '박람회' },
-  { key: '스포츠', label: '스포츠' }
-];
+const CATEGORIES = {
+  'concert': { label: '콘서트', bg: 'linear-gradient(135deg, #1a1b26, #3b3d58)', subs: [{ k: 'all', v: '전체보기' }, { k: 'domestic', v: '국내뮤지션' }, { k: 'overseas', v: '해외뮤지션' }, { k: 'festival', v: '페스티벌' }] },
+  'musical': { label: '뮤지컬', bg: 'linear-gradient(135deg, #2b1021, #5c2041)', subs: [{ k: 'all', v: '전체보기' }, { k: 'original', v: '오리지널' }, { k: 'license', v: '라이선스' }, { k: 'creative', v: '창작' }] },
+  'play': { label: '연극', bg: 'linear-gradient(135deg, #10212b, #20415c)', subs: [{ k: 'all', v: '전체보기' }, { k: 'drama', v: '정극' }, { k: 'comedy', v: '코미디' }, { k: 'thriller', v: '스릴러' }] },
+  'classic': { label: '클래식/무용', bg: 'linear-gradient(135deg, #2b2b10, #5c5c20)', subs: [{ k: 'all', v: '전체보기' }, { k: 'classic', v: '클래식' }, { k: 'ballet', v: '발레/무용' }, { k: 'gukak', v: '국악' }] },
+  'exhibition': { label: '전시/스포츠', bg: 'linear-gradient(135deg, #102b1c, #205c3b)', subs: [{ k: 'all', v: '전체보기' }, { k: 'exhibition', v: '전시' }, { k: 'experience', v: '체험/행사' }, { k: 'sports', v: '스포츠' }] },
+  'family': { label: '가족/어린이', bg: 'linear-gradient(135deg, #2b1a10, #5c3520)', subs: [{ k: 'all', v: '전체보기' }, { k: 'musical', v: '가족뮤지컬' }, { k: 'play', v: '가족연극' }, { k: 'experience', v: '체험' }] },
+  'local': { label: '지역축제', bg: 'linear-gradient(135deg, #1c102b, #3b205c)', subs: [{ k: 'all', v: '전체보기' }, { k: 'seoul', v: '수도권' }, { k: 'gangwon', v: '강원권' }, { k: 'chungcheong', v: '충청권' }, { k: 'gyeongsang', v: '경상권' }, { k: 'jeolla', v: '전라권' }, { k: 'jeju', v: '제주권' }] },
+  'univ': { label: '대학축제', bg: 'linear-gradient(135deg, #2b2010, #5c4420)', subs: [{ k: 'all', v: '전체보기' }, { k: 'spring', v: '봄축제' }, { k: 'fall', v: '가을축제' }] },
+  'expo': { label: '박람회', bg: 'linear-gradient(135deg, #101010, #333333)', subs: [{ k: 'all', v: '전체보기' }, { k: 'tech', v: 'IT/테크' }, { k: 'living', v: '리빙/라이프' }, { k: 'food', v: '식품' }, { k: 'job', v: '취업/창업' }] }
+};
 
 let _events = [];
 let _currentCat = 'all';
@@ -17,9 +20,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   // 카테고리를 위한 쿼리 문자열 파싱
   const urlParams = new URLSearchParams(window.location.search);
   const catParam = urlParams.get('category');
-  if (catParam && CATEGORIES.some(c => c.key === catParam)) {
+  if (catParam && CATEGORIES[catParam]) {
     _currentCat = catParam;
+  } else {
+    _currentCat = 'concert'; // 기본값
   }
+
+  const subParam = urlParams.get('sub') || 'all';
 
   const btnSearch = $('#btn-header-search');
   if (btnSearch) {
@@ -65,39 +72,43 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 function renderCategoryTabs() {
-  const container = $('.category-tabs');
+  const container = $('#category-visual-header');
   if (!container) return;
 
-  const svgMap = {
-    'all': `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>`,
-    '콘서트/뮤지컬': `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>`,
-    '지역축제': `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`,
-    '대학축제': `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>`,
-    '박람회': `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>`,
-    '스포츠': `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M4.93 4.93l4.24 4.24M14.83 14.83l4.24 4.24M14.83 9.17l4.24-4.24M4.93 19.07l4.24-4.24"/></svg>`
-  };
+  const catData = CATEGORIES[_currentCat];
+  if (!catData) return;
 
-  container.innerHTML = CATEGORIES.map(c => `
-    <button class="category-tab ${c.key === _currentCat ? 'active' : ''}" data-cat="${c.key}">
-      ${svgMap[c.key] || ''}
-      ${c.label}
-    </button>
-  `).join('');
+  const urlParams = new URLSearchParams(window.location.search);
+  const currentSub = urlParams.get('sub') || 'all';
 
-  on(container, 'click', (e) => {
-    const tab = e.target.closest('.category-tab');
-    if (!tab) return;
-    const cat = tab.dataset.cat;
-    if (cat === _currentCat) return;
-    _currentCat = cat;
+  container.innerHTML = `
+    <div class="category-banner" style="background: ${catData.bg};">
+      <h1 class="category-banner-title">${catData.label}</h1>
+    </div>
+    <div class="category-lnb-wrap">
+      <div class="category-lnb">
+        ${catData.subs.map(s => `
+          <div class="category-lnb-item ${s.k === currentSub ? 'active' : ''}" data-sub="${s.k}">
+            ${s.v}
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
 
-    // 페이지 새로고침 없이 URL 업데이트
-    const url = new URL(window.location);
-    url.searchParams.set('category', cat);
-    window.history.pushState({}, '', url);
+  // 서브 카테고리 클릭 이벤트
+  $$('.category-lnb-item').forEach(item => {
+    on(item, 'click', (e) => {
+      const sub = e.target.dataset.sub;
+      if (sub === currentSub) return;
 
-    $$('.category-tab').forEach(t => t.classList.toggle('active', t.dataset.cat === cat));
-    renderBentoGrid();
+      const url = new URL(window.location);
+      url.searchParams.set('sub', sub);
+      window.history.pushState({}, '', url);
+
+      renderCategoryTabs();
+      renderBentoGrid();
+    });
   });
 }
 
@@ -105,9 +116,9 @@ function renderBentoGrid() {
   const grid = $('.bento-grid');
   if (!grid) return;
 
-  const items = _currentCat === 'all'
-    ? _events
-    : _events.filter(ev => ev.category === _currentCat);
+  // 데이터가 실제 카테고리와 매핑되진 않았으므로 목업으로 전체를 렌더링하거나 일부만 필터링합니다.
+  // 이 예제에서는 기존 코드를 유지하되 카테고리 필터를 제거합니다.
+  const items = _events;
 
   if (items.length === 0) {
     grid.innerHTML = `
@@ -182,6 +193,12 @@ function renderBentoGrid() {
 }
 
 async function toggleWish(btn) {
+  if (typeof Auth !== 'undefined' && !Auth.isLoggedIn()) {
+    if (window.Toast) Toast.info('로그인이 필요합니다.');
+    setTimeout(() => { window.location.href = 'login.html'; }, 1000);
+    return;
+  }
+
   const eventNo = parseInt(btn.dataset.eventNo);
   const isActive = btn.classList.contains('active');
 

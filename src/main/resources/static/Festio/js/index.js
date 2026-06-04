@@ -432,6 +432,13 @@ function buildPosterCard(ev, idx) {
 /* ═══ 위시 토글 ═════════════════════════════════════════════ */
 async function handleWish(btn) {
   if (btn.dataset.loading === 'true') return;
+
+  if (typeof Auth !== 'undefined' && !Auth.isLoggedIn()) {
+    Toast.info('로그인이 필요합니다.');
+    setTimeout(() => { window.location.href = 'login.html'; }, 1000);
+    return;
+  }
+
   btn.dataset.loading = 'true';
   const no = parseInt(btn.dataset.eventNo);
   const isWished = btn.dataset.wished === 'true';
@@ -446,10 +453,9 @@ async function handleWish(btn) {
     await wishlistApi.toggleWishlist(no, isWished);
     if (newWish) {
       _wishlist.push(no);
-      Toast.success('찜 목록에 추가했습니다. 마이페이지로 이동합니다.');
-      setTimeout(() => { window.location.href = 'mypage.html#tab-wishlist'; }, 900);
+      Toast.success('찜 목록에 추가되었습니다.');
     }
-    else { _wishlist = _wishlist.filter(n => n !== no); Toast.info('찜 목록에서 제거했습니다.'); }
+    else { _wishlist = _wishlist.filter(n => n !== no); Toast.info('찜 목록에서 제거되었습니다.'); }
   } catch {
     btn.dataset.wished = String(isWished);
     btn.classList.toggle('active', isWished);
@@ -494,6 +500,19 @@ function renderTimesale() {
     const card = e.target.closest('.timesale-card');
     if (card) location.href = `detail.html?eventNo=${card.dataset.eventNo}`;
   });
+
+  const prevBtn = document.querySelector('.timesale-nav.prev');
+  const nextBtn = document.querySelector('.timesale-nav.next');
+  if (prevBtn) {
+    prevBtn.addEventListener('click', () => {
+      container.scrollBy({ left: -300, behavior: 'smooth' });
+    });
+  }
+  if (nextBtn) {
+    nextBtn.addEventListener('click', () => {
+      container.scrollBy({ left: 300, behavior: 'smooth' });
+    });
+  }
 }
 
 /* ═══ 카운트다운 ════════════════════════════════════════════ */
@@ -603,5 +622,40 @@ document.addEventListener('DOMContentLoaded', async () => {
   await loadData();
   if (_currentCat !== 'all') {
     $$('.header-cat-item').forEach(t => t.classList.toggle('active', t.dataset.cat === _currentCat));
+  }
+
+  // 비즈니스 제휴 플로팅 팝업 옵저버 및 열기 로직 추가
+  const partnerSection = document.querySelector('.partner-section');
+  const floatingPopup = document.getElementById('partnerFloatingPopup');
+  const btnScrollToPartner = document.getElementById('btnScrollToPartner');
+  let isPartnerFormOpen = false;
+
+  if (partnerSection && floatingPopup) {
+    // 1. 스크롤 300px 이상 내렸을 때 팝업 노출 로직
+    window.addEventListener('scroll', () => {
+      const scrollY = window.scrollY;
+
+      // 제휴폼이 열려있지 않고, 스크롤이 300 이상일 때만 노출
+      if (!isPartnerFormOpen && scrollY > 300) {
+        floatingPopup.classList.add('show');
+      } else {
+        floatingPopup.classList.remove('show');
+      }
+    }, { passive: true });
+
+    // 2. 플로팅 팝업 클릭 시 제휴폼 영역 열고 스무스 스크롤 이동
+    // 2. 플로팅 팝업 클릭 시 제휴폼 영역 열고 스무스 스크롤 이동
+    floatingPopup.addEventListener('click', () => {
+      isPartnerFormOpen = true;
+      floatingPopup.classList.remove('show'); // 팝업 즉시 숨김
+
+      // 제휴폼 펼치기
+      partnerSection.classList.add('open');
+
+      // 애니메이션이 약간 진행된 후 스크롤 이동하여 자연스럽게 포커스 맞춤
+      setTimeout(() => {
+        partnerSection.scrollIntoView({ behavior: 'smooth', block: 'end' });
+      }, 100);
+    });
   }
 });

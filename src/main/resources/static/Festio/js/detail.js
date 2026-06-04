@@ -15,14 +15,14 @@
 'use strict';
 
 /* ── 상태 ─────────────────────────────────────────────────── */
-let _eventDetail    = null;
+let _eventDetail = null;
 let _selectedZoneNo = null;
-let _quantity       = 1;
-let _appliedCoupon  = null;
-let _orderNo        = null;
-let _orderUid       = null;
-let _queueTimer     = null;
-let _queueCount     = 0;
+let _quantity = 1;
+let _appliedCoupon = null;
+let _orderNo = null;
+let _orderUid = null;
+let _queueTimer = null;
+let _queueCount = 0;
 let _selectedPayMethod = 'card';
 
 /* ── Toss Payments 설정 ─────────────────────────────────────── */
@@ -55,11 +55,11 @@ function renderEventDetail(detail) {
   }
 
   // 메타 정보 (날짜, 시간, 장소)
-  const metaDate  = $('.event-meta-date');
-  const metaTime  = $('.event-meta-time');
+  const metaDate = $('.event-meta-date');
+  const metaTime = $('.event-meta-time');
   const metaVenue = $('.event-meta-venue');
-  if (metaDate)  metaDate.textContent  = formatDate(detail.eventDate, true);
-  if (metaTime)  metaTime.textContent  = `${detail.startTime} ~ ${detail.endTime}`;
+  if (metaDate) metaDate.textContent = formatDate(detail.eventDate, true);
+  if (metaTime) metaTime.textContent = `${detail.startTime} ~ ${detail.endTime}`;
   if (metaVenue) metaVenue.textContent = detail.venue;
 
   // 페이지 타이틀
@@ -79,7 +79,7 @@ function initVenueMap(zones) {
 
   zoneEls.forEach(el => {
     const zoneNo = parseInt(el.dataset.zoneNo);
-    const zone   = zones.find(z => z.zoneNo === zoneNo);
+    const zone = zones.find(z => z.zoneNo === zoneNo);
     if (!zone) return;
 
     // 잔여 수량 0이면 sold-out 처리
@@ -93,7 +93,7 @@ function initVenueMap(zones) {
     el.setAttribute('role', 'button');
     el.setAttribute('aria-label', `${zone.zoneName} - ${formatKRW(zone.price)} - 잔여 ${zone.remainingCapacity}석`);
 
-    on(el, 'click',   () => selectZone(zoneNo, zone, el));
+    on(el, 'click', () => selectZone(zoneNo, zone, el));
     on(el, 'keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') selectZone(zoneNo, zone, el); });
   });
 
@@ -102,8 +102,8 @@ function initVenueMap(zones) {
     const legendItem = e.target.closest('.zone-legend-item[data-zone-no]');
     if (!legendItem) return;
     const zoneNo = parseInt(legendItem.dataset.zoneNo);
-    const zone   = zones.find(z => z.zoneNo === zoneNo);
-    const svgEl  = svg.querySelector(`[data-zone-no="${zoneNo}"]`);
+    const zone = zones.find(z => z.zoneNo === zoneNo);
+    const svgEl = svg.querySelector(`[data-zone-no="${zoneNo}"]`);
     if (zone && svgEl && zone.remainingCapacity > 0) {
       selectZone(zoneNo, zone, svgEl);
     }
@@ -136,18 +136,18 @@ function updateZoneInfoPanel(zone) {
   if (!panel) return;
   panel.classList.add('visible');
 
-  const name    = panel.querySelector('.zone-info-name');
+  const name = panel.querySelector('.zone-info-name');
   const soldRem = panel.querySelector('.zone-info-stat-value.remaining');
   const priceEl = panel.querySelector('.zone-info-stat-value.price');
-  const capBar  = panel.querySelector('.capacity-bar-fill');
+  const capBar = panel.querySelector('.capacity-bar-fill');
 
-  if (name)    name.textContent    = zone.zoneName;
+  if (name) name.textContent = zone.zoneName;
   if (soldRem) soldRem.textContent = `${zone.remainingCapacity}석`;
   if (priceEl) priceEl.textContent = formatKRW(zone.price);
 
   if (capBar) {
     const pct = Math.round(zone.remainingCapacity / zone.totalCapacity * 100);
-    capBar.style.width       = `${pct}%`;
+    capBar.style.width = `${pct}%`;
     capBar.className = `capacity-bar-fill ${zone.zoneType === 'VIP' ? 'zone-vip' : zone.zoneName.includes('A') ? 'zone-a' : zone.zoneName.includes('B') ? 'zone-b' : 'standing'}`;
   }
 }
@@ -155,7 +155,7 @@ function updateZoneInfoPanel(zone) {
 function updateCtaBar(zone) {
   if (!zone) return;
   const zoneLabel = $('.booking-cta-zone strong');
-  const totalEl   = $('.booking-cta-total');
+  const totalEl = $('.booking-cta-total');
   if (zoneLabel) zoneLabel.textContent = zone.zoneName;
 
   const gross = zone.price * _quantity;
@@ -169,12 +169,12 @@ function updateCtaBar(zone) {
 ═══════════════════════════════════════════════════════════ */
 function initQtySelector() {
   on($('.qty-btn-minus'), 'click', () => changeQty(-1));
-  on($('.qty-btn-plus'),  'click', () => changeQty(+1));
+  on($('.qty-btn-plus'), 'click', () => changeQty(+1));
 }
 
 function changeQty(delta) {
   const zone = _eventDetail?.zones.find(z => z.zoneNo === _selectedZoneNo);
-  const max  = zone ? Math.min(4, zone.remainingCapacity) : 4;
+  const max = zone ? Math.min(4, zone.remainingCapacity) : 4;
   _quantity = Math.max(1, Math.min(max, _quantity + delta));
   updateQtyDisplay();
   if (zone) updateCtaBar(zone);
@@ -185,12 +185,12 @@ function updateQtyDisplay() {
   if (el) el.textContent = _quantity;
 
   const minus = $('.qty-btn-minus');
-  const plus  = $('.qty-btn-plus');
-  const zone  = _eventDetail?.zones.find(z => z.zoneNo === _selectedZoneNo);
-  const max   = zone ? Math.min(4, zone.remainingCapacity) : 4;
+  const plus = $('.qty-btn-plus');
+  const zone = _eventDetail?.zones.find(z => z.zoneNo === _selectedZoneNo);
+  const max = zone ? Math.min(4, zone.remainingCapacity) : 4;
 
   if (minus) minus.disabled = _quantity <= 1;
-  if (plus)  plus.disabled  = _quantity >= max;
+  if (plus) plus.disabled = _quantity >= max;
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -214,7 +214,7 @@ function initStatsCharts(stats) {
         datasets: [{
           data: [stats.genderMale, stats.genderFemale],
           backgroundColor: ['rgba(106,77,255,0.8)', 'rgba(255,59,110,0.8)'],
-          borderColor:     ['#6A4DFF', '#FF3B6E'],
+          borderColor: ['#6A4DFF', '#FF3B6E'],
           borderWidth: 2,
           hoverOffset: 4,
         }],
@@ -248,7 +248,7 @@ function initStatsCharts(stats) {
             'rgba(0,229,204,0.7)', 'rgba(106,77,255,0.7)', 'rgba(255,59,110,0.7)',
             'rgba(255,184,0,0.7)', 'rgba(59,130,246,0.7)',
           ],
-          borderColor: ['#00E5CC','#6A4DFF','#FF3B6E','#FFB800','#3B82F6'],
+          borderColor: ['#00E5CC', '#6A4DFF', '#FF3B6E', '#FFB800', '#3B82F6'],
           borderWidth: 1,
           borderRadius: 4,
         }],
@@ -276,16 +276,16 @@ function initStatsCharts(stats) {
 ═══════════════════════════════════════════════════════════ */
 function startQueueSimulation() {
   _queueCount = Math.floor(Math.random() * 400) + 150;
-  const totalEntry  = _queueCount;
-  const myEntry     = Math.floor(Math.random() * 80) + 10;
-  let  elapsed      = 0;
-  const totalWait   = 30;   // seconds (시뮬레이션 총 시간)
+  const totalEntry = _queueCount;
+  const myEntry = Math.floor(Math.random() * 80) + 10;
+  let elapsed = 0;
+  const totalWait = 30;   // seconds (시뮬레이션 총 시간)
 
-  const countEl  = $('.queue-count');
+  const countEl = $('.queue-count');
   const progFill = $('.queue-progress-fill');
-  const progPct  = $('.queue-progress-pct');
-  const waitEl   = $('.queue-estimated-time');
-  const myNumEl  = $('.queue-my-number');
+  const progPct = $('.queue-progress-pct');
+  const waitEl = $('.queue-estimated-time');
+  const myNumEl = $('.queue-my-number');
 
   if (myNumEl) myNumEl.textContent = myEntry;
 
@@ -293,14 +293,14 @@ function startQueueSimulation() {
     elapsed++;
     const progress = Math.min(100, Math.round(elapsed / totalWait * 100));
     const decrease = Math.floor((totalEntry - myEntry) * (elapsed / totalWait));
-    const current  = Math.max(myEntry, totalEntry - decrease);
+    const current = Math.max(myEntry, totalEntry - decrease);
     const remaining = Math.max(0, current - myEntry);
-    const waitMin   = Math.max(0, Math.ceil((remaining * 3) / 60));
+    const waitMin = Math.max(0, Math.ceil((remaining * 3) / 60));
 
-    if (countEl)  countEl.innerHTML  = `${remaining.toLocaleString()}<span>명 앞</span>`;
+    if (countEl) countEl.innerHTML = `${remaining.toLocaleString()}<span>명 앞</span>`;
     if (progFill) progFill.style.width = `${progress}%`;
-    if (progPct)  progPct.textContent  = `${progress}%`;
-    if (waitEl)   waitEl.textContent   = waitMin > 0
+    if (progPct) progPct.textContent = `${progress}%`;
+    if (waitEl) waitEl.textContent = waitMin > 0
       ? `예상 대기 시간: 약 ${waitMin}분`
       : `잠시 후 입장됩니다...`;
 
@@ -331,12 +331,12 @@ async function initiateTossPayment() {
   if (!zone) { Toast.warning('구역을 선택해 주세요.'); return; }
 
   const user = Auth.get();
-  if (!user)  { Toast.warning('로그인이 필요합니다.'); return; }
+  if (!user) { Toast.warning('로그인이 필요합니다.'); return; }
 
   // 1. 서버에 주문 생성 → orderNo & orderUid 발급
   const orderPayload = {
-    eventNo:  _eventDetail.eventNo,
-    zoneNo:   zone.zoneNo,
+    eventNo: _eventDetail.eventNo,
+    zoneNo: zone.zoneNo,
     quantity: _quantity,
     couponNo: _appliedCoupon?.couponNo || null,
   };
@@ -347,30 +347,30 @@ async function initiateTossPayment() {
   const orderRes = await orderApi.createOrder(orderPayload);
   if (!orderRes) { Toast.error('주문 생성에 실패했습니다.'); return; }
 
-  _orderNo  = orderRes.orderNo;
+  _orderNo = orderRes.orderNo;
   _orderUid = orderRes.orderUid;
 
-  const gross    = zone.price * _quantity;
+  const gross = zone.price * _quantity;
   const discount = _appliedCoupon?.discountAmount || 0;
-  const amount   = gross - discount;
+  const amount = gross - discount;
 
   // 2. Toss Payments 결제 요청
   try {
     const tossPayments = TossPayments(TOSS_CLIENT_KEY);
 
     const methodMap = {
-      card:    '카드',
+      card: '카드',
       virtual: '가상계좌',
-      phone:   '휴대폰',
+      phone: '휴대폰',
     };
 
     await tossPayments.requestPayment(methodMap[_selectedPayMethod] || '카드', {
       amount,
-      orderId:      _orderUid,
-      orderName:    `${_eventDetail.eventName} - ${zone.zoneName} x${_quantity}`,
+      orderId: _orderUid,
+      orderName: `${_eventDetail.eventName} - ${zone.zoneName} x${_quantity}`,
       customerName: user.name,
-      successUrl:   `${window.location.origin}/payment-success.html?orderNo=${_orderNo}`,
-      failUrl:      `${window.location.origin}/payment-fail.html?orderNo=${_orderNo}`,
+      successUrl: `${window.location.origin}/payment-success.html?orderNo=${_orderNo}`,
+      failUrl: `${window.location.origin}/payment-fail.html?orderNo=${_orderNo}`,
       // 테스트 환경에서 카드 결제 자동 성공:
       // 카드번호: 4242424242424242 / 만료: 임의 미래 날짜 / CVV: 임의 3자리
     });
@@ -392,8 +392,8 @@ async function initiateTossPayment() {
 async function handlePaymentSuccess(paymentKey, orderId) {
   const confirmRes = await orderApi.confirmPayment(_orderNo, {
     pgProvider: 'toss',
-    pgTid:      paymentKey,
-    orderUid:   orderId,
+    pgTid: paymentKey,
+    orderUid: orderId,
   });
 
   if (confirmRes?.success) {
@@ -439,16 +439,16 @@ function enterPaymentModal() {
 }
 
 function updatePaymentSummary(zone) {
-  const gross    = zone.price * _quantity;
+  const gross = zone.price * _quantity;
   const discount = _appliedCoupon?.discountAmount || 0;
-  const net      = gross - discount;
+  const net = gross - discount;
 
   const rows = {
     '[data-payment="event-name"]': _eventDetail?.eventName || '',
-    '[data-payment="zone"]':       `${zone.zoneName} × ${_quantity}매`,
-    '[data-payment="subtotal"]':   formatKRW(gross),
-    '[data-payment="discount"]':   discount > 0 ? `-${formatKRW(discount)}` : '-',
-    '[data-payment="total"]':      formatKRW(net),
+    '[data-payment="zone"]': `${zone.zoneName} × ${_quantity}매`,
+    '[data-payment="subtotal"]': formatKRW(gross),
+    '[data-payment="discount"]': discount > 0 ? `-${formatKRW(discount)}` : '-',
+    '[data-payment="total"]': formatKRW(net),
   };
 
   Object.entries(rows).forEach(([sel, val]) => {
@@ -500,7 +500,7 @@ function initCouponApply() {
     const select = $('#coupon-select');
     if (!select?.value) { Toast.warning('쿠폰을 선택해 주세요.'); return; }
     const couponNo = parseInt(select.value);
-    const zone     = _eventDetail?.zones.find(z => z.zoneNo === _selectedZoneNo);
+    const zone = _eventDetail?.zones.find(z => z.zoneNo === _selectedZoneNo);
     if (!zone) return;
 
     const res = await couponApi.validateCoupon(couponNo, zone.price * _quantity);
@@ -510,7 +510,7 @@ function initCouponApply() {
     _appliedCoupon = { couponNo, discountAmount: res.discountAmount };
 
     const appliedBox = $('.coupon-applied-badge');
-    const applyRow   = $('.coupon-apply-row');
+    const applyRow = $('.coupon-apply-row');
     if (appliedBox) {
       appliedBox.classList.remove('hidden');
       const amountEl = appliedBox.querySelector('.coupon-applied-amount');
@@ -525,9 +525,9 @@ function initCouponApply() {
   on($('#btn-remove-coupon'), 'click', () => {
     _appliedCoupon = null;
     const appliedBox = $('.coupon-applied-badge');
-    const applyRow   = $('.coupon-apply-row');
+    const applyRow = $('.coupon-apply-row');
     if (appliedBox) appliedBox.classList.add('hidden');
-    if (applyRow)   applyRow.classList.remove('hidden');
+    if (applyRow) applyRow.classList.remove('hidden');
 
     const zone = _eventDetail?.zones.find(z => z.zoneNo === _selectedZoneNo);
     if (zone) updatePaymentSummary(zone);
@@ -540,7 +540,7 @@ async function loadCouponsForPayment() {
   const select = $('#coupon-select');
   if (!select) return;
   const coupons = await couponApi.getMyCoupons();
-  const valid   = (coupons || []).filter(c => !c.isUsed);
+  const valid = (coupons || []).filter(c => !c.isUsed);
   if (!valid.length) {
     select.innerHTML = '<option value="">사용 가능한 쿠폰이 없습니다</option>';
     return;
@@ -555,9 +555,9 @@ async function loadCouponsForPayment() {
    successUrl redirect 시 ?paymentKey=...&orderId=...&amount=...
 ═══════════════════════════════════════════════════════════ */
 function checkPaymentCallback() {
-  const params    = new URLSearchParams(window.location.search);
-  const paymentKey= params.get('paymentKey');
-  const orderId   = params.get('orderId');
+  const params = new URLSearchParams(window.location.search);
+  const paymentKey = params.get('paymentKey');
+  const orderId = params.get('orderId');
   if (paymentKey && orderId) {
     handlePaymentSuccess(paymentKey, orderId);
     // URL 파라미터 제거
@@ -572,7 +572,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   checkPaymentCallback();
 
   const eventNo = getEventNo();
-  const detail  = await eventApi.getEventDetail(eventNo);
+  const detail = await eventApi.getEventDetail(eventNo);
   if (!detail) {
     Toast.error('행사 정보를 불러올 수 없습니다.');
     return;
@@ -591,8 +591,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // 위시리스트 버튼
   on($('#btn-wish-detail'), 'click', async (e) => {
-    const btn       = e.currentTarget;
-    const isWished  = btn.dataset.wished === 'true';
+    if (typeof Auth !== 'undefined' && !Auth.isLoggedIn()) {
+      Toast.info('로그인이 필요합니다.');
+      setTimeout(() => { window.location.href = 'login.html'; }, 1000);
+      return;
+    }
+    const btn = e.currentTarget;
+    const isWished = btn.dataset.wished === 'true';
     await wishlistApi.toggleWishlist(detail.eventNo, isWished);
     const newWished = !isWished;
     btn.dataset.wished = String(newWished);

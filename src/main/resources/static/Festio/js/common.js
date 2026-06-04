@@ -90,7 +90,9 @@ const Auth = {
   KEY: 'festio_user',
   save(d) { try { sessionStorage.setItem(this.KEY, JSON.stringify(d)); } catch (e) { } },
   get() { try { return JSON.parse(sessionStorage.getItem(this.KEY)); } catch (e) { return null; } },
-  isLoggedIn() { return !!this.get(); },
+  isLoggedIn() {
+    return !!this.get() || localStorage.getItem('isLoggedIn') === 'true' || sessionStorage.getItem('isLoggedIn') === 'true' || !!localStorage.getItem('userToken');
+  },
   clear() { sessionStorage.removeItem(this.KEY); },
   seedMock() {
     if (!this.isLoggedIn() && window.MOCK_DATA) this.save(window.MOCK_DATA?.member || null);
@@ -256,18 +258,7 @@ function initHeaderCatDropdowns() {
 
 /* ── 카테고리 라우팅 ────────────────────────────────────────── */
 function navigateCat(cat, sub) {
-  const page = window.location.pathname.endsWith('index.html') || window.location.pathname.endsWith('/') || window.location.pathname === ''
-    ? 'index.html'
-    : null;
-
-  if (page || window._isIndexPage) {
-    // 메인 페이지에서 필터 적용
-    if (typeof window.applyCategory === 'function') {
-      window.applyCategory(cat, sub);
-    }
-  } else {
-    window.location.href = `list.html?cat=${cat}&sub=${sub || 'all'}`;
-  }
+  window.location.href = `list.html?category=${cat}&sub=${sub || 'all'}`;
 }
 
 /* ── 정렬 버튼 ─────────────────────────────────────────────── */

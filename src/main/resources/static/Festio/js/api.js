@@ -521,12 +521,13 @@ const wishlistApi = {
     if (USE_MOCK) return [...MOCK.wishlist_ids];
     const sb = getSupabase();
     const { data: { user } } = await sb.auth.getUser();
-    if (!user) return [];
+    if (!user) {
+      try { return JSON.parse(localStorage.getItem('festio_local_wishlist')) || []; } catch { return []; }
+    }
     const { data } = await sb.from('wishlist').select('festival_id').eq('user_id', user.id);
     return (data || []).map(r => r.festival_id);
   },
 
-  /** 찜 추가 */
   addWishlist: async (festivalId) => {
     if (USE_MOCK) {
       if (!MOCK.wishlist_ids.includes(festivalId)) MOCK.wishlist_ids.push(festivalId);
@@ -534,6 +535,13 @@ const wishlistApi = {
     }
     const sb = getSupabase();
     const { data: { user } } = await sb.auth.getUser();
+    if (!user) {
+      let list = [];
+      try { list = JSON.parse(localStorage.getItem('festio_local_wishlist')) || []; } catch { }
+      if (!list.includes(festivalId)) list.push(festivalId);
+      localStorage.setItem('festio_local_wishlist', JSON.stringify(list));
+      return { success: true };
+    }
     const { data } = await sb.from('wishlist').insert({ user_id: user.id, festival_id: festivalId }).select().single();
     return data;
   },
@@ -546,6 +554,13 @@ const wishlistApi = {
     }
     const sb = getSupabase();
     const { data: { user } } = await sb.auth.getUser();
+    if (!user) {
+      let list = [];
+      try { list = JSON.parse(localStorage.getItem('festio_local_wishlist')) || []; } catch { }
+      list = list.filter(n => n !== festivalId);
+      localStorage.setItem('festio_local_wishlist', JSON.stringify(list));
+      return { success: true };
+    }
     await sb.from('wishlist').delete().eq('user_id', user.id).eq('festival_id', festivalId);
     return { success: true };
   },

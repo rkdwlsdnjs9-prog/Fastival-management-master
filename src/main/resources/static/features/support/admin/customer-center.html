@@ -1,11 +1,12 @@
-<!doctype html>
-<html lang="ko" class="layout-menu-fixed layout-compact" data-assets-path="/assets/" data-template="vertical-menu-template-free">
+﻿<!doctype html>
+<html lang="ko" class="layout-menu-fixed layout-compact" data-assets-path="/assets/"
+  data-template="vertical-menu-template-free">
 
 <head>
   <meta charset="utf-8" />
   <meta name="viewport"
     content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
-  <title>1:1 고객센터 - FASTIVAL O2O</title>
+  <title>1:1 고객센터 | FESTIO</title>
 
   <link rel="icon" type="image/x-icon" href="/assets/img/favicon/favicon.ico" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -197,7 +198,7 @@
             <div class="container-xxl d-flex flex-wrap justify-content-between py-2 flex-md-row flex-column">
               <div class="mb-2 mb-md-0">
                 ©
-                <script>document.write(new Date().getFullYear());</script> FASTIVAL O2O
+                <script>document.write(new Date().getFullYear());</script> FESTIO
               </div>
             </div>
           </footer>
@@ -280,7 +281,19 @@
         const isSelected = q.id === currentInquiryId;
         const statusBadge = q.status === '대기' ? '<span class="badge bg-danger rounded-pill">대기</span>' : '<span class="badge bg-secondary rounded-pill">완료</span>';
         const complaintBadge = q.isComplaint ? '<span class="badge bg-danger ms-1" style="font-size:0.7rem;">블랙</span>' : '';
-        const ratingStr = q.rating > 0 ? `<span class="ms-1" style="color:#ffb400; font-size:0.75rem;">★${q.rating}</span>` : '';
+                let ratingText = '';
+        if (q.rating > 0) {
+          if (q.rating <= 1) ratingText = '매우 불만족';
+          else if (q.rating <= 2) ratingText = '불만족';
+          else if (q.rating <= 3) ratingText = '보통';
+          else if (q.rating <= 4) ratingText = '만족';
+          else ratingText = '매우 만족';
+        }
+        let csMsg = '';
+        if (q.rating > 0 && q.rating <= 2) {
+          csMsg = '<div style="margin-top:4px; font-size:0.75rem; color:#d32f2f; background:#ffebee; padding:4px 8px; border-radius:4px; display:inline-block;">💡 고객님의 소중한 의견을 수용하여 더 나은 서비스로 개선하겠습니다.</div>';
+        }
+        const ratingStr = q.rating > 0 ? <div style="display:flex; flex-direction:column; gap:2px;"><span class="ms-1" style="color:#ffb400; font-size:0.75rem;">★ \ <span style="font-size:0.75rem; color:#666;">(\)</span></span>\</div> : '';
         return `
         <a href="javascript:void(0);" onclick="selectInquiry(${q.id})" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center ${isSelected ? 'active shadow-sm' : ''}" style="transition: all 0.2s;">
           <div class="d-flex flex-column" style="width: 75%;">
@@ -385,15 +398,18 @@
     }
   </script>
 
-    <!-- Scripts -->
-    <script src="/assets/vendor/libs/jquery/jquery.js"></script>
-    <script src="/assets/vendor/libs/popper/popper.js"></script>
-    <script src="/assets/vendor/js/bootstrap.js"></script>
-    <script src="/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
-    <script src="/assets/vendor/js/menu.js"></script>
-    <script src="/assets/vendor/libs/apex-charts/apexcharts.js"></script>
-    <script src="/assets/js/main.js"></script>
-    <script src="/assets/js/sidebar.js"></script>
-    
-  </body>
+  <!-- Scripts -->
+  <script src="/assets/vendor/libs/jquery/jquery.js"></script>
+  <script src="/assets/vendor/libs/popper/popper.js"></script>
+  <script src="/assets/vendor/js/bootstrap.js"></script>
+  <script src="/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
+  <script src="/assets/vendor/js/menu.js"></script>
+  <script src="/assets/vendor/libs/apex-charts/apexcharts.js"></script>
+  <script src="/assets/js/main.js"></script>
+  <script src="/assets/js/sidebar.js"></script>
+
+</body>
+
 </html>
+
+
