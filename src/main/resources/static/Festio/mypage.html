@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 
 <head>
@@ -286,61 +286,17 @@
 
           <!-- 리뷰 작성 -->
           <div class="tab-pane" id="tab-reviews">
-            <div class="content-section-header">
-              <h2 class="content-section-title">리뷰 작성</h2>
+            <div class="content-section-header"
+              style="display: flex; justify-content: space-between; align-items: center;">
+              <h2 class="content-section-title" style="margin: 0;">리뷰 작성</h2>
+              <button class="btn btn-sm btn-outline" id="btn-open-review-modal"
+                style="border-radius: 20px; font-weight: 600;">+ 리뷰 작성</button>
             </div>
             <div class="review-section" id="reviewSection">
               <!-- 작성한 리뷰 리스트 -->
               <div id="myReviewList" style="margin-bottom: 40px;"></div>
 
-              <div
-                style="display:flex; align-items:center; gap:12px; border-top: 1px solid #eee; padding-top: 32px; margin-bottom:16px;">
-                <h3 class="content-section-title" style="font-size:1.1rem; margin:0;">새 리뷰 작성</h3>
-                <p class="text-sm text-muted" style="margin:0;">관람한 행사를 선택해 리뷰를 작성해 주세요.</p>
-              </div>
-              <div class="review-event-select" id="reviewEventList">
-                <div class="mypage-empty empty-state-padded">
-                  <p class="mypage-empty-title">관람한 행사가 없습니다</p>
-                </div>
-              </div>
-              <div id="reviewFormWrap" class="hidden">
-                <div class="form-group">
-                  <label class="form-label">별점</label>
-                  <div class="star-rating" id="starRating" role="group" aria-label="별점 선택">
-                    <button class="star-btn" data-star="1" aria-label="별 1개"><svg viewBox="0 0 24 24"
-                        fill="currentColor">
-                        <polygon
-                          points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                      </svg></button>
-                    <button class="star-btn" data-star="2" aria-label="별 2개"><svg viewBox="0 0 24 24"
-                        fill="currentColor">
-                        <polygon
-                          points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                      </svg></button>
-                    <button class="star-btn" data-star="3" aria-label="별 3개"><svg viewBox="0 0 24 24"
-                        fill="currentColor">
-                        <polygon
-                          points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                      </svg></button>
-                    <button class="star-btn" data-star="4" aria-label="별 4개"><svg viewBox="0 0 24 24"
-                        fill="currentColor">
-                        <polygon
-                          points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                      </svg></button>
-                    <button class="star-btn" data-star="5" aria-label="별 5개"><svg viewBox="0 0 24 24"
-                        fill="currentColor">
-                        <polygon
-                          points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                      </svg></button>
-                  </div>
-                </div>
-                <div class="form-group">
-                  <label class="form-label" for="reviewContent">리뷰 내용</label>
-                  <textarea id="reviewContent" class="form-input textarea-resize-y" rows="4"
-                    placeholder="행사는 어떠셨나요? 솔직한 후기를 남겨주세요."></textarea>
-                </div>
-                <button class="btn btn-primary btn-full" id="btn-submit-review">리뷰 등록</button>
-              </div>
+
             </div>
           </div>
 

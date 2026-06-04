@@ -302,7 +302,7 @@ function renderReservationList() {
           <div>주문 번호: <strong class="mp-color-success">${f.orderItemId}</strong></div>
           <div>상품명: ${f.productName} · 수량: ${f.quantity}개</div>
           <div>옵션: ${f.selectedOptions}</div>
-          <div class="mp-color-success mp-weight-500"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mp-icon-sm" style="vertical-align:middle;"><circle cx="12" cy="13" r="8"></circle><path d="M12 9v4l2 2"></path><path d="M12 2v2"></path><path d="M18 4l-1 1"></path></svg> ${f.pickupTimeSlot}</div>
+          <div class="mp-color-success mp-weight-500" style="display: flex; align-items: center; gap: 6px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mp-icon-sm" style="flex-shrink: 0;"><circle cx="12" cy="13" r="8"></circle><path d="M12 9v4l2 2"></path><path d="M12 2v2"></path><path d="M18 4l-1 1"></path></svg> <span>${f.pickupTimeSlot}</span></div>
         </div>
         <div class="mp-card-footer">
           <span class="mp-card-price">₩${f.totalPrice.toLocaleString()}</span>
@@ -1054,7 +1054,7 @@ function renderMyReviewList() {
   }
   list.innerHTML = MOCK_REVIEWS.map(r => {
     let starsHtml = '';
-    for(let i=1; i<=5; i++) {
+    for (let i = 1; i <= 5; i++) {
       if (i <= r.rating) starsHtml += '<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
       else if (i === Math.ceil(r.rating) && !Number.isInteger(r.rating)) starsHtml += `<svg viewBox="0 0 24 24" width="20" height="20"><defs><linearGradient id="halfG-${r.id}-${i}"><stop offset="50%" stop-color="currentColor"/><stop offset="50%" stop-color="#ddd"/></linearGradient></defs><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" fill="url(#halfG-${r.id}-${i})"/></svg>`;
       else starsHtml += '<svg viewBox="0 0 24 24" width="20" height="20" fill="#ddd"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
@@ -1117,13 +1117,13 @@ window.enableInlineEdit = function (id) {
     contentWrapper.classList.add('hidden');
     editWrapper.classList.remove('hidden');
     actionsWrap.classList.add('hidden');
-    
+
     // Bind star events for half-rating
     const ratingWrapper = document.getElementById(`edit-rating-${id}`);
     if (ratingWrapper && !ratingWrapper.dataset.bound) {
       ratingWrapper.dataset.bound = 'true';
       const stars = ratingWrapper.querySelectorAll('.star-btn');
-      
+
       const updateReviewStars = (rating) => {
         ratingWrapper.dataset.selectedRating = rating;
         stars.forEach(s => {
@@ -1158,7 +1158,7 @@ window.enableInlineEdit = function (id) {
           updateReviewStars(isHalf ? baseVal - 0.5 : baseVal);
         });
       });
-      
+
       ratingWrapper.addEventListener('mouseleave', () => {
         const review = MOCK_REVIEWS.find(r => r.id === id);
         updateReviewStars(review ? review.rating : 5);
@@ -1215,10 +1215,10 @@ window.editReview = function (id) {
 
 function initReviewForm() {
   if (!document.getElementById("half-star-css")) { document.head.insertAdjacentHTML("beforeend", `<style id="half-star-css">.star-btn{position:relative;} .star-btn.half{color:#ffb400;} .star-btn.half::after{content:"";position:absolute;top:0;left:0;width:50%;height:100%;background:currentColor;mix-blend-mode:color;} /* simple mockup */</style>`); }
-  
+
   // Inject modal if it doesn't exist
   if (!document.getElementById('newReviewModal')) {
-    document.body.insertAdjacentHTML('beforeend', `\n<div class="modal-overlay modal-center" id="newReviewModal" style="z-index: 9999;">\n  <div class="modal-sheet" style="max-width: 600px; width: 100%; max-height: 90vh; overflow-y: auto;">\n    <div class="modal-header">\n      <h3 class="modal-title">새로운 리뷰 작성</h3>\n      <button class="modal-close-btn" id="btn-close-review-modal" aria-label="닫기">\n        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">\n          <line x1="18" y1="6" x2="6" y2="18"></line>\n          <line x1="6" y1="6" x2="18" y2="18"></line>\n        </svg>\n      </button>\n    </div>\n    <div class="modal-body">\n      <div class="review-event-select" id="reviewEventList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-bottom: 32px;">\n      </div>\n      <div id="reviewFormWrap" class="hidden" style="background: #ffffff; border: 1px solid #e0e0e0; border-radius: 16px; padding: 32px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); margin-bottom: 40px;">\n        <h4 id="reviewFormEventTitle" style="margin-top: 0; margin-bottom: 24px; font-size: 1.1rem; color: #8930F8; font-weight: 700; border-bottom: 2px solid #f0f0f5; padding-bottom: 12px;">행사 이름</h4>\n        <div class="form-group" style="margin-bottom: 24px;">\n          <label class="form-label" style="color: #444; font-weight: 600; margin-bottom: 12px; display: block;">만족도를 평가해주세요</label>\n          <div class="star-rating" id="starRating" role="group" aria-label="별점 평가" style="display: flex; gap: 8px; justify-content: center; padding: 16px; background: #f9f9fb; border-radius: 12px;">\n            ${[1,2,3,4,5].map(star => `<button class="star-btn" data-star="${star}" aria-label="별점 ${star}점" style="background:none; border:none; color:#ddd; cursor:pointer; width:40px; height:40px; padding:0; transition: color 0.2s, transform 0.2s;">\n              <svg viewBox="0 0 24 24" fill="currentColor">\n                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />\n              </svg>\n            </button>`).join('')}\n          </div>\n        </div>\n        <div class="form-group" style="margin-bottom: 24px;">\n          <label class="form-label" for="reviewContent" style="color: #444; font-weight: 600; margin-bottom: 8px; display: block;">상세 리뷰 작성</label>\n          <textarea class="form-input textarea-resize-y" id="reviewContent" rows="5" placeholder="페스티벌 경험은 어떠셨나요? 솔직한 후기를 남겨주세요." style="width: 100%; padding: 16px; border: 1px solid #d1d5db; border-radius: 12px; font-size: 0.95rem; background: #fafafa; color: #333; transition: border-color 0.2s, box-shadow 0.2s;"></textarea>\n        </div>\n        <div style="display: flex; gap: 12px;">\n          <button class="btn btn-ghost" id="btn-cancel-review" style="flex: 1; padding: 14px; border-radius: 12px; border: 1px solid #d1d5db; color: #555; font-weight: 600; background: #fff;">취소</button>\n          <button class="btn btn-primary" id="btn-submit-review" style="flex: 2; padding: 14px; border-radius: 12px; font-weight: 700; background: linear-gradient(135deg, #8930F8 0%, #6b21c5 100%); color: white; border: none; box-shadow: 0 4px 12px rgba(137,48,248,0.3);">리뷰 등록하기</button>\n        </div>\n      </div>\n    </div>\n  </div>\n</div>\n`);
+    document.body.insertAdjacentHTML('beforeend', `\n<div class="modal-overlay modal-center" id="newReviewModal" style="z-index: 9999;">\n  <div class="modal-sheet" style="max-width: 600px; width: 100%; max-height: 90vh; overflow-y: auto;">\n    <div class="modal-header">\n      <h3 class="modal-title">새로운 리뷰 작성</h3>\n      <button class="modal-close-btn" id="btn-close-review-modal" aria-label="닫기">\n        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">\n          <line x1="18" y1="6" x2="6" y2="18"></line>\n          <line x1="6" y1="6" x2="18" y2="18"></line>\n        </svg>\n      </button>\n    </div>\n    <div class="modal-body">\n      <div class="review-event-select" id="reviewEventList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-bottom: 32px;">\n      </div>\n      <div id="reviewFormWrap" class="hidden" style="background: #ffffff; border: 1px solid #e0e0e0; border-radius: 16px; padding: 32px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); margin-bottom: 40px;">\n        <h4 id="reviewFormEventTitle" style="margin-top: 0; margin-bottom: 24px; font-size: 1.1rem; color: #8930F8; font-weight: 700; border-bottom: 2px solid #f0f0f5; padding-bottom: 12px;">행사 이름</h4>\n        <div class="form-group" style="margin-bottom: 24px;">\n          <label class="form-label" style="color: #444; font-weight: 600; margin-bottom: 12px; display: block;">만족도를 평가해주세요</label>\n          <div class="star-rating" id="starRating" role="group" aria-label="별점 평가" style="display: flex; gap: 8px; justify-content: center; padding: 16px; background: #f9f9fb; border-radius: 12px;">\n            ${[1, 2, 3, 4, 5].map(star => `<button class="star-btn" data-star="${star}" aria-label="별점 ${star}점" style="background:none; border:none; color:#ddd; cursor:pointer; width:40px; height:40px; padding:0; transition: color 0.2s, transform 0.2s;">\n              <svg viewBox="0 0 24 24" fill="currentColor">\n                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />\n              </svg>\n            </button>`).join('')}\n          </div>\n        </div>\n        <div class="form-group" style="margin-bottom: 24px;">\n          <label class="form-label" for="reviewContent" style="color: #444; font-weight: 600; margin-bottom: 8px; display: block;">상세 리뷰 작성</label>\n          <textarea class="form-input textarea-resize-y" id="reviewContent" rows="5" placeholder="페스티벌 경험은 어떠셨나요? 솔직한 후기를 남겨주세요." style="width: 100%; padding: 16px; border: 1px solid #d1d5db; border-radius: 12px; font-size: 0.95rem; background: #fafafa; color: #333; transition: border-color 0.2s, box-shadow 0.2s;"></textarea>\n        </div>\n        <div style="display: flex; gap: 12px;">\n          <button class="btn btn-ghost" id="btn-cancel-review" style="flex: 1; padding: 14px; border-radius: 12px; border: 1px solid #d1d5db; color: #555; font-weight: 600; background: #fff;">취소</button>\n          <button class="btn btn-primary" id="btn-submit-review" style="flex: 2; padding: 14px; border-radius: 12px; font-weight: 700; background: linear-gradient(135deg, #8930F8 0%, #6b21c5 100%); color: white; border: none; box-shadow: 0 4px 12px rgba(137,48,248,0.3);">리뷰 등록하기</button>\n        </div>\n      </div>\n    </div>\n  </div>\n</div>\n`);
   }
 
   const eventList = document.getElementById('reviewEventList');
@@ -1307,7 +1307,7 @@ function initReviewForm() {
       star.addEventListener('mouseleave', () => {
         updateReviewStars(selectedRating);
       });
-      
+
       const svg = star.querySelector('svg');
       if (svg) {
         svg.style.transition = 'all 0.2s';
@@ -1353,7 +1353,7 @@ function initReviewForm() {
       if (reviewWrap) reviewWrap.classList.add('hidden');
       if (eventList) eventList.querySelectorAll('.mp-card').forEach(c => c.style.border = '1px solid var(--border-subtle)');
       renderMyReviewList();
-      
+
       const reviewModal = document.getElementById('newReviewModal');
       if (reviewModal) reviewModal.classList.remove('active');
     });
@@ -1372,7 +1372,7 @@ window.editReview = function (id) {
   document.getElementById('reviewContent').value = review.content;
   document.getElementById('btn-submit-review').textContent = '리뷰 수정';
   currentEditReviewId = id;
-  
+
   const modal = document.getElementById('newReviewModal');
   if (modal) modal.classList.add('active');
 };
@@ -1521,6 +1521,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   renderStats();
   renderReservationList();
+  initReviewForm();
   await renderOtherLists();
   renderInquiryList();
 
@@ -1528,7 +1529,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   initTabs();
   initInquiryForm();
   initCouponForm();
-  initReviewForm();
   initProfileEditSave();
   initProfileFeatures();
   initLogout();
