@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 
 <head>
@@ -178,7 +178,7 @@
           <button type="submit" class="btn-login">로그인</button>
 
           <div class="login-links">
-            <a href="#">아이디 찾기</a> | <a href="#">비밀번호 찾기</a>
+            <a href="find_account.html">아이디 찾기</a> | <a href="find_account.html">비밀번호 찾기</a>
           </div>
 
           <div class="social-btn-group">
@@ -222,57 +222,7 @@
     </div>
   </main>
 
-  <!-- 계정 찾기 모달 (고도화된 모달 폼) -->
-  <div class="modal-overlay" id="findAccountModal">
-    <div class="modal-content account-modal">
-      <div class="modal-header">
-        <h2 class="modal-title">계정 찾기</h2>
-        <button type="button" class="btn-close-modal" aria-label="닫기">
-          <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none"
-            stroke-linecap="round" stroke-linejoin="round">
-            <line x1="18" y1="6" x2="6" y2="18"></line>
-            <line x1="6" y1="6" x2="18" y2="18"></line>
-          </svg>
-        </button>
-      </div>
-      <div class="modal-tabs">
-        <button class="modal-tab active" data-target="tab-find-id">아이디 찾기</button>
-        <button class="modal-tab" data-target="tab-find-pw">비밀번호 찾기</button>
-      </div>
-      <div class="modal-body account-modal-body">
 
-        <!-- 아이디 찾기 폼 -->
-        <div id="tab-find-id" class="tab-content active">
-          <div class="form-group">
-            <label class="form-label">이름</label>
-            <input type="text" class="form-input" id="findIdName" placeholder="가입하신 이름을 입력해주세요">
-          </div>
-          <div class="form-group">
-            <label class="form-label">연락처(휴대폰 번호)</label>
-            <input type="tel" class="form-input" id="findIdPhone" placeholder="- 없이 숫자만 입력">
-          </div>
-          <button type="button" class="btn-primary" id="btnFindIdSubmit">아이디 찾기</button>
-
-          <div class="find-result" id="findIdResult"></div>
-        </div>
-
-        <!-- 비밀번호 찾기 폼 -->
-        <div id="tab-find-pw" class="tab-content">
-          <div class="form-group">
-            <label class="form-label">아이디(이메일)</label>
-            <input type="email" class="form-input" id="findPwEmail" placeholder="가입하신 이메일을 입력해주세요">
-          </div>
-          <div class="form-group">
-            <label class="form-label">연락처(휴대폰 번호)</label>
-            <input type="tel" class="form-input" id="findPwPhone" placeholder="- 없이 숫자만 입력">
-          </div>
-          <button type="button" class="btn-primary" id="btnFindPwSubmit">임시 비밀번호 발송</button>
-
-          <div class="find-result" id="findPwResult"></div>
-        </div>
-      </div>
-    </div>
-  </div>
 
   <!-- ══ 하단 네비 (모바일) ════════════════════════════════════ -->
   <nav class="bottom-nav" aria-label="하단 메뉴">
@@ -328,4 +278,3 @@
 </body>
 
 </html>
-

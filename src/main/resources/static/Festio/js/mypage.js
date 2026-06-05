@@ -46,10 +46,11 @@ async function loadUserInfo() {
   if (!userToken) return;
 
   try {
+    const encodedToken = encodeURI(userToken);
     const response = await fetch('/api/auth/me', {
       method: 'GET',
       headers: {
-        'Authorization': userToken
+        'Authorization': encodedToken
       }
     });
 
@@ -82,7 +83,8 @@ async function loadUserInfo() {
 function fallbackLocalUserInfo() {
   const userName = localStorage.getItem('userName') || '축제이용자';
   const userRole = localStorage.getItem('userRole') || 'CLIENT';
-  const userEmail = localStorage.getItem('email') || 'user@festio.kr';
+  let userEmail = localStorage.getItem('email') || 'user@festio.kr';
+  if (userEmail.includes('토스')) userEmail = userEmail.replace(/토스/g, 'toss');
   const userPhone = localStorage.getItem('userPhone') || '';
 
   _member = {
@@ -251,7 +253,7 @@ function renderReservationList() {
   htmlContent += `
     <div class="mp-margin-b-24">
       <h3 class="mp-section-title">
-        <span class="mp-margin-r-8"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mp-icon-md"><rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect><path d="M7 4v16"></path><path d="M17 4v16"></path></svg></span> 축제 티켓 예매 내역 (${MOCK_TICKETS.length}건)
+        <span class="mp-margin-r-8"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mp-icon-md"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M13 5v2"/><path d="M13 11v2"/><path d="M13 17v2"/></svg></span> 축제 티켓 예매 내역 (${MOCK_TICKETS.length}건)
       </h3>
   `;
 
@@ -520,9 +522,8 @@ function showFoodQr(token) {
   openQrModalView(token, 'FOOD');
 }
 
-/* 모달 열기 (QR 크게보기) */
-function openQrModalView(token) {
-  console.log('openQrModalView 호출됨, 토큰:', token);
+function openQrModalView(token, type = 'TICKET') {
+  console.log('openQrModalView 호출됨, 토큰:', token, '타입:', type);
   const overlay = document.getElementById('qrModalOverlay');
   if (!overlay) {
     console.error('qrModalOverlay 요소를 찾을 수 없음');
@@ -533,12 +534,49 @@ function openQrModalView(token) {
   const qrToken = token || _currentQrToken || 'FEST-NEW-XYZ123';
   console.log('사용할 QR 토큰:', qrToken);
 
-  // 혁시에 행사명 노출
-  const eventName = (window.MOCK_TICKETS && MOCK_TICKETS[0])
+  // 행사명 및 상점명 조합
+  let baseEventName = (window.MOCK_TICKETS && MOCK_TICKETS[0])
     ? (MOCK_TICKETS[0].eventName || '2026 워터밤 서울')
     : '2026 워터밤 서울';
-  const nameEl = document.getElementById('qrModalEventName');
-  if (nameEl) nameEl.textContent = eventName;
+
+  let finalTitle = baseEventName;
+
+  if (type === 'FOOD') {
+    const foodOrder = MOCK_FOOD_ORDERS.find(f => f.qrToken === token);
+    if (foodOrder) {
+      finalTitle = `${baseEventName} - ${foodOrder.storeName}`;
+    }
+  }
+
+  const titleEl = document.getElementById('qrModalTitleFull');
+  if (titleEl) {
+    titleEl.innerHTML = `<span id="qrModalEventName">${finalTitle}</span>`;
+  }
+
+  // 사용 이력 세팅
+  const historyList = document.getElementById('qrModalHistoryList');
+  if (historyList) {
+    if (type === 'FOOD') {
+      const foodOrder = MOCK_FOOD_ORDERS.find(f => f.qrToken === token);
+      if (foodOrder) {
+        historyList.innerHTML = `
+          <div class="qr-history-item" onclick="openReceiptModal('${foodOrder.orderItemId}')" style="cursor:pointer; display:flex; justify-content:space-between; align-items:center; padding:12px 16px; transition:background 0.2s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'">
+            <span style="color:#64748b; font-size:0.9rem;">${foodOrder.itemStatus === 'PICKED_UP' ? '푸드트럭 사용 완료' : '푸드트럭 주문 내역'}</span>
+            <span style="color:#64748b; font-size:0.9rem;">${foodOrder.pickupTimeSlot.replace(' (수령 완료)', '').replace(' (픽업 예정)', '')} <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none" style="vertical-align:middle; margin-left:4px;"><polyline points="9 18 15 12 9 6"></polyline></svg></span>
+          </div>
+        `;
+      } else {
+        historyList.innerHTML = '<div style="padding:16px; text-align:center; color:#94a3b8; font-size:0.9rem;">사용 이력이 없습니다.</div>';
+      }
+    } else {
+      historyList.innerHTML = `
+        <div class="qr-history-item" style="display:flex; justify-content:space-between; padding:12px 16px;">
+          <span style="color:#64748b; font-size:0.9rem;">입장 완료</span>
+          <span style="color:#64748b; font-size:0.9rem;">2026.07.01 13:00</span>
+        </div>
+      `;
+    }
+  }
 
   // QR 코드 텍스트
   const codeEl = document.getElementById('qrModalCode');
@@ -560,6 +598,117 @@ function openQrModalView(token) {
   document.body.style.overflow = 'hidden';
   console.log('모달 active 클래스 추가됨');
 }
+
+window.openReceiptModal = function (orderId) {
+  let order = typeof MOCK_FOOD_ORDERS !== 'undefined' ? MOCK_FOOD_ORDERS.find(o => o.orderItemId === orderId) : null;
+  // 무조건 모달이 뜨도록 fallback 데이터 제공
+  if (!order) {
+    order = {
+      storeName: '춘향이네 야시장 (Food Truck #3)',
+      productName: '오코노미야끼 & 야끼소바 세트',
+      quantity: 2,
+      selectedOptions: '치즈 토핑 추가, 아주 매운맛',
+      totalPrice: 24000,
+      pickupTimeSlot: '26.06.04 14:30'
+    };
+  }
+
+  let existingModal = document.getElementById('dynamicReceiptModal');
+  if (existingModal) existingModal.remove();
+
+  const approvalNum = Math.floor(Math.random() * 90000000 + 10000000);
+  const timeSlotStr = order.pickupTimeSlot.replace(' (수령 완료)', '').replace(' (픽업 예정)', '');
+
+  const html = `
+    <div id="dynamicReceiptModal" class="qr-modal-overlay active" style="position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.65); z-index:999999; display:flex; align-items:center; justify-content:center;">
+      <div class="qr-modal-card" style="background:#fff; border-radius:24px; width:340px; max-width:90vw; overflow:hidden; padding:0; box-shadow:0 24px 60px rgba(0,0,0,0.3); animation:qrSlideUp 0.3s ease;">
+        <div style="background:#f8fafc; padding:20px; text-align:center; border-bottom:1px dashed #cbd5e1;">
+          <h3 style="margin:0; font-size:1.2rem; font-weight:700; color:#1e293b;">${order.storeName}</h3>
+          <p style="margin:4px 0 0; font-size:0.85rem; color:#64748b;">모바일 간이 영수증</p>
+        </div>
+        <div style="padding:24px 20px;">
+          <div style="margin-bottom:16px; border-bottom:1px solid #f1f5f9; padding-bottom:16px;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:0.95rem;">
+              <span>${order.productName}</span>
+              <span>${order.quantity}개</span>
+            </div>
+            <div style="color:#64748b; font-size:0.85rem;">옵션: ${order.selectedOptions || '기본'}</div>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+            <span style="font-weight:600; color:#334155;">총 결제 금액</span>
+            <span style="font-weight:700; font-size:1.1rem; color:#8930F8;">₩${order.totalPrice.toLocaleString()}</span>
+          </div>
+          <div style="background:#f8fafc; padding:16px; border-radius:8px;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:0.85rem;">
+              <span style="color:#64748b;">결제 일시</span>
+              <span style="color:#334155; font-weight:500;">${timeSlotStr}</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:0.85rem;">
+              <span style="color:#64748b;">결제 수단</span>
+              <span style="color:#334155; font-weight:500;">FESTIO Pay</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; font-size:0.85rem;">
+              <span style="color:#64748b;">승인 번호</span>
+              <span style="color:#334155; font-weight:500;">${approvalNum}</span>
+            </div>
+          </div>
+        </div>
+        <div style="padding:16px 20px; text-align:center; background:#f8fafc; border-top:1px solid #f1f5f9;">
+          <button onclick="closeReceiptModal()" class="btn btn-outline" style="width:100%; padding:12px; border-radius:8px; font-weight:600;">닫기</button>
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.insertAdjacentHTML('beforeend', html);
+  document.body.style.overflow = 'hidden';
+};
+
+window.closeReceiptModal = function () {
+  const receiptModal = document.getElementById('dynamicReceiptModal');
+  if (receiptModal) receiptModal.remove();
+};
+
+window.toggleQrAccordion = function () {
+  const body = document.getElementById('qrModalHistoryBody');
+  const icon = document.getElementById('qrModalHistoryIcon');
+  if (!body) return;
+  if (body.style.display === 'none') {
+    body.style.display = 'block';
+    if (icon) icon.style.transform = 'rotate(180deg)';
+  } else {
+    body.style.display = 'none';
+    if (icon) icon.style.transform = 'rotate(0deg)';
+  }
+};
+
+window.toggleActivityAccordion = function () {
+  const body = document.getElementById('activityAccordionBody');
+  const icon = document.getElementById('activityAccordionIcon');
+  if (!body) return;
+  if (body.style.display === 'none') {
+    body.style.display = 'block';
+    if (icon) icon.style.transform = 'rotate(180deg)';
+  } else {
+    body.style.display = 'none';
+    if (icon) icon.style.transform = 'rotate(0deg)';
+  }
+};
+
+window.openGradeModal = function () {
+  const modal = document.getElementById('gradeModalOverlay');
+  if (modal) {
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+};
+
+window.closeGradeModal = function () {
+  const modal = document.getElementById('gradeModalOverlay');
+  if (modal) {
+    modal.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+};
 
 function closeQrModalView() {
   const overlay = document.getElementById('qrModalOverlay');
@@ -839,8 +988,8 @@ function renderInquiryList() {
                 좋아요
               </button>
               <div style="display:flex; gap:2px; align-items:center;" class="inquiry-stars" data-id="${q.id}" data-rating="${rating}">
-                ${[1, 2, 3, 4, 5].map(i => `<svg width="20" height="20" viewBox="0 0 24 24" fill="${i <= Math.floor(rating) ? '#ffb400' : (i === Math.ceil(rating) && !Number.isInteger(rating) ? '#ffb400' : 'none')}" stroke="#ffb400" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="cursor:pointer; opacity:${i === Math.ceil(rating) && !Number.isInteger(rating) ? '0.5' : '1'};" onmousemove="hoverInquiryStar(event, this, ${i}, ${q.id})" onmouseleave="resetInquiryStar(${q.id})" onclick="setInquiryStar(event, this, ${i}, ${q.id})"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>`).join('')}
-                <span class="rating-text" style="margin-left: 6px; font-size: 0.8rem; font-weight: 500; color: ${rating > 0 ? 'var(--color-primary)' : 'var(--text-muted)'};">${ratingText}</span>
+                ${[1, 2, 3, 4, 5].map(i => `<svg width="20" height="20" viewBox="0 0 24 24" fill="${i <= Math.floor(rating) ? '#ffb400' : (i === Math.ceil(rating) && !Number.isInteger(rating) ? 'url(#half-star-grad)' : 'none')}" stroke="#ffb400" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="cursor:pointer;" onmousemove="hoverInquiryStar(event, this, ${i}, ${q.id})" onmouseleave="resetInquiryStar(${q.id})" onclick="setInquiryStar(event, this, ${i}, ${q.id})"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>`).join('')}
+                <span class="rating-text" style="margin-left: 6px; font-size: 0.85rem; font-weight: bold; color: ${rating > 0 ? 'var(--color-primary)' : 'var(--text-muted)'};">${ratingText} <span class="rating-score" style="color:#ffb400;">(${Number(rating).toFixed(1)})</span></span>
               </div>
             </div>` : '<div></div>'}
           <button class="btn btn-sm" onclick="deleteInquiry(${q.id})" style="padding:4px 10px; font-size:0.8rem; background:#ffebee; color:#d32f2f; border:none; border-radius:4px;">삭제</button>
@@ -901,7 +1050,7 @@ window.setInquiryStar = function (e, svg, baseVal, qId) {
 
     const textSpan = container.querySelector('.rating-text');
     if (textSpan) {
-      textSpan.textContent = ratingText;
+      textSpan.innerHTML = `${ratingText} <span class="rating-score" style="color:#ffb400;">(${selectedRating.toFixed(1)})</span>`;
       textSpan.style.color = 'var(--color-primary)';
     }
   }
@@ -945,13 +1094,10 @@ window.updateInquiryStars = function (qId, val) {
     const sVal = idx + 1;
     if (sVal <= Math.floor(val)) {
       svg.setAttribute('fill', '#ffb400');
-      svg.style.opacity = '1';
     } else if (sVal === Math.ceil(val) && !Number.isInteger(val)) {
-      svg.setAttribute('fill', '#ffb400');
-      svg.style.opacity = '0.5'; // Simulate half star visually
+      svg.setAttribute('fill', 'url(#half-star-grad)');
     } else {
       svg.setAttribute('fill', 'none');
-      svg.style.opacity = '1';
     }
   });
 };
@@ -978,46 +1124,50 @@ window.deleteInquiry = function (id) {
 
 
 let MOCK_COUPONS = [
-  { id: 1, title: '20% 할인 쿠폰', desc: 'FESTIO 회원 웰컴 쿠폰', limit: '최소 ₩30,000 이상 결제 시 사용 가능', date: '2026.08.31' }
+  { id: 1, code: 'C1B2C3D4E5F6', title: '20% 할인 쿠폰', desc: 'FESTIO 회원 웰컴 쿠폰', limit: '최소 ₩30,000 이상 결제 시 사용 가능', date: '2026.08.31', status: 'active' }
 ];
 function renderCouponList() {
   const couponList = document.getElementById('couponList');
   const couponCount = document.getElementById('couponCount');
   if (!couponList) return;
-  if (couponCount) couponCount.textContent = `보유 ${MOCK_COUPONS.length}개`;
-  if (MOCK_COUPONS.length === 0) {
+  const activeCoupons = MOCK_COUPONS.filter(c => c.status === 'active');
+  if (couponCount) couponCount.textContent = `보유 ${activeCoupons.length}개`;
+  if (activeCoupons.length === 0) {
     couponList.innerHTML = `<div class="mypage-empty"><p class="mypage-empty-title">보유 쿠폰이 없습니다</p></div>`;
     return;
   }
-  couponList.innerHTML = MOCK_COUPONS.map(c => `
-    <div class="mp-card" style="display:flex; justify-content:space-between; align-items:center;">
+  couponList.innerHTML = activeCoupons.map(c => `
+    <div class="mp-card coupon-card" style="display:flex; justify-content:space-between; align-items:center; position:relative; padding:16px 20px; margin-bottom:12px;">
+      <button class="coupon-delete-btn" onclick="deleteCoupon(${c.id})" style="position:absolute; top:-10px; right:-10px; width:26px; height:26px; background:#ff4757; color:white; border:none; border-radius:50%; font-size:12px; font-weight:bold; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 6px rgba(255, 71, 87, 0.4); opacity:0; transition:opacity 0.2s, transform 0.2s; z-index:2;">
+        <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+      
       <div>
-        <p class="mp-coupon-desc" style="font-size:0.85rem; color:var(--text-muted);">${c.desc}</p>
-        <h3 class="mp-coupon-title" style="margin:8px 0; font-size:1.25rem;">${c.title}</h3>
-        <p class="mp-coupon-meta" style="font-size:0.9rem; color:var(--text-secondary);">${c.limit}</p>
+        <p class="mp-coupon-desc" style="font-size:0.8rem; color:var(--text-muted); margin-bottom:4px;">${c.desc}</p>
+        <h3 class="mp-coupon-title" style="margin:0 0 6px 0; font-size:1.15rem;">${c.title}</h3>
+        <p class="mp-coupon-meta" style="font-size:0.85rem; color:var(--text-secondary); margin:0;">${c.limit}</p>
       </div>
+      
       <div style="display:flex; flex-direction:column; align-items:flex-end;">
-        <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
-          <div style="text-align:center;">
-            <svg viewBox="0 0 100 30" style="width:100px; height:30px;">
-              <rect x="0" y="0" width="4" height="30" fill="#333"/><rect x="6" y="0" width="2" height="30" fill="#333"/><rect x="12" y="0" width="6" height="30" fill="#333"/><rect x="22" y="0" width="4" height="30" fill="#333"/><rect x="30" y="0" width="2" height="30" fill="#333"/><rect x="36" y="0" width="8" height="30" fill="#333"/><rect x="48" y="0" width="4" height="30" fill="#333"/><rect x="56" y="0" width="2" height="30" fill="#333"/><rect x="62" y="0" width="10" height="30" fill="#333"/><rect x="76" y="0" width="4" height="30" fill="#333"/><rect x="84" y="0" width="2" height="30" fill="#333"/><rect x="90" y="0" width="6" height="30" fill="#333"/><rect x="100" y="0" width="4" height="30" fill="#333"/>
-            </svg>
-            <p style="font-size:0.75rem; letter-spacing:2px; margin-top:4px; font-family:monospace;">FEST-${c.id}026</p>
-          </div>
-          <div>
-            <span class="mp-coupon-badge" style="display:inline-block; padding:4px 8px; background:rgba(106, 77, 255, 0.1); color:var(--color-primary); border-radius:4px; font-weight:bold; margin-bottom:4px;">보유중</span>
-            <p class="mp-coupon-date" style="font-size:0.85rem; color:var(--text-muted); margin:0;">~${c.date}</p>
-          </div>
+        <div style="text-align:center; margin-bottom:10px;">
+          <svg viewBox="0 0 100 24" style="width:100px; height:24px; margin:0 auto; display:block;">
+            <rect x="0" y="0" width="4" height="24" fill="#333"/><rect x="6" y="0" width="2" height="24" fill="#333"/><rect x="12" y="0" width="6" height="24" fill="#333"/><rect x="22" y="0" width="4" height="24" fill="#333"/><rect x="30" y="0" width="2" height="24" fill="#333"/><rect x="36" y="0" width="8" height="24" fill="#333"/><rect x="48" y="0" width="4" height="24" fill="#333"/><rect x="56" y="0" width="2" height="24" fill="#333"/><rect x="62" y="0" width="10" height="24" fill="#333"/><rect x="76" y="0" width="4" height="24" fill="#333"/><rect x="84" y="0" width="2" height="24" fill="#333"/><rect x="90" y="0" width="6" height="24" fill="#333"/><rect x="100" y="0" width="4" height="24" fill="#333"/>
+          </svg>
+          <p style="font-size:0.75rem; letter-spacing:1px; margin-top:6px; font-family:monospace; color:#333; margin-bottom:0;">${c.code}</p>
         </div>
-        <button class="btn btn-sm" onclick="deleteCoupon(${c.id})" style="padding:6px 12px; background:#ffebee; color:#d32f2f; border:none; border-radius:6px; font-weight:600; cursor:pointer;">사용/삭제</button>
+        <div style="display:flex; flex-direction:row; align-items:center; justify-content:flex-end; gap:8px;">
+          <p class="mp-coupon-date" style="font-size:0.8rem; color:var(--text-muted); margin:0;">~${c.date}</p>
+        </div>
       </div>
+      <span class="mp-coupon-badge" style="position:absolute; top:-10px; left:-10px; padding:6px 10px; background:linear-gradient(135deg, #8930F8 0%, #6b21c5 100%); color:white; border-radius:6px; font-weight:bold; font-size:0.8rem; box-shadow:0 3px 6px rgba(0,0,0,0.2); z-index:2;">보유중</span>
     </div>
   `).join('');
 }
 window.deleteCoupon = function (id) {
-  MOCK_COUPONS = MOCK_COUPONS.filter(c => c.id !== id);
-  if (window.Toast) window.Toast.success('쿠폰이 삭제(사용 처리) 되었습니다.');
-  else alert('삭제되었습니다.');
+  const c = MOCK_COUPONS.find(c => c.id === id);
+  if (c) c.status = 'deleted'; // 미사용 삭제 처리
+  if (window.Toast) window.Toast.success('미사용 상태로 삭제 처리되었습니다.');
+  else alert('미사용 상태로 삭제 처리되었습니다.');
   renderCouponList();
   renderStats();
 };
@@ -1027,9 +1177,13 @@ function initCouponForm() {
   if (btnRegister) {
     btnRegister.addEventListener('click', () => {
       const input = document.getElementById('couponInput');
-      const code = input.value.trim();
-      if (!code) { alert('쿠폰 번호를 입력해주세요.'); return; }
-      MOCK_COUPONS.unshift({ id: Date.now(), title: `${code} 할인 쿠폰`, desc: '입력 등록 쿠폰', limit: '최소 결제금액 제한 없음', date: '2026.12.31' });
+      const inputCode = input.value.trim();
+      if (!inputCode) { alert('쿠폰 번호를 입력해주세요.'); return; }
+
+      let newCode = 'C' + Math.random().toString(36).substr(2, 11).toUpperCase();
+      if (newCode.length < 12) newCode = newCode.padEnd(12, '0');
+
+      MOCK_COUPONS.unshift({ id: Date.now(), code: newCode, title: `${inputCode} 할인 쿠폰`, desc: '입력 등록 쿠폰', limit: '최소 결제금액 제한 없음', date: '2026.12.31', status: 'active' });
       input.value = '';
       if (window.Toast) window.Toast.success('쿠폰이 성공적으로 등록되었습니다.');
       else alert('등록되었습니다.');
@@ -1061,84 +1215,126 @@ function renderMyReviewList() {
     }
 
     return `
-    <div class="mp-card" id="review-card-${r.id}">
-      <div class="mp-flex-between mp-margin-b-8">
+    <div class="mp-card" id="review-card-${r.id}" style="position:relative;">
+      <button onclick="deleteReview(${r.id})" style="position:absolute; top:16px; right:16px; background:none; border:none; padding:4px; cursor:pointer; color:var(--text-muted); display:flex; align-items:center;">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+      <div class="mp-flex-between mp-margin-b-8" style="align-items:flex-start; margin-right:24px;">
         <h4 class="mp-card-title">${r.eventName}</h4>
-        <div class="mp-review-rating" style="color:#ffb400; font-weight:bold; display:flex; align-items:center; gap:4px;">
-          <div style="display:flex; gap:2px; color:#ffb400;">${starsHtml}</div>
-          <span style="margin-left:4px;">(${Number(r.rating).toFixed(1)})</span>
+        <div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span class="mp-inquiry-date" style="font-size:0.8rem; color:var(--text-muted);">작성일: ${r.date}</span>
+          </div>
         </div>
       </div>
       <div class="review-content-wrapper" id="review-content-${r.id}">
         <p class="mp-card-meta mp-margin-b-8">${r.content}</p>
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-top:12px;">
+          <div class="mp-review-rating" style="color:#ffb400; font-weight:bold; display:flex; align-items:center; gap:4px;">
+            <div style="display:flex; gap:2px; color:#ffb400;">${starsHtml}</div>
+            <span style="margin-left:4px;">(${Number(r.rating).toFixed(1)})</span>
+          </div>
+          <button class="btn btn-sm btn-outline" onclick="enableInlineEdit(${r.id})" style="padding:4px 12px; font-size:0.8rem; border-radius:8px;">수정</button>
+        </div>
       </div>
       <div class="review-edit-wrapper hidden" id="review-edit-${r.id}">
         <textarea class="form-input textarea-resize-y" id="edit-content-${r.id}" rows="3" style="width:100%; margin-bottom:12px; padding:12px; border-radius:12px; border:1px solid #d1d5db; background:#fafafa; transition:border-color 0.2s;">${r.content}</textarea>
         
-        <div class="star-rating" id="edit-rating-${r.id}" data-selected-rating="${r.rating}" style="display:flex; gap:8px; margin-bottom:16px;">
-          ${[1, 2, 3, 4, 5].map(star => `
-            <button class="star-btn ${star <= r.rating ? 'active' : (star === Math.ceil(r.rating) && !Number.isInteger(r.rating) ? 'half' : '')}" data-star="${star}" style="background:none; border:none; padding:0; width:32px; height:32px; cursor:pointer; color:${star <= Math.ceil(r.rating) ? '#ffb400' : '#ddd'};">
-              <svg viewBox="0 0 24 24" fill="currentColor">
-                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-              </svg>
-            </button>
-          `).join('')}
-        </div>
-        
-        <!-- 버튼 우하단 배치, 크기/스타일 통일 -->
-        <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:8px;">
-          <button class="btn btn-primary" onclick="saveInlineEdit(${r.id})" style="padding:10px 24px; border-radius:12px; font-weight:700; background:linear-gradient(135deg, #8930F8 0%, #6b21c5 100%); color:white; border:none; box-shadow:0 4px 12px rgba(137,48,248,0.3); font-size:0.95rem;">저장</button>
-          <button class="btn btn-outline" onclick="cancelInlineEdit(${r.id})" style="padding:10px 24px; border-radius:12px; font-weight:600; color:#8930F8; border:1px solid #8930F8; background:transparent; font-size:0.95rem;">취소</button>
-        </div>
-      </div>
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px;" id="review-actions-wrap-${r.id}">
-        <span class="mp-inquiry-date">작성일: ${r.date}</span>
-        <div id="review-actions-${r.id}">
-          <button class="btn btn-sm btn-outline" onclick="enableInlineEdit(${r.id})" style="padding:4px 10px; font-size:0.8rem; margin-right:4px;">수정</button>
-          <button class="btn btn-sm" onclick="deleteReview(${r.id})" style="padding:4px 10px; font-size:0.8rem; background:#ffebee; color:#d32f2f; border:none;">삭제</button>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <div class="star-rating" id="edit-rating-${r.id}" data-selected-rating="${r.rating}" style="display:flex; gap:4px;">
+              ${[1, 2, 3, 4, 5].map(star => `
+                <button class="star-btn ${star <= r.rating ? 'active' : (star === Math.ceil(r.rating) && !Number.isInteger(r.rating) ? 'half' : '')}" data-star="${star}" style="background:none; border:none; padding:0; width:24px; height:24px; cursor:pointer; color:${star <= Math.ceil(r.rating) ? '#ffb400' : '#ddd'};">
+                  <svg viewBox="0 0 24 24" fill="currentColor">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                  </svg>
+                </button>
+              `).join('')}
+            </div>
+            <span id="edit-rating-score-${r.id}" style="color:#ffb400; font-weight:bold; font-size:0.95rem;">(${Number(r.rating).toFixed(1)})</span>
+          </div>
+          
+          <div style="display:flex; gap:8px;">
+            <button class="btn btn-primary" onclick="saveInlineEdit(${r.id})" style="padding:4px 12px; border-radius:6px; font-weight:600; font-size:0.75rem; background:linear-gradient(135deg, #8930F8 0%, #6b21c5 100%); color:white; border:none; box-shadow:0 4px 12px rgba(137,48,248,0.3);">저장</button>
+            <button class="btn btn-outline" onclick="cancelInlineEdit(${r.id})" style="padding:4px 12px; border-radius:6px; font-weight:600; font-size:0.75rem; color:#8930F8; border:1px solid #8930F8; background:transparent;">취소</button>
+          </div>
         </div>
       </div>
     </div>
     `;
   }).join('');
 }
+let reviewToDelete = null;
+
 window.deleteReview = function (id) {
-  if (!confirm('리뷰를 삭제하시겠습니까?')) return;
-  MOCK_REVIEWS = MOCK_REVIEWS.filter(r => r.id !== id);
-  if (window.Toast) window.Toast.success('리뷰가 삭제되었습니다.');
-  renderMyReviewList();
+  reviewToDelete = id;
+  const overlay = document.getElementById('deleteConfirmOverlay');
+  if (overlay) {
+    overlay.classList.add('active');
+  }
 };
+
+document.addEventListener('DOMContentLoaded', () => {
+  const btnCancel = document.getElementById('btnCancelDelete');
+  const btnConfirm = document.getElementById('btnConfirmDelete');
+  const overlay = document.getElementById('deleteConfirmOverlay');
+
+  if (btnCancel && overlay) {
+    btnCancel.addEventListener('click', () => {
+      reviewToDelete = null;
+      overlay.classList.remove('active');
+    });
+  }
+
+  if (btnConfirm && overlay) {
+    btnConfirm.addEventListener('click', () => {
+      if (reviewToDelete !== null) {
+        MOCK_REVIEWS = MOCK_REVIEWS.filter(r => r.id !== reviewToDelete);
+        if (window.Toast) window.Toast.success('리뷰가 삭제되었습니다.');
+        renderMyReviewList();
+        reviewToDelete = null;
+        overlay.classList.remove('active');
+      }
+    });
+  }
+});
 
 window.enableInlineEdit = function (id) {
   const contentWrapper = document.getElementById(`review-content-${id}`);
   const editWrapper = document.getElementById(`review-edit-${id}`);
-  const actionsWrap = document.getElementById(`review-actions-wrap-${id}`);
-  if (contentWrapper && editWrapper && actionsWrap) {
+  if (contentWrapper && editWrapper) {
     contentWrapper.classList.add('hidden');
     editWrapper.classList.remove('hidden');
-    actionsWrap.classList.add('hidden');
 
     // Bind star events for half-rating
     const ratingWrapper = document.getElementById(`edit-rating-${id}`);
     if (ratingWrapper && !ratingWrapper.dataset.bound) {
       ratingWrapper.dataset.bound = 'true';
+      const review = MOCK_REVIEWS.find(r => r.id === id);
+      ratingWrapper.dataset.selectedRating = review ? review.rating : 5;
       const stars = ratingWrapper.querySelectorAll('.star-btn');
 
-      const updateReviewStars = (rating) => {
-        ratingWrapper.dataset.selectedRating = rating;
+      const updateReviewStars = (rating, save = false) => {
+        if (save) ratingWrapper.dataset.selectedRating = rating;
         stars.forEach(s => {
           const sVal = parseInt(s.dataset.star);
           s.classList.remove('active', 'half');
-          if (sVal <= rating) {
+          const svg = s.querySelector('svg');
+          if (sVal <= Math.floor(rating)) {
             s.classList.add('active');
-            s.style.color = '#ffb400';
+            svg.setAttribute('fill', '#ffb400');
+            svg.style.color = '#ffb400';
           } else if (sVal === Math.ceil(rating) && !Number.isInteger(rating)) {
             s.classList.add('half');
-            s.style.color = '#ffb400';
+            svg.setAttribute('fill', 'url(#half-star-grad)');
+            svg.style.color = '#ffb400';
           } else {
-            s.style.color = '#ddd';
+            svg.setAttribute('fill', '#ddd');
+            svg.style.color = '#ddd';
           }
         });
+        const scoreSpan = document.getElementById(`edit-rating-score-${id}`);
+        if (scoreSpan) scoreSpan.textContent = `(${rating.toFixed(1)})`;
       };
 
       stars.forEach(star => {
@@ -1147,7 +1343,7 @@ window.enableInlineEdit = function (id) {
           const clickX = e.clientX - rect.left;
           const isHalf = clickX < rect.width / 2;
           const baseVal = parseInt(star.dataset.star);
-          updateReviewStars(isHalf ? baseVal - 0.5 : baseVal);
+          updateReviewStars(isHalf ? baseVal - 0.5 : baseVal, false);
         });
         star.addEventListener('click', (e) => {
           e.preventDefault();
@@ -1155,13 +1351,12 @@ window.enableInlineEdit = function (id) {
           const clickX = e.clientX - rect.left;
           const isHalf = clickX < rect.width / 2;
           const baseVal = parseInt(star.dataset.star);
-          updateReviewStars(isHalf ? baseVal - 0.5 : baseVal);
+          updateReviewStars(isHalf ? baseVal - 0.5 : baseVal, true);
         });
       });
 
       ratingWrapper.addEventListener('mouseleave', () => {
-        const review = MOCK_REVIEWS.find(r => r.id === id);
-        updateReviewStars(review ? review.rating : 5);
+        updateReviewStars(parseFloat(ratingWrapper.dataset.selectedRating), false);
       });
     }
   }
@@ -1170,11 +1365,9 @@ window.enableInlineEdit = function (id) {
 window.cancelInlineEdit = function (id) {
   const contentWrapper = document.getElementById(`review-content-${id}`);
   const editWrapper = document.getElementById(`review-edit-${id}`);
-  const actionsWrap = document.getElementById(`review-actions-wrap-${id}`);
-  if (contentWrapper && editWrapper && actionsWrap) {
+  if (contentWrapper && editWrapper) {
     contentWrapper.classList.remove('hidden');
     editWrapper.classList.add('hidden');
-    actionsWrap.classList.remove('hidden');
   }
 };
 
@@ -1196,186 +1389,256 @@ window.setEditRating = function (id, star) {
 };
 
 window.editReview = function (id) {
-  const review = MOCK_REVIEWS.find(r => r.id === id);
-  if (!review) return;
-  document.getElementById('reviewContent').value = review.content;
-
-  const reviewWrap = document.getElementById('reviewFormWrap');
-  if (reviewWrap) reviewWrap.classList.remove('hidden');
-
-  const eventList = document.getElementById('reviewEventList');
-  if (eventList) eventList.style.display = 'none';
-
-  document.getElementById('btn-submit-review').textContent = '리뷰 수정 완료';
-  currentEditReviewId = id;
-
-  const modal = document.getElementById('newReviewModal');
-  if (modal) modal.classList.add('active');
+  if (window.setModalReviewEdit) {
+    window.setModalReviewEdit(id);
+  }
 };
 
+let reviewFiles = [];
+
 function initReviewForm() {
-  if (!document.getElementById("half-star-css")) { document.head.insertAdjacentHTML("beforeend", `<style id="half-star-css">.star-btn{position:relative;} .star-btn.half{color:#ffb400;} .star-btn.half::after{content:"";position:absolute;top:0;left:0;width:50%;height:100%;background:currentColor;mix-blend-mode:color;} /* simple mockup */</style>`); }
+  const btnOpenModal = document.getElementById('btn-open-review-modal');
+  const modalReview = document.getElementById('modal-review');
+  const eventSelectContainer = document.getElementById('reviewEventSelectContainer');
+  const starContainer = document.getElementById('reviewStarContainer');
+  const btnSubmitReview = document.getElementById('btn-submit-review');
+  const reviewContent = document.getElementById('reviewContent');
+  const reviewImagesInput = document.getElementById('reviewImages');
+  const reviewImagePreviewContainer = document.getElementById('reviewImagePreviewContainer');
+  const reviewImageCount = document.getElementById('reviewImageCount');
+  let selectedEventNo = null;
+  let selectedEventName = '';
+  let currentRating = 5;
 
-  // Inject modal if it doesn't exist
-  if (!document.getElementById('newReviewModal')) {
-    document.body.insertAdjacentHTML('beforeend', `\n<div class="modal-overlay modal-center" id="newReviewModal" style="z-index: 9999;">\n  <div class="modal-sheet" style="max-width: 600px; width: 100%; max-height: 90vh; overflow-y: auto;">\n    <div class="modal-header">\n      <h3 class="modal-title">새로운 리뷰 작성</h3>\n      <button class="modal-close-btn" id="btn-close-review-modal" aria-label="닫기">\n        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">\n          <line x1="18" y1="6" x2="6" y2="18"></line>\n          <line x1="6" y1="6" x2="18" y2="18"></line>\n        </svg>\n      </button>\n    </div>\n    <div class="modal-body">\n      <div class="review-event-select" id="reviewEventList" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-bottom: 32px;">\n      </div>\n      <div id="reviewFormWrap" class="hidden" style="background: #ffffff; border: 1px solid #e0e0e0; border-radius: 16px; padding: 32px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); margin-bottom: 40px;">\n        <h4 id="reviewFormEventTitle" style="margin-top: 0; margin-bottom: 24px; font-size: 1.1rem; color: #8930F8; font-weight: 700; border-bottom: 2px solid #f0f0f5; padding-bottom: 12px;">행사 이름</h4>\n        <div class="form-group" style="margin-bottom: 24px;">\n          <label class="form-label" style="color: #444; font-weight: 600; margin-bottom: 12px; display: block;">만족도를 평가해주세요</label>\n          <div class="star-rating" id="starRating" role="group" aria-label="별점 평가" style="display: flex; gap: 8px; justify-content: center; padding: 16px; background: #f9f9fb; border-radius: 12px;">\n            ${[1, 2, 3, 4, 5].map(star => `<button class="star-btn" data-star="${star}" aria-label="별점 ${star}점" style="background:none; border:none; color:#ddd; cursor:pointer; width:40px; height:40px; padding:0; transition: color 0.2s, transform 0.2s;">\n              <svg viewBox="0 0 24 24" fill="currentColor">\n                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />\n              </svg>\n            </button>`).join('')}\n          </div>\n        </div>\n        <div class="form-group" style="margin-bottom: 24px;">\n          <label class="form-label" for="reviewContent" style="color: #444; font-weight: 600; margin-bottom: 8px; display: block;">상세 리뷰 작성</label>\n          <textarea class="form-input textarea-resize-y" id="reviewContent" rows="5" placeholder="페스티벌 경험은 어떠셨나요? 솔직한 후기를 남겨주세요." style="width: 100%; padding: 16px; border: 1px solid #d1d5db; border-radius: 12px; font-size: 0.95rem; background: #fafafa; color: #333; transition: border-color 0.2s, box-shadow 0.2s;"></textarea>\n        </div>\n        <div style="display: flex; gap: 12px;">\n          <button class="btn btn-ghost" id="btn-cancel-review" style="flex: 1; padding: 14px; border-radius: 12px; border: 1px solid #d1d5db; color: #555; font-weight: 600; background: #fff;">취소</button>\n          <button class="btn btn-primary" id="btn-submit-review" style="flex: 2; padding: 14px; border-radius: 12px; font-weight: 700; background: linear-gradient(135deg, #8930F8 0%, #6b21c5 100%); color: white; border: none; box-shadow: 0 4px 12px rgba(137,48,248,0.3);">리뷰 등록하기</button>\n        </div>\n      </div>\n    </div>\n  </div>\n</div>\n`);
-  }
-
-  const eventList = document.getElementById('reviewEventList');
-  const reviewWrap = document.getElementById('reviewFormWrap');
-  const submitBtn = document.getElementById('btn-submit-review');
-  const stars = document.querySelectorAll('#newReviewModal .star-btn');
-  let selectedRating = 5; let selectedEvent = '';
-
-  if (eventList) {
-    eventList.addEventListener('click', (e) => {
-      const card = e.target.closest('.mp-card');
-      if (card) {
-        eventList.querySelectorAll('.mp-card').forEach(c => c.style.border = '1px solid var(--border-subtle)');
-        card.style.border = '2px solid var(--color-primary)';
-        selectedEvent = card.dataset.eventName;
-        if (reviewWrap) reviewWrap.classList.remove('hidden');
-        eventList.style.display = 'none';
-        currentEditReviewId = null;
-        document.getElementById('btn-submit-review').textContent = '리뷰 등록';
+  const updateStarUI = (rating) => {
+    if (!starContainer) return;
+    const starBtns = starContainer.querySelectorAll('.review-star-btn');
+    starBtns.forEach(btn => {
+      const val = parseInt(btn.dataset.index);
+      const svg = btn.querySelector('svg');
+      if (!svg) return;
+      svg.classList.remove('filled', 'half-filled');
+      if (val <= Math.floor(rating)) {
+        svg.classList.add('filled');
+      } else if (val === Math.ceil(rating) && !Number.isInteger(rating)) {
+        svg.classList.add('half-filled');
       }
+    });
+
+    const scoreSpan = document.getElementById('reviewStarScore');
+    if (scoreSpan) {
+      scoreSpan.textContent = rating.toFixed(1);
+    }
+  };
+
+  if (btnOpenModal && modalReview) {
+    btnOpenModal.addEventListener('click', () => {
+      // 입장 완료된 행사 목록 가져오기
+      const attendedTickets = MOCK_TICKETS.filter(t => t.itemStatus === '입장완료' || t.itemStatus === '입장');
+
+      if (attendedTickets.length === 0) {
+        if (window.Toast) window.Toast.error('리뷰를 작성할 수 있는 행사가 없습니다.');
+        else alert('리뷰를 작성할 수 있는 행사가 없습니다.');
+        return;
+      }
+
+      // 행사 리스트 렌더링
+      if (eventSelectContainer) {
+        eventSelectContainer.innerHTML = attendedTickets.map((t, idx) => `
+          <div class="review-event-list-item" data-event-no="${t.reservationId}" data-event-name="${t.eventName}">
+            <img class="review-event-poster" src="https://images.unsplash.com/photo-1459749411175-04bf5292ceea?auto=format&fit=crop&q=80&w=100&h=140" alt="poster">
+            <div style="display:flex; flex-direction:column; gap:4px;">
+              <div style="font-weight:700; font-size:0.95rem; color:#111;">${t.eventName}</div>
+              <div style="font-size:0.8rem; color:#666;">관람일: ${t.eventDate}</div>
+            </div>
+          </div>
+        `).join('');
+
+        // 행사 선택 이벤트
+        const listItems = eventSelectContainer.querySelectorAll('.review-event-list-item');
+        listItems.forEach(item => {
+          item.addEventListener('click', () => {
+            listItems.forEach(i => i.classList.remove('selected'));
+            item.classList.add('selected');
+            selectedEventNo = item.dataset.eventNo;
+            selectedEventName = item.dataset.eventName;
+          });
+        });
+      }
+
+      // 초기화
+      selectedEventNo = null;
+      selectedEventName = '';
+      currentEditReviewId = null;
+      currentRating = 5;
+      reviewContent.value = '';
+      reviewFiles = [];
+      updateReviewImagePreviews();
+      updateStarUI(5);
+      if (btnSubmitReview) btnSubmitReview.textContent = '리뷰 등록';
+
+      modalReview.classList.add('active');
+      document.body.style.overflow = 'hidden';
     });
   }
 
-  // Handle modal open/close via event delegation so it works even if button is replaced
-  document.body.addEventListener('click', (e) => {
-    if (e.target.closest('#btn-open-review-modal')) {
-      const modal = document.getElementById('newReviewModal');
-      if (modal) {
-        if (eventList) {
-          eventList.style.display = 'grid';
-          eventList.querySelectorAll('.mp-card').forEach(c => c.style.border = '1px solid var(--border-subtle)');
-        }
-        if (reviewWrap) reviewWrap.classList.add('hidden');
-        document.getElementById('reviewContent').value = '';
-        currentEditReviewId = null;
-        selectedEvent = '';
-        modal.classList.add('active');
+  window.setModalReviewEdit = function (id) {
+    const review = MOCK_REVIEWS.find(r => r.id === id);
+    if (!review) return;
+
+    selectedEventNo = review.id;
+    selectedEventName = review.eventName;
+    currentEditReviewId = id;
+    currentRating = review.rating || 5;
+
+    reviewContent.value = review.content;
+    updateStarUI(currentRating);
+    reviewFiles = [];
+    updateReviewImagePreviews();
+
+    if (btnSubmitReview) {
+      btnSubmitReview.textContent = '리뷰 수정';
+    }
+
+    if (modalReview) {
+      modalReview.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+  };
+
+
+  // 별점 클릭 및 마우스 오버 이벤트
+  if (starContainer) {
+    const starBtns = starContainer.querySelectorAll('.review-star-btn');
+
+    starBtns.forEach(btn => {
+      btn.addEventListener('mousemove', (e) => {
+        const rect = btn.getBoundingClientRect();
+        const clickX = e.clientX - rect.left;
+        const isHalf = clickX < rect.width / 2;
+        const baseVal = parseInt(btn.dataset.index);
+        updateStarUI(isHalf ? baseVal - 0.5 : baseVal);
+      });
+
+      btn.addEventListener('click', (e) => {
+        const rect = btn.getBoundingClientRect();
+        const clickX = e.clientX - rect.left;
+        const isHalf = clickX < rect.width / 2;
+        const baseVal = parseInt(btn.dataset.index);
+        currentRating = isHalf ? baseVal - 0.5 : baseVal;
+        updateStarUI(currentRating);
+      });
+    });
+
+    starContainer.addEventListener('mouseleave', () => {
+      updateStarUI(currentRating);
+    });
+  }
+
+  // 사진 첨부 이벤트
+  if (reviewImagesInput) {
+    reviewImagesInput.addEventListener('change', (e) => {
+      const files = Array.from(e.target.files);
+      if (reviewFiles.length + files.length > 10) {
+        if (window.Toast) window.Toast.error('사진은 최대 10장까지 첨부 가능합니다.');
+        else alert('사진은 최대 10장까지 첨부 가능합니다.');
+        return;
       }
-    }
-    if (e.target.closest('#btn-close-review-modal')) {
-      const modal = document.getElementById('newReviewModal');
-      if (modal) modal.classList.remove('active');
-    }
+      reviewFiles = reviewFiles.concat(files).slice(0, 10);
+      updateReviewImagePreviews();
+      e.target.value = '';
+    });
+  }
+
+  function updateReviewImagePreviews() {
+    if (!reviewImagePreviewContainer || !reviewImageCount) return;
+    reviewImageCount.textContent = `${reviewFiles.length}/10`;
+    reviewImagePreviewContainer.innerHTML = '';
+
+    reviewFiles.forEach((file, index) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const thumbDiv = document.createElement('div');
+        thumbDiv.className = 'review-photo-thumb-container';
+        thumbDiv.innerHTML = `
+          <img src="${e.target.result}" class="review-photo-thumb" alt="thumbnail">
+          <button class="review-photo-del" onclick="removeReviewImage(${index})">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        `;
+        reviewImagePreviewContainer.appendChild(thumbDiv);
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  window.removeReviewImage = function (index) {
+    reviewFiles.splice(index, 1);
+    updateReviewImagePreviews();
+  };
+
+  // 사진 스크롤 기능
+  const photoScrollLeftBtn = document.getElementById('btn-photo-scroll-left');
+  const photoScrollRightBtn = document.getElementById('btn-photo-scroll-right');
+  const photoWrapper = document.getElementById('reviewPhotoWrapper');
+
+  if (photoScrollLeftBtn && photoWrapper) {
+    photoScrollLeftBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      photoWrapper.scrollBy({ left: -200, behavior: 'smooth' });
+    });
+  }
+  if (photoScrollRightBtn && photoWrapper) {
+    photoScrollRightBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      photoWrapper.scrollBy({ left: 200, behavior: 'smooth' });
+    });
+  }
+
+  // 모달 닫기
+  document.querySelectorAll('[data-close-modal="modal-review"]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (modalReview) modalReview.classList.remove('active');
+      document.body.style.overflow = '';
+    });
   });
 
-  if (stars.length > 0) {
-    stars.forEach(star => {
-      star.style.cursor = 'pointer';
-
-      const updateReviewStars = (rating) => {
-        stars.forEach(s => {
-          const sVal = parseInt(s.dataset.star);
-          const svg = s.querySelector('svg');
-          if (!svg) return;
-          s.classList.remove('active', 'half');
-          if (sVal <= rating) {
-            s.classList.add('active');
-            s.style.color = '#ffb400';
-          } else if (sVal === Math.ceil(rating) && !Number.isInteger(rating)) {
-            s.classList.add('half');
-            s.style.color = '#ffb400';
-          } else {
-            s.style.color = '#ddd';
-          }
-        });
-      };
-
-      star.addEventListener('mousemove', (e) => {
-        const rect = star.getBoundingClientRect();
-        const clickX = e.clientX - rect.left;
-        const isHalf = clickX < rect.width / 2;
-        const baseVal = parseInt(star.dataset.star);
-        updateReviewStars(isHalf ? baseVal - 0.5 : baseVal);
-      });
-
-      star.addEventListener('click', (e) => {
-        e.preventDefault();
-        const rect = star.getBoundingClientRect();
-        const clickX = e.clientX - rect.left;
-        const isHalf = clickX < rect.width / 2;
-        const baseVal = parseInt(star.dataset.star);
-        selectedRating = isHalf ? baseVal - 0.5 : baseVal;
-        updateReviewStars(selectedRating);
-      });
-
-      star.addEventListener('mouseleave', () => {
-        updateReviewStars(selectedRating);
-      });
-
-      const svg = star.querySelector('svg');
-      if (svg) {
-        svg.style.transition = 'all 0.2s';
+  // 리뷰 등록 완료 이벤트
+  if (btnSubmitReview) {
+    btnSubmitReview.addEventListener('click', () => {
+      if (!selectedEventNo && !currentEditReviewId) {
+        if (window.Toast) window.Toast.error('리뷰를 작성할 행사를 선택해주세요.');
+        else alert('리뷰를 작성할 행사를 선택해주세요.');
+        return;
       }
-    });
-    // Init display
-    setTimeout(() => {
-      updateReviewStars(5);
-    }, 100);
-  }
 
-  const cancelBtn = document.getElementById('btn-cancel-review');
-  if (cancelBtn) {
-    cancelBtn.addEventListener('click', () => {
-      document.getElementById('reviewContent').value = '';
-      if (reviewWrap) reviewWrap.classList.add('hidden');
-      if (eventList) {
-        eventList.style.display = 'grid';
-        eventList.querySelectorAll('.mp-card').forEach(c => c.style.border = '1px solid var(--border-subtle)');
+      const content = reviewContent.value.trim();
+      if (content.length < 10) {
+        if (window.Toast) window.Toast.error('리뷰 내용은 최소 10자 이상 작성해주세요.');
+        else alert('리뷰 내용은 최소 10자 이상 작성해주세요.');
+        return;
       }
-      currentEditReviewId = null;
-      selectedEvent = '';
-      const reviewModal = document.getElementById('newReviewModal');
-      if (reviewModal) reviewModal.classList.remove('active');
-    });
-  }
 
-  if (submitBtn) {
-    submitBtn.addEventListener('click', () => {
-      const content = document.getElementById('reviewContent').value.trim();
-      if (!content) { alert('리뷰 내용을 입력해주세요.'); return; }
+      const hasPhoto = reviewFiles.length > 0;
+      const msg = hasPhoto ? "사진 리뷰(1,500원) 7일 뒤 적립예정" : "일반 리뷰(300원) 7일 뒤 적립예정";
 
       if (currentEditReviewId) {
         const r = MOCK_REVIEWS.find(r => r.id === currentEditReviewId);
-        if (r) { r.content = content; r.rating = selectedRating; }
-        if (window.Toast) window.Toast.success('리뷰가 수정되었습니다.');
+        if (r) { r.content = content; r.rating = currentRating; }
+        if (window.Toast) window.Toast.success(msg + ' | 리뷰가 수정되었습니다.');
       } else {
-        if (!selectedEvent) { alert('행사를 선택해주세요.'); return; }
-        MOCK_REVIEWS.unshift({ id: Date.now(), eventName: selectedEvent, rating: selectedRating, content: content, date: new Date().toLocaleDateString() });
-        if (window.Toast) window.Toast.success('리뷰가 등록되었습니다.');
+        MOCK_REVIEWS.unshift({ id: Date.now(), eventName: selectedEventName, rating: currentRating, content: content, date: new Date().toLocaleDateString() });
+        if (window.Toast) window.Toast.success(msg + ' | 리뷰가 등록되었습니다.');
       }
-      document.getElementById('reviewContent').value = '';
-      if (reviewWrap) reviewWrap.classList.add('hidden');
-      if (eventList) eventList.querySelectorAll('.mp-card').forEach(c => c.style.border = '1px solid var(--border-subtle)');
-      renderMyReviewList();
 
-      const reviewModal = document.getElementById('newReviewModal');
-      if (reviewModal) reviewModal.classList.remove('active');
+      renderMyReviewList();
+      if (modalReview) modalReview.classList.remove('active');
+      document.body.style.overflow = '';
     });
   }
 }
 
-// Fix editReview
-window.editReview = function (id) {
-  const review = MOCK_REVIEWS.find(r => r.id === id);
-  if (!review) return;
-  const eventList = document.getElementById('reviewEventList');
-  const reviewWrap = document.getElementById('reviewFormWrap');
-  if (eventList) eventList.style.display = 'none';
-  if (reviewWrap) reviewWrap.classList.remove('hidden');
-  document.getElementById('reviewFormEventTitle').textContent = review.eventName;
-  document.getElementById('reviewContent').value = review.content;
-  document.getElementById('btn-submit-review').textContent = '리뷰 수정';
-  currentEditReviewId = id;
-
-  const modal = document.getElementById('newReviewModal');
-  if (modal) modal.classList.add('active');
-};
+// Duplicate editReview removed
 
 /* ═══════════════════════════════════════════════════════════
    6. 프로필 정보 변경 저장 기능 구현
@@ -1433,19 +1696,94 @@ function initProfileEditSave() {
 function initProfileFeatures() {
   const btnChangeAva = document.getElementById('btn-change-avatar');
   const btnDelAva = document.getElementById('btn-delete-avatar');
-  const avatarText = document.getElementById('profileAvatarText');
+  const fileInput = document.getElementById('profileImageInput');
+
+  // 파일 선택 시 이미지 미리보기 + 히어로 아바타 동기화
+  if (fileInput) {
+    fileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const imgUrl = ev.target.result;
+        applyAvatarImage(imgUrl);
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // '사진 변경' 버튼 → 파일 선택 창 열기
   if (btnChangeAva) {
     btnChangeAva.addEventListener('click', () => {
-      alert('사진을 업로드했습니다.');
-      if (avatarText) { avatarText.innerHTML = '<img src="https://i.pravatar.cc/150?img=32" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">'; }
+      if (fileInput) fileInput.click();
     });
   }
+
+  // '기본 이미지' 버튼 → SVG 기본 아바타로 복원
   if (btnDelAva) {
     btnDelAva.addEventListener('click', () => {
+      resetAvatarToDefault();
       alert('기본 이미지로 변경되었습니다.');
-      if (avatarText) { avatarText.innerHTML = 'U'; }
     });
   }
+}
+
+/* 아바타 이미지 적용 (프로필 편집 + 히어로 동기화) */
+function applyAvatarImage(imgUrl) {
+  // 1. 프로필 편집 아바타
+  const editAvatar = document.getElementById('profileAvatarEdit');
+  if (editAvatar) {
+    const svg = editAvatar.querySelector('#profileAvatarSvg');
+    if (svg) svg.style.display = 'none';
+    let img = editAvatar.querySelector('.avatar-uploaded-img');
+    if (!img) {
+      img = document.createElement('img');
+      img.className = 'avatar-uploaded-img';
+      img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:50%;position:absolute;top:0;left:0;z-index:1;';
+      editAvatar.insertBefore(img, editAvatar.firstChild);
+    }
+    img.src = imgUrl;
+  }
+
+  // 2. 히어로 메인 아바타
+  const heroAvatar = document.getElementById('profileAvatar');
+  if (heroAvatar) {
+    const heroSvg = heroAvatar.querySelector('#profileAvatarSvgHero');
+    if (heroSvg) heroSvg.style.display = 'none';
+    let heroImg = heroAvatar.querySelector('.avatar-uploaded-img');
+    if (!heroImg) {
+      heroImg = document.createElement('img');
+      heroImg.className = 'avatar-uploaded-img';
+      heroImg.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:50%;';
+      heroAvatar.insertBefore(heroImg, heroAvatar.firstChild);
+    }
+    heroImg.src = imgUrl;
+  }
+}
+
+/* 기본 아바타(SVG)로 복원 */
+function resetAvatarToDefault() {
+  // 프로필 편집
+  const editAvatar = document.getElementById('profileAvatarEdit');
+  if (editAvatar) {
+    const img = editAvatar.querySelector('.avatar-uploaded-img');
+    if (img) img.remove();
+    const svg = editAvatar.querySelector('#profileAvatarSvg');
+    if (svg) svg.style.display = '';
+  }
+
+  // 히어로
+  const heroAvatar = document.getElementById('profileAvatar');
+  if (heroAvatar) {
+    const img = heroAvatar.querySelector('.avatar-uploaded-img');
+    if (img) img.remove();
+    const heroSvg = heroAvatar.querySelector('#profileAvatarSvgHero');
+    if (heroSvg) heroSvg.style.display = '';
+  }
+
+  // 파일 input 초기화
+  const fileInput = document.getElementById('profileImageInput');
+  if (fileInput) fileInput.value = '';
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -1818,10 +2156,10 @@ function openQrModalView(token, type = 'TICKET') {
     }
 
     const modalHTML = `
-      <div id="dynamicQrModal" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.65); z-index: 2147483647; display: flex; align-items: center; justify-content: center;">
+      <div id="dynamicQrModal" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.65); z-index: 10000; display: flex; align-items: center; justify-content: center;">
         <div style="position: relative; background: transparent; border-radius: 28px; width: 340px; max-width: calc(100vw - 40px); box-shadow: 0 24px 60px rgba(0,0,0,0.3); overflow: hidden; animation: qrSlideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);">
-          <div style="display: flex; align-items: center; justify-content: space-between; padding: 20px 24px 14px; background: linear-gradient(135deg, #00d2ff 0%, #8930F8 100%);">
-            <div style="font-size: 1.05rem; font-weight: 700; color: #fff;">나의 티켓 QR - ${eventName}</div>
+          <div style="display: flex; align-items: center; justify-content: space-between; padding: 20px 24px 14px; background: linear-gradient(135deg, #334155 0%, #0f172a 100%); border-bottom: 1px solid rgba(255,255,255,0.1);">
+            <div id="dynamicQrTitle" style="font-size: 1.05rem; font-weight: 700; color: #fff;">나의 티켓 QR - ${eventName}</div>
             <button id="dynamicQrClose" class="modal-close-btn" aria-label="닫기">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
             </button>
@@ -1886,21 +2224,51 @@ function openQrModalView(token, type = 'TICKET') {
 
   const qrCanvas = document.getElementById('dynamicQrCanvas');
 
+  const qrTitle = document.getElementById('dynamicQrTitle');
+  if (qrTitle) {
+    if (type === 'FOOD' || type === 'GOODS') {
+      const mockData = (window.MOCK_TICKETS && window.MOCK_TICKETS[0]) ? window.MOCK_TICKETS[0] : null;
+      const eventName = mockData ? mockData.eventName : '2026 워터밤 서울';
+      qrTitle.textContent = `${eventName} - 춘향이네 야시장`;
+    } else {
+      const mockData = (window.MOCK_TICKETS && window.MOCK_TICKETS[0]) ? window.MOCK_TICKETS[0] : null;
+      const eventName = mockData ? mockData.eventName : '2026 워터밤 서울';
+      qrTitle.textContent = `나의 티켓 QR - ${eventName}`;
+    }
+  }
+
   const accBody = modal.querySelector('.qr-accordion-body');
   if (accBody) {
     if (type === 'FOOD') {
+      const foodOrder = typeof MOCK_FOOD_ORDERS !== 'undefined' ? MOCK_FOOD_ORDERS.find(f => f.qrToken === token) : null;
+      const orderId = foodOrder ? foodOrder.orderItemId : 'ORD-20260601-F01';
       accBody.innerHTML = `
-        <div class="qr-history-item"><span>푸드트럭 사용 완료</span><span>2026.06.04 14:30</span></div>
+        <div class="qr-history-item" onclick="openReceiptModal('${orderId}')" style="cursor:pointer; display:flex; justify-content:space-between; align-items:center; padding:12px 16px; transition:background 0.2s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'">
+           <span style="color:#64748b; font-size:0.9rem;">푸드트럭 사용 완료</span>
+           <span style="display:flex; align-items:center; color:#64748b; font-size:0.9rem; white-space:nowrap;">26.06.04 14:30 <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none" style="margin-left:4px; margin-top:1px;"><polyline points="9 18 15 12 9 6"></polyline></svg></span>
+        </div>
       `;
     } else if (type === 'GOODS') {
       accBody.innerHTML = `
-        <div class="qr-history-item"><span>굿즈 수령 완료</span><span>2026.06.04 16:30</span></div>
+        <div class="qr-history-item" style="display:flex; justify-content:space-between; align-items:center; padding:12px 16px;">
+          <span style="color:#64748b; font-size:0.9rem;">굿즈 수령 완료</span>
+          <span style="color:#64748b; font-size:0.9rem;">2026.06.04 16:30</span>
+        </div>
       `;
     } else {
       accBody.innerHTML = `
-        <div class="qr-history-item"><span>입장 완료 (게이트 A)</span><span>2026.06.04 14:30</span></div>
-        <div class="qr-history-item"><span>MD 부스 인증</span><span>2026.06.04 15:15</span></div>
-        <div class="qr-history-item"><span>재입장 완료</span><span>2026.06.04 18:00</span></div>
+        <div class="qr-history-item" style="display:flex; justify-content:space-between; align-items:center; padding:12px 16px;">
+          <span style="color:#64748b; font-size:0.9rem;">입장 완료 (게이트 A)</span>
+          <span style="color:#64748b; font-size:0.9rem;">2026.06.04 14:30</span>
+        </div>
+        <div class="qr-history-item" style="display:flex; justify-content:space-between; align-items:center; padding:12px 16px;">
+          <span style="color:#64748b; font-size:0.9rem;">MD 부스 인증</span>
+          <span style="color:#64748b; font-size:0.9rem;">2026.06.04 15:15</span>
+        </div>
+        <div class="qr-history-item" style="display:flex; justify-content:space-between; align-items:center; padding:12px 16px;">
+          <span style="color:#64748b; font-size:0.9rem;">재입장 완료</span>
+          <span style="color:#64748b; font-size:0.9rem;">26.06.04 18:00</span>
+        </div>
       `;
     }
   }
@@ -2123,3 +2491,51 @@ document.addEventListener('click', (e) => {
     e.target.classList.remove('active');
   }
 });
+document.addEventListener('DOMContentLoaded', () => {
+  const statTickets = document.getElementById('hero-stat-tickets');
+  if (statTickets) statTickets.addEventListener('click', () => document.querySelector('[data-tab="tab-tickets"]')?.click());
+
+  const statWishlists = document.getElementById('hero-stat-wishlists');
+  if (statWishlists) statWishlists.addEventListener('click', () => document.querySelector('[data-tab="tab-wishlist"]')?.click());
+
+  const statCoupons = document.getElementById('hero-stat-coupons');
+  if (statCoupons) statCoupons.addEventListener('click', () => document.querySelector('[data-tab="tab-coupons"]')?.click());
+
+  const statReviews = document.getElementById('hero-stat-reviews');
+  if (statReviews) statReviews.addEventListener('click', () => document.querySelector('[data-tab="tab-reviews"]')?.click());
+
+  const statFoods = document.getElementById('hero-stat-foods');
+  if (statFoods) statFoods.addEventListener('click', () => document.querySelector('[data-tab="tab-tickets"]')?.click());
+
+  const heroQrCard = document.getElementById('heroQrCard');
+  if (heroQrCard) {
+    heroQrCard.addEventListener('click', (e) => {
+      // openQrModalView�� ������ ������ ȣ��
+      if (typeof window.openQrModalView === 'function') {
+        window.openQrModalView('', 'TICKET');
+      } else {
+        const qrCanvas = document.getElementById('qrModalCanvas');
+        if (qrCanvas) {
+          const overlay = document.getElementById('qrModalOverlay');
+          if (overlay) overlay.classList.add('active');
+        }
+      }
+    });
+  }
+
+  const heroGradeBadge = document.getElementById('hero-grade-badge');
+  if (heroGradeBadge) {
+    heroGradeBadge.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (typeof window.openGradeModal === 'function') window.openGradeModal();
+    });
+  }
+
+  const activityAccordion = document.getElementById('hero-activity-accordion');
+  if (activityAccordion) {
+    activityAccordion.addEventListener('click', () => {
+      if (typeof window.toggleActivityAccordion === 'function') window.toggleActivityAccordion();
+    });
+  }
+});
+

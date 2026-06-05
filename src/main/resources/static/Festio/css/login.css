@@ -4,7 +4,7 @@
    ============================================================ */
 
 body {
-  background: var(--bg-base);
+  background: #ffffff;
   color: var(--text-primary);
   margin: 0;
 }

@@ -17,100 +17,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 계정 찾기 모달 로직
-  const findLinks = document.querySelectorAll('.login-links a');
-  const findModal = document.getElementById('findAccountModal');
-  const btnCloseModal = document.querySelector('.btn-close-modal');
-  const modalTabs = document.querySelectorAll('.modal-tab');
-  const tabContents = document.querySelectorAll('.tab-content');
+  // 페이지 로드 시 저장된 이메일 불러오기
+  const savedEmail = localStorage.getItem('savedEmail');
+  const emailInput = document.getElementById('loginEmail');
+  const saveEmailCheckbox = document.getElementById('saveEmail');
 
-  // 링크 클릭 시 모달 열기
-  if (findLinks.length === 2 && findModal) {
-    findLinks[0].addEventListener('click', (e) => {
-      e.preventDefault();
-      openFindModal('tab-find-id');
-    });
-    findLinks[1].addEventListener('click', (e) => {
-      e.preventDefault();
-      openFindModal('tab-find-pw');
-    });
-  }
-
-  // 모달 닫기
-  if (btnCloseModal) {
-    btnCloseModal.addEventListener('click', () => {
-      findModal.style.display = 'none';
-      // 폼 초기화
-      document.getElementById('findIdResult').style.display = 'none';
-      document.getElementById('findPwResult').style.display = 'none';
-    });
-  }
-
-  // 오버레이 클릭 시 닫기
-  if (findModal) {
-    findModal.addEventListener('click', (e) => {
-      if (e.target === findModal) {
-        btnCloseModal.click();
-      }
-    });
-  }
-
-  // 탭 전환 로직
-  modalTabs.forEach(tab => {
-    tab.addEventListener('click', () => {
-      const targetId = tab.getAttribute('data-target');
-      openFindModal(targetId);
-    });
-  });
-
-  function openFindModal(targetTabId) {
-    findModal.style.display = 'flex';
-    modalTabs.forEach(t => t.classList.remove('active'));
-    tabContents.forEach(c => c.classList.remove('active'));
-
-    const activeTabBtn = document.querySelector(`.modal-tab[data-target="${targetTabId}"]`);
-    const activeContent = document.getElementById(targetTabId);
-
-    if (activeTabBtn) activeTabBtn.classList.add('active');
-    if (activeContent) activeContent.classList.add('active');
-  }
-
-  // 아이디 찾기 기능 모의 구현
-  const btnFindIdSubmit = document.getElementById('btnFindIdSubmit');
-  if (btnFindIdSubmit) {
-    btnFindIdSubmit.addEventListener('click', () => {
-      const name = document.getElementById('findIdName').value.trim();
-      const phone = document.getElementById('findIdPhone').value.trim();
-      const resEl = document.getElementById('findIdResult');
-
-      if (!name || !phone) {
-        window.showToast('이름과 연락처를 모두 입력해주세요.', 'error');
-        return;
-      }
-
-      // 데모용 하드코딩 응답
-      resEl.style.display = 'block';
-      resEl.innerHTML = `<strong>${name}</strong>님의 가입된 아이디는<br><b style="color:var(--primary-color);">user@festio.kr</b> 입니다.`;
-    });
-  }
-
-  // 비밀번호 찾기 기능 모의 구현
-  const btnFindPwSubmit = document.getElementById('btnFindPwSubmit');
-  if (btnFindPwSubmit) {
-    btnFindPwSubmit.addEventListener('click', () => {
-      const email = document.getElementById('findPwEmail').value.trim();
-      const phone = document.getElementById('findPwPhone').value.trim();
-      const resEl = document.getElementById('findPwResult');
-
-      if (!email || !phone) {
-        window.showToast('가입하신 이메일과 연락처를 입력해주세요.', 'error');
-        return;
-      }
-
-      // 데모용 하드코딩 응답
-      resEl.style.display = 'block';
-      resEl.innerHTML = `<strong>${email}</strong> 으로<br>임시 비밀번호가 발송되었습니다.`;
-    });
+  if (savedEmail && emailInput && saveEmailCheckbox) {
+    emailInput.value = savedEmail;
+    saveEmailCheckbox.checked = true;
   }
 
   if (loginForm) {
@@ -182,6 +96,13 @@ document.addEventListener('DOMContentLoaded', () => {
               name: result.userName || '유저',
               role: isAdmin ? 'ADMIN' : (isStaff ? 'STAFF' : 'CLIENT')
             });
+          }
+
+          // 이메일 저장 체크박스 처리
+          if (saveEmailCheckbox && saveEmailCheckbox.checked) {
+            localStorage.setItem('savedEmail', email);
+          } else {
+            localStorage.removeItem('savedEmail');
           }
 
           // 권한별 목적지 리다이렉트 설정 (항상 홈 화면으로 진입 후 헤더 버튼으로 모드 전환)
