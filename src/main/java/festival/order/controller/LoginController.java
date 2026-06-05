@@ -55,7 +55,7 @@ public class LoginController {
 
         String role = (String) user.get("role");
 
-        if (!"ROLE_STAFF".equals(role)) {
+        if (!"ROLE_STAFF".equals(role) && !"ROLE_FOOD_STAFF".equals(role) && !"ROLE_GATE_STAFF".equals(role) && !"ROLE_GOODS_STAFF".equals(role)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("success", false, "error", "스태프 권한이 없는 계정입니다."));
         }
 

@@ -41,4 +41,44 @@ public class StaffSpecificationController {
     public String o2oOrders() {
         return "forward:/features/payment/staff/o2o-orders.html";
     }
+
+    /**
+     * 굿즈 판매소 설정 뷰 라우팅
+     */
+    @GetMapping("/features/payment/staff/goods-store")
+    public String goodsStore() {
+        return "forward:/features/payment/staff/goods-store.html";
+    }
+
+    /**
+     * MD 및 굿즈 등록 뷰 라우팅
+     */
+    @GetMapping("/features/payment/staff/goods-menu")
+    public String goodsMenu() {
+        return "forward:/features/payment/staff/goods-menu.html";
+    }
+
+    /**
+     * 옵션별 재고 관리 뷰 라우팅
+     */
+    @GetMapping("/features/payment/staff/goods-inventory")
+    public String goodsInventory() {
+        return "forward:/features/payment/staff/goods-inventory.html";
+    }
+
+    /**
+     * 실시간 주문 및 픽업 뷰 라우팅
+     */
+    @GetMapping("/features/payment/staff/goods-orders")
+    public String goodsOrders() {
+        return "forward:/features/payment/staff/goods-orders.html";
+    }
+
+    /**
+     * 실시간 매출 및 판매 통계 대시보드 뷰 라우팅
+     */
+    @GetMapping("/features/payment/staff/sales-dashboard")
+    public String salesDashboard() {
+        return "forward:/features/payment/staff/sales-dashboard.html";
+    }
 }

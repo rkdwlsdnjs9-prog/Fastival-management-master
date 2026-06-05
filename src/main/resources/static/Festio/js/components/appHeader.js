@@ -62,8 +62,12 @@
         <span class="mode-btn-label">관리자 모드</span>
       </a>`;
   } else if (isLoggedIn && userRole === 'STAFF') {
+    const userSpecificRole = localStorage.getItem('userSpecificRole') || sessionStorage.getItem('userSpecificRole');
+    const targetUrl = userSpecificRole === 'ROLE_GOODS_STAFF' 
+      ? '/features/payment/staff/goods-store.html' 
+      : '/features/payment/staff/store-management.html';
     modeSwitchBtnHtml = `
-      <a href="/features/payment/staff/store-management.html" id="modeSwitchBtn" class="header-mode-switch-btn header-mode-switch-staff" aria-label="업주 모드로 전환">
+      <a href="${targetUrl}" id="modeSwitchBtn" class="header-mode-switch-btn header-mode-switch-staff" aria-label="업주 모드로 전환">
         ${staffModeBtnSvg}
         <span class="mode-btn-label">업주 모드</span>
       </a>`;

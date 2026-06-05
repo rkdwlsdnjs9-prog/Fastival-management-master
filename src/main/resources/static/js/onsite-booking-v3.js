@@ -144,7 +144,8 @@ async function init() {
         if (!currentStaff) return;
         const profile = await getUserProfile(currentStaff.id);
 
-        if (!['ROLE_STAFF', 'ROLE_ADMIN'].includes(profile?.role)) {
+        const allowedRoles = ['ROLE_STAFF', 'ROLE_FOOD_STAFF', 'ROLE_GATE_STAFF', 'ROLE_GOODS_STAFF', 'ROLE_ADMIN'];
+        if (!allowedRoles.includes(profile?.role)) {
             alert('스태프 전용 페이지입니다.');
             location.href = '/';
             return;

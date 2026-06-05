@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="ko" class="layout-menu-fixed layout-compact" data-assets-path="/assets/" data-template="vertical-menu-template-free">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+    <title>옵션별 재고 관리 | FESTIO</title>
+
+    <link rel="icon" type="image/x-icon" href="/assets/img/favicon/favicon.ico" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Pretendard+Variable:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/assets/vendor/fonts/iconify-icons.css" />
+    <link rel="stylesheet" href="/assets/vendor/css/core.css" />
+    <link rel="stylesheet" href="/assets/css/demo.css" />
+    <link rel="stylesheet" href="/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
+    <script src="/assets/vendor/js/helpers.js"></script>
+    <script src="/assets/js/config.js"></script>
+    <link rel="stylesheet" href="./css/goods-inventory.css" />
+  </head>
+
+  <body>
+    <div class="layout-wrapper layout-content-navbar">
+      <div class="layout-container">
+        
+        <!-- Sidebar Menu -->
+        <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
+          <!-- staff-sidebar.js 가 런타임에 동적으로 삽입 -->
+        </aside>
+
+        <div class="layout-page">
+          <!-- Navbar -->
+          <nav class="layout-navbar container-xxl navbar navbar-expand-xl navbar-detached align-items-center bg-navbar-theme" id="layout-navbar">
+            <div class="layout-menu-toggle navbar-nav align-items-xl-center me-4 me-xl-0 d-xl-none">
+              <a class="nav-item nav-link px-0 me-xl-6" href="javascript:void(0)">
+                <i class="bx bx-menu bx-sm"></i>
+              </a>
+            </div>
+            <div class="navbar-nav-right d-flex align-items-center" id="navbar-collapse">
+              <h5 class="mb-0 fw-bold"><i class="bx bx-package me-2 text-primary"></i>MD 굿즈 옵션 및 규격별 재고 현황</h5>
+              <ul class="navbar-nav flex-row align-items-center ms-auto">
+                <li class="nav-item dropdown-user dropdown">
+                  <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown">
+                    <div class="avatar avatar-online">
+                      <img src="/assets/img/avatars/1.png" class="w-px-40 h-auto rounded-circle" />
+                    </div>
+                  </a>
+                  <ul class="dropdown-menu dropdown-menu-end">
+                    <li>
+                      <a class="dropdown-item" href="#">
+                        <div class="d-flex">
+                          <div class="flex-shrink-0 me-3">
+                            <div class="avatar avatar-online">
+                              <img src="/assets/img/avatars/1.png" class="w-px-40 h-auto rounded-circle" />
+                            </div>
+                          </div>
+                          <div class="flex-grow-1">
+                            <span class="fw-medium d-block" id="navUserName">굿즈점주</span>
+                            <small class="text-muted">공식 MD 점주 (GOODS STAFF)</small>
+                          </div>
+                        </div>
+                      </a>
+                    </li>
+                  </ul>
+                </li>
+              </ul>
+            </div>
+          </nav>
+
+          <!-- Content wrapper -->
+          <div class="content-wrapper">
+            <div class="container-xxl flex-grow-1 container-p-y">
+              
+              <div class="row">
+                <div class="col-12 mb-6">
+                  <div class="card goods-card shadow-sm">
+                    <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2 pb-3 bg-white border-0">
+                      <h5 class="card-title m-0 fw-bold text-dark"><i class="bx bx-package me-2 text-primary"></i>실시간 옵션별 재고 제어</h5>
+                      <span class="badge bg-label-primary py-2 px-3"><i class="bx bx-info-circle me-1"></i> 각 굿즈의 사이즈/색상 등 세부 규격별로 실제 총 재고 및 실시간 품절 스위치를 제어합니다.</span>
+                    </div>
+
+                    <!-- Goods Staff Accordion View (옵션 및 규격별 전용 관리) -->
+                    <div class="card-body border-top p-4 bg-light">
+                      <div class="accordion" id="inventoryAccordion">
+                        <!-- Dynamically loaded from database -->
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Footer -->
+            <footer class="content-footer footer bg-footer-theme">
+              <div class="container-xxl d-flex flex-wrap justify-content-between py-2 flex-md-row flex-column">
+                <div class="mb-2 mb-md-0">
+                  © <script>document.write(new Date().getFullYear());</script> FESTIO
+                </div>
+              </div>
+            </footer>
+
+            <div class="content-backdrop fade"></div>
+          </div>
+        </div>
+      </div>
+      <div class="layout-overlay layout-menu-toggle"></div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/assets/vendor/libs/jquery/jquery.js"></script>
+    <script src="/assets/vendor/libs/popper/popper.js"></script>
+    <script src="/assets/vendor/js/bootstrap.js"></script>
+    <script src="/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
+    <script src="/assets/vendor/js/menu.js"></script>
+    <script src="/assets/js/main.js"></script>
+    <script src="/assets/js/staff-sidebar.js"></script>
+    
+    <script src="./js/goods-inventory.js"></script>
+  </body>
+</html>

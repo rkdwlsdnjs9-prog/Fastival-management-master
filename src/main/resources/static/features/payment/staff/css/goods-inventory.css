@@ -1,0 +1,48 @@
+body {
+        font-family: 'Pretendard Variable', sans-serif;
+      }
+      .goods-premium-gradient {
+        background: linear-gradient(135deg, #7F00FF 0%, #E100FF 100%);
+        color: white;
+      }
+      .goods-card {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        transition: transform 0.2s, box-shadow 0.2s;
+      }
+      .goods-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 35px rgba(127, 0, 255, 0.08);
+      }
+      .btn-goods-primary {
+        background: linear-gradient(135deg, #7F00FF 0%, #9b30ff 100%);
+        border: none;
+        color: white;
+        transition: all 0.2s ease;
+      }
+      .btn-goods-primary:hover {
+        background: linear-gradient(135deg, #9b30ff 0%, #E100FF 100%);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 15px rgba(127, 0, 255, 0.3);
+        color: white;
+      }
+      .accordion-button:not(.collapsed) {
+        background-color: rgba(127, 0, 255, 0.05);
+        color: #7F00FF;
+        box-shadow: inset 0 -1px 0 rgba(127, 0, 255, 0.125);
+      }
+      .accordion-button:focus {
+        border-color: rgba(127, 0, 255, 0.5);
+        box-shadow: 0 0 0 0.25rem rgba(127, 0, 255, 0.25);
+      }
+      .form-switch .form-check-input:checked {
+        background-color: #7F00FF;
+        border-color: #7F00FF;
+      }
+      .badge-goods-label {
+        background-color: rgba(127, 0, 255, 0.1);
+        color: #7F00FF;
+      }

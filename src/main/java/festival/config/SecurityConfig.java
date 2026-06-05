@@ -31,8 +31,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 // 스탭 로그인 API: 누구나 접근 가능해야 함
                 .requestMatchers("/api/payment/staff/login").permitAll()
-                // 스탭 REST API: ROLE_STAFF, ROLE_ADMIN 허용
-                .requestMatchers("/api/payment/staff/**").hasAnyRole("STAFF", "ADMIN")
+                // 스탭 REST API: ROLE_STAFF, ROLE_FOOD_STAFF, ROLE_GATE_STAFF, ROLE_GOODS_STAFF, ROLE_ADMIN 허용
+                .requestMatchers("/api/payment/staff/**").hasAnyRole("STAFF", "FOOD_STAFF", "GATE_STAFF", "GOODS_STAFF", "ADMIN")
 
                 // 그 외 모든 경로 (HTML 정적 파일, 리소스, 로그인 등): 모두 허용
                 .anyRequest().permitAll()

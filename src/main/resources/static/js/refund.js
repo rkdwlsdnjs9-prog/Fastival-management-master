@@ -82,7 +82,8 @@ async function init() {
     userProfile = await getUserProfile(currentUser.id);
 
     // 스태프/관리자면 현장 탭 노출
-    if (userProfile?.role === 'ROLE_STAFF' || userProfile?.role === 'ROLE_ADMIN') {
+    const isStaffRole = ['ROLE_STAFF', 'ROLE_FOOD_STAFF', 'ROLE_GATE_STAFF', 'ROLE_GOODS_STAFF'].includes(userProfile?.role);
+    if (isStaffRole || userProfile?.role === 'ROLE_ADMIN') {
         tabOnsite.hidden = false;
     }
 

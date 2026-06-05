@@ -1,0 +1,84 @@
+body {
+        font-family: 'Pretendard Variable', sans-serif;
+      }
+      .goods-premium-gradient {
+        background: linear-gradient(135deg, #7F00FF 0%, #E100FF 100%);
+        color: white;
+      }
+      .goods-card {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        transition: transform 0.2s, box-shadow 0.2s;
+      }
+      .order-board-col {
+        border-radius: 16px;
+        min-height: 600px;
+        background-color: #f5f6fd;
+        padding: 16px;
+        border: 1px solid #e2e4f0;
+      }
+      .order-card {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+        margin-bottom: 12px;
+        background: white;
+        transition: all 0.2s ease;
+      }
+      .order-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(127, 0, 255, 0.06);
+      }
+      .btn-goods-primary {
+        background: linear-gradient(135deg, #7F00FF 0%, #9b30ff 100%);
+        border: none;
+        color: white;
+        font-weight: 700;
+        transition: all 0.2s ease;
+      }
+      .btn-goods-primary:hover {
+        background: linear-gradient(135deg, #9b30ff 0%, #E100FF 100%);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(127, 0, 255, 0.2);
+        color: white;
+      }
+      .btn-goods-success {
+        background: linear-gradient(135deg, #00D2FC 0%, #00C6FF 100%);
+        border: none;
+        color: white;
+        font-weight: 700;
+        transition: all 0.2s ease;
+      }
+      .btn-goods-success:hover {
+        background: linear-gradient(135deg, #00C6FF 0%, #0072FF 100%);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 198, 255, 0.2);
+        color: white;
+      }
+      .btn-goods-complete {
+        background: linear-gradient(135deg, #1D976C 0%, #93F9B9 100%);
+        border: none;
+        color: white;
+        font-weight: 700;
+        transition: all 0.2s ease;
+      }
+      .btn-goods-complete:hover {
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(29, 151, 108, 0.2);
+        color: white;
+      }
+      .goods-option-text {
+        font-size: 1rem !important;
+        font-weight: 700 !important;
+        color: #7F00FF !important;
+        background-color: rgba(127, 0, 255, 0.05);
+        padding: 4px 8px;
+        border-radius: 4px;
+        display: inline-block;
+        margin-top: 4px;
+        border: 1px dashed rgba(127, 0, 255, 0.2);
+      }

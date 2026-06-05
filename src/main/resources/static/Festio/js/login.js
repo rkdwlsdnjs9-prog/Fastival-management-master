@@ -158,7 +158,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
           const userRole = result.userRole || 'ROLE_USER';
           const isAdmin = email === 'admin@gmail.com' || userRole === 'ROLE_ADMIN' || userRole === 'ADMIN';
-          const isStaff = userRole === 'ROLE_STAFF' || userRole === 'STAFF';
+          const isStaff = userRole === 'ROLE_STAFF' || userRole === 'STAFF' || userRole === 'ROLE_FOOD_STAFF' || userRole === 'ROLE_GATE_STAFF' || userRole === 'ROLE_GOODS_STAFF';
 
           storage.setItem('userToken', result.token);
           storage.setItem('userName', result.userName || '유저');
@@ -168,11 +168,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
           if (isAdmin) {
             storage.setItem('userRole', 'ADMIN');
+            storage.setItem('userSpecificRole', 'ROLE_ADMIN');
             storage.setItem('userToken', 'festio-admin-jwt-token-7777');
           } else if (isStaff) {
             storage.setItem('userRole', 'STAFF');
+            storage.setItem('userSpecificRole', userRole);
           } else {
             storage.setItem('userRole', 'CLIENT');
+            storage.setItem('userSpecificRole', 'ROLE_USER');
           }
 
           // (동기화) sessionStorage 에도 데이터 동기화 저장

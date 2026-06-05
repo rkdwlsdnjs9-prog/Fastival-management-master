@@ -106,6 +106,16 @@ public class StoreApiController {
         String rawPassword = "staff" + id + "!";
         String encodedPassword = passwordEncoder.encode(rawPassword);
 
+        // 상점 카테고리에 맞춰 권한 매핑
+        String role = "ROLE_STAFF";
+        if ("FOOD".equalsIgnoreCase(store.getCategory()) || "DRINK".equalsIgnoreCase(store.getCategory())) {
+            role = "ROLE_FOOD_STAFF";
+        } else if ("GATE".equalsIgnoreCase(store.getCategory())) {
+            role = "ROLE_GATE_STAFF";
+        } else if ("GOODS".equalsIgnoreCase(store.getCategory())) {
+            role = "ROLE_GOODS_STAFF";
+        }
+
         // 기존 해당 storeId로 가입된 스탭이 있는지 조회
         Optional<UserVo> existingUser = userRepository.findByStoreId(id);
         UserVo user;
@@ -114,7 +124,7 @@ public class StoreApiController {
             user = existingUser.get();
             user.setEmail(email);
             user.setPassword(encodedPassword);
-            user.setRole("ROLE_STAFF");
+            user.setRole(role);
             user.setStatus("ACTIVE");
         } else {
             // 이메일 중복 체크 후 조치
@@ -122,7 +132,7 @@ public class StoreApiController {
             if (duplicateEmailUser.isPresent()) {
                 user = duplicateEmailUser.get();
                 user.setPassword(encodedPassword);
-                user.setRole("ROLE_STAFF");
+                user.setRole(role);
                 user.setStatus("ACTIVE");
                 user.setStoreId(id);
             } else {
@@ -131,7 +141,7 @@ public class StoreApiController {
                         .password(encodedPassword)
                         .name(store.getName() + " 점주")
                         .phone("010-0000-0000")
-                        .role("ROLE_STAFF")
+                        .role(role)
                         .status("ACTIVE")
                         .storeId(id)
                         .membershipGrade("BRONZE")

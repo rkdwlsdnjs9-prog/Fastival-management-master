@@ -136,7 +136,8 @@ async function init() {
     userProfile = await getUserProfile(currentUser.id);
 
     // 스태프/관리자만 접근
-    if (!['ROLE_STAFF', 'ROLE_ADMIN'].includes(userProfile?.role)) {
+    const allowedRoles = ['ROLE_STAFF', 'ROLE_FOOD_STAFF', 'ROLE_GATE_STAFF', 'ROLE_GOODS_STAFF', 'ROLE_ADMIN'];
+    if (!allowedRoles.includes(userProfile?.role)) {
         alert('스태프 전용 페이지입니다.');
         location.href = '/';
         return;
@@ -144,7 +145,11 @@ async function init() {
 
     // 헤더 업데이트
     const isAdmin = userProfile.role === 'ROLE_ADMIN';
-    ssRoleLabel.textContent = isAdmin ? 'ADMIN' : 'STAFF';
+    let roleName = 'STAFF';
+    if (userProfile.role === 'ROLE_FOOD_STAFF') roleName = 'FOOD STAFF';
+    else if (userProfile.role === 'ROLE_GATE_STAFF') roleName = 'GATE STAFF';
+    else if (userProfile.role === 'ROLE_GOODS_STAFF') roleName = 'GOODS STAFF';
+    ssRoleLabel.textContent = isAdmin ? 'ADMIN' : roleName;
     if (isAdmin) ssRoleBadge.classList.add('ss-header__badge--admin');
     ssUserName.textContent = maskName(userProfile.name ?? '');
 
@@ -347,8 +352,9 @@ async function renderResult(item, result, code) {
     }
 
     let actionBtn = '';
+    const isStaffRole = ['ROLE_STAFF', 'ROLE_FOOD_STAFF', 'ROLE_GATE_STAFF', 'ROLE_GOODS_STAFF'].includes(userProfile?.role);
     if (isFail && result !== RESULT.FAIL_INVALID && result !== RESULT.FAIL_REFUNDED
-        && userProfile?.role === 'ROLE_STAFF') {
+        && isStaffRole) {
         actionBtn = `
             <button class="ss-result-card__exception-btn" id="ssExceptionBtnInCard">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

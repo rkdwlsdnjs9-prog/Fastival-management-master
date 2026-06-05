@@ -264,7 +264,33 @@ public class StaffApiController {
                         price = Integer.parseInt(String.valueOf(itemMap.get("price")));
                     } catch (Exception ignored) {}
                     
-                    sb.append("{\"name\":\"").append(name).append("\",\"price\":").append(price).append("}");
+                    sb.append("{\"name\":\"").append(name).append("\",\"price\":").append(price);
+                    
+                    if (itemMap.containsKey("total_stock")) {
+                        sb.append(",\"total_stock\":").append(itemMap.get("total_stock"));
+                    } else if (itemMap.containsKey("totalStock")) {
+                        sb.append(",\"total_stock\":").append(itemMap.get("totalStock"));
+                    }
+                    
+                    if (itemMap.containsKey("reserved_stock")) {
+                        sb.append(",\"reserved_stock\":").append(itemMap.get("reserved_stock"));
+                    } else if (itemMap.containsKey("reservedStock")) {
+                        sb.append(",\"reserved_stock\":").append(itemMap.get("reservedStock"));
+                    }
+                    
+                    if (itemMap.containsKey("available_stock")) {
+                        sb.append(",\"available_stock\":").append(itemMap.get("available_stock"));
+                    } else if (itemMap.containsKey("availableStock")) {
+                        sb.append(",\"available_stock\":").append(itemMap.get("availableStock"));
+                    }
+                    
+                    if (itemMap.containsKey("is_soldout")) {
+                        sb.append(",\"is_soldout\":").append(itemMap.get("is_soldout"));
+                    } else if (itemMap.containsKey("isSoldout")) {
+                        sb.append(",\"is_soldout\":").append(itemMap.get("isSoldout"));
+                    }
+                    
+                    sb.append("}");
                     if (j < items.size() - 1) sb.append(",");
                 }
             }
@@ -343,8 +369,19 @@ public class StaffApiController {
         int availableStock = totalStock - reservedStock;
         if (availableStock < 0) availableStock = 0; // 가용 재고 음수 방지
 
-        String updateSql = "UPDATE product SET total_stock = ?, available_stock = ? WHERE id = ?";
-        jdbcTemplate.update(updateSql, totalStock, availableStock, menuId);
+        String updateSql;
+        String optionGroupsJson = null;
+        if (payload.containsKey("optionGroups")) {
+            optionGroupsJson = serializeOptionGroups(payload.get("optionGroups"));
+        }
+
+        if (optionGroupsJson != null) {
+            updateSql = "UPDATE product SET total_stock = ?, available_stock = ?, option_groups_json = ? WHERE id = ?";
+            jdbcTemplate.update(updateSql, totalStock, availableStock, optionGroupsJson, menuId);
+        } else {
+            updateSql = "UPDATE product SET total_stock = ?, available_stock = ? WHERE id = ?";
+            jdbcTemplate.update(updateSql, totalStock, availableStock, menuId);
+        }
 
         return ResponseEntity.ok(Map.of(
             "status", "success",
@@ -390,6 +427,30 @@ public class StaffApiController {
     }
 
     // ==========================================
+    // 6.5. [메뉴 삭제] 메뉴 단건 삭제
+    // ==========================================
+    @DeleteMapping("/menus/{menuId}")
+    public ResponseEntity<?> deleteMenu(
+            @RequestHeader(value = "Authorization", required = false) String token,
+            @PathVariable("menuId") Long menuId) {
+        
+        Long storeId = getLoggedInStoreId(token);
+
+        // [보안 검증] 대상 메뉴가 본인 가게의 것인지 확인 (데이터 격리)
+        String verifySql = "SELECT store_id FROM product WHERE id = ?";
+        List<Long> ownerStoreIds = jdbcTemplate.query(verifySql, (rs, rowNum) -> rs.getLong("store_id"), menuId);
+
+        if (ownerStoreIds.isEmpty() || !ownerStoreIds.get(0).equals(storeId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("message", "해당 메뉴를 삭제할 권한이 없습니다."));
+        }
+
+        String deleteSql = "DELETE FROM product WHERE id = ?";
+        jdbcTemplate.update(deleteSql, menuId);
+
+        return ResponseEntity.ok(Map.of("status", "success", "message", "성공적으로 삭제되었습니다."));
+    }
+
+    // ==========================================
     // 7. [주문 수락] 가맹점 전용 O2O 실시간 주문 목록 조회
     // ==========================================
     @GetMapping("/orders")
@@ -397,7 +458,7 @@ public class StaffApiController {
         Long storeId = getLoggedInStoreId(token);
 
         // 본인 소유 가맹점의 상품이 주문되어 생성된 주문 항목들만 필터링 조회 (강력한 데이터 격리)
-        String sql = "SELECT oi.id as item_id, p.name as product_name, oi.quantity, p.price, oi.item_status, oi.updated_at " +
+        String sql = "SELECT oi.id as item_id, p.name as product_name, oi.quantity, p.price, oi.item_status, oi.updated_at, oi.selected_options as selected_options " +
                      "FROM order_item oi " +
                      "JOIN product p ON oi.product_id = p.id " +
                      "WHERE p.store_id = ? " +
@@ -425,6 +486,7 @@ public class StaffApiController {
             Map<String, Object> item = new HashMap<>();
             item.put("name", row.get("product_name"));
             item.put("quantity", row.get("quantity"));
+            item.put("options", row.get("selected_options"));
             items.add(item);
             
             order.put("items", items);
@@ -463,5 +525,95 @@ public class StaffApiController {
         jdbcTemplate.update(updateSql, nextStatus, orderId);
 
         return ResponseEntity.ok(Map.of("status", "success", "orderId", orderId, "orderStatus", nextStatus));
+    }
+
+    // ==========================================
+    // 9. [매출 통계] 실시간 매출 및 판매 분석 통계 조회
+    // ==========================================
+    @GetMapping("/sales/stats")
+    public ResponseEntity<?> getSalesStatistics(@RequestHeader(value = "Authorization", required = false) String token) {
+        Long storeId = getLoggedInStoreId(token);
+
+        // 1. 요약 정보 (총 매출, 총 주문 건수, 객단가)
+        String summarySql = "SELECT COALESCE(SUM(oi.quantity * p.price), 0) AS total_revenue, " +
+                            "COUNT(DISTINCT oi.order_id) AS total_orders " +
+                            "FROM order_item oi " +
+                            "JOIN product p ON oi.product_id = p.id " +
+                            "JOIN orders o ON oi.order_id = o.id " +
+                            "WHERE p.store_id = ? AND o.payment_status = 'PAID'";
+        
+        Map<String, Object> summary = new HashMap<>();
+        try {
+            Map<String, Object> summaryResult = jdbcTemplate.queryForMap(summarySql, storeId);
+            long totalRevenue = summaryResult.get("total_revenue") != null ? ((Number) summaryResult.get("total_revenue")).longValue() : 0L;
+            long totalOrders = summaryResult.get("total_orders") != null ? ((Number) summaryResult.get("total_orders")).longValue() : 0L;
+            long averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0L;
+
+            summary.put("totalRevenue", totalRevenue);
+            summary.put("totalOrders", totalOrders);
+            summary.put("averageOrderValue", averageOrderValue);
+        } catch (Exception e) {
+            summary.put("totalRevenue", 0L);
+            summary.put("totalOrders", 0L);
+            summary.put("averageOrderValue", 0L);
+        }
+
+        // 2. 시간대별 매출 추이
+        String hourlySql = "SELECT EXTRACT(HOUR FROM o.created_at) AS order_hour, " +
+                           "SUM(oi.quantity * p.price) AS hourly_revenue " +
+                           "FROM order_item oi " +
+                           "JOIN product p ON oi.product_id = p.id " +
+                           "JOIN orders o ON oi.order_id = o.id " +
+                           "WHERE p.store_id = ? AND o.payment_status = 'PAID' " +
+                           "GROUP BY EXTRACT(HOUR FROM o.created_at) " +
+                           "ORDER BY order_hour";
+        
+        List<Map<String, Object>> hourlyList = jdbcTemplate.queryForList(hourlySql, storeId);
+        List<Map<String, Object>> hourlySales = new ArrayList<>();
+        Map<Integer, Long> hourlyMap = new HashMap<>();
+        for (int h = 0; h < 24; h++) hourlyMap.put(h, 0L);
+        for (Map<String, Object> row : hourlyList) {
+            try {
+                int hour = ((Number) row.get("order_hour")).intValue();
+                long revenue = ((Number) row.get("hourly_revenue")).longValue();
+                hourlyMap.put(hour, revenue);
+            } catch (Exception ignored) {}
+        }
+        for (int h = 0; h < 24; h++) {
+            Map<String, Object> item = new HashMap<>();
+            item.put("hour", h);
+            item.put("revenue", hourlyMap.get(h));
+            hourlySales.add(item);
+        }
+
+        // 3. 인기 상품 Top 5
+        String topProductsSql = "SELECT p.name AS product_name, SUM(oi.quantity) AS total_quantity, SUM(oi.quantity * p.price) AS total_revenue " +
+                                "FROM order_item oi " +
+                                "JOIN product p ON oi.product_id = p.id " +
+                                "JOIN orders o ON oi.order_id = o.id " +
+                                "WHERE p.store_id = ? AND o.payment_status = 'PAID' " +
+                                "GROUP BY p.name " +
+                                "ORDER BY total_quantity DESC " +
+                                "LIMIT 5";
+        List<Map<String, Object>> topProducts = jdbcTemplate.queryForList(topProductsSql, storeId);
+
+        // 4. 옵션 선호도 분석
+        String topOptionsSql = "SELECT oi.selected_options AS option_name, COUNT(oi.id) AS option_count " +
+                               "FROM order_item oi " +
+                               "JOIN product p ON oi.product_id = p.id " +
+                               "JOIN orders o ON oi.order_id = o.id " +
+                               "WHERE p.store_id = ? AND o.payment_status = 'PAID' AND oi.selected_options IS NOT NULL AND oi.selected_options != '' " +
+                               "GROUP BY oi.selected_options " +
+                               "ORDER BY option_count DESC " +
+                               "LIMIT 5";
+        List<Map<String, Object>> topOptions = jdbcTemplate.queryForList(topOptionsSql, storeId);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("summary", summary);
+        response.put("hourlySales", hourlySales);
+        response.put("topProducts", topProducts);
+        response.put("topOptions", topOptions);
+
+        return ResponseEntity.ok(response);
     }
 }

@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="ko" class="layout-menu-fixed layout-compact" data-assets-path="/assets/" data-template="vertical-menu-template-free">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+    <title>MD 및 굿즈 등록 | FESTIO</title>
+
+    <link rel="icon" type="image/x-icon" href="/assets/img/favicon/favicon.ico" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Pretendard+Variable:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/assets/vendor/fonts/iconify-icons.css" />
+    <link rel="stylesheet" href="/assets/vendor/css/core.css" />
+    <link rel="stylesheet" href="/assets/css/demo.css" />
+    <link rel="stylesheet" href="/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
+    <script src="/assets/vendor/js/helpers.js"></script>
+    <script src="/assets/js/config.js"></script>
+    <link rel="stylesheet" href="./css/goods-menu.css" />
+  </head>
+
+  <body>
+    <div class="layout-wrapper layout-content-navbar">
+      <div class="layout-container">
+        
+        <!-- Sidebar Menu -->
+        <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
+          <!-- staff-sidebar.js 가 런타임에 동적으로 삽입 -->
+        </aside>
+
+        <div class="layout-page">
+          <!-- Navbar -->
+          <nav class="layout-navbar container-xxl navbar navbar-expand-xl navbar-detached align-items-center bg-navbar-theme" id="layout-navbar">
+            <div class="layout-menu-toggle navbar-nav align-items-xl-center me-4 me-xl-0 d-xl-none">
+              <a class="nav-item nav-link px-0 me-xl-6" href="javascript:void(0)">
+                <i class="bx bx-menu bx-sm"></i>
+              </a>
+            </div>
+            <div class="navbar-nav-right d-flex align-items-center" id="navbar-collapse">
+              <h5 class="mb-0 fw-bold"><i class="bx bx-list-plus me-2 text-primary"></i>MD 및 굿즈 상품 마스터 등록</h5>
+              <ul class="navbar-nav flex-row align-items-center ms-auto">
+                <li class="nav-item dropdown-user dropdown">
+                  <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown">
+                    <div class="avatar avatar-online">
+                      <img src="/assets/img/avatars/1.png" class="w-px-40 h-auto rounded-circle" />
+                    </div>
+                  </a>
+                  <ul class="dropdown-menu dropdown-menu-end">
+                    <li>
+                      <a class="dropdown-item" href="#">
+                        <div class="d-flex">
+                          <div class="flex-shrink-0 me-3">
+                            <div class="avatar avatar-online">
+                              <img src="/assets/img/avatars/1.png" class="w-px-40 h-auto rounded-circle" />
+                            </div>
+                          </div>
+                          <div class="flex-grow-1">
+                            <span class="fw-medium d-block" id="navUserName">굿즈점주</span>
+                            <small class="text-muted">공식 MD 점주 (GOODS STAFF)</small>
+                          </div>
+                        </div>
+                      </a>
+                    </li>
+                  </ul>
+                </li>
+              </ul>
+            </div>
+          </nav>
+
+          <!-- Content wrapper -->
+          <div class="content-wrapper">
+            <div class="container-xxl flex-grow-1 container-p-y">
+              
+              <div class="row">
+                <!-- Left: 상품 등록 폼 -->
+                <div class="col-xl-7 col-lg-12 mb-6">
+                  <div class="card goods-card shadow-sm">
+                    <div class="card-header pb-2 bg-white border-0">
+                      <h5 class="card-title m-0 fw-bold text-dark"><i class="bx bx-plus-circle me-2 text-primary fs-4"></i>신규 공식 굿즈 등록</h5>
+                    </div>
+                    <div class="card-body">
+                      <form id="registerForm">
+                        <div class="mb-4">
+                          <label class="form-label fw-bold text-dark fs-6">상품명</label>
+                          <input type="text" id="goodsNameInput" class="form-control form-control-lg py-3" placeholder="예: 2026 FESTIO 공식 응원봉" style="font-size: 1rem;" />
+                        </div>
+
+                        <!-- 굿즈 대표 이미지 설정 -->
+                        <div class="mb-4">
+                          <label class="form-label fw-bold text-dark fs-6">상품 대표 이미지</label>
+                          <div class="d-flex align-items-center gap-3 mb-3">
+                            <div class="position-relative" style="width: 80px; height: 80px;">
+                              <img id="goodsImagePreview" src="https://images.unsplash.com/photo-1489641493513-ba4ee84ccea9?auto=format&fit=crop&w=150&h=150&q=80" class="w-100 h-100 rounded-3 object-fit-cover border" />
+                              <button type="button" id="clearImageBtn" class="btn btn-sm btn-icon btn-danger position-absolute top-0 end-0 p-0 rounded-circle" style="width: 22px; height: 22px; transform: translate(30%, -30%); display: none;">
+                                <i class="bx bx-x fs-6"></i>
+                              </button>
+                            </div>
+                            <div class="flex-grow-1">
+                              <input type="file" id="manualFileInput" class="form-control form-control-sm" accept="image/*" />
+                              <small class="text-muted mt-1 d-block fs-8">JPG, PNG 파일 지원 (최대 5MB)</small>
+                            </div>
+                          </div>
+
+                          <input type="hidden" id="goodsImageUrlInput" value="" />
+                        </div>
+
+                        <div class="row mb-4">
+                          <div class="col-md-6 mb-3 mb-md-0">
+                            <label class="form-label fw-bold text-dark fs-6">기본 판매 가격</label>
+                            <input type="number" id="goodsPriceInput" class="form-control form-control-lg py-3" placeholder="0" style="font-size: 1rem;" />
+                          </div>
+                          <div class="col-md-6">
+                            <label class="form-label fw-bold text-dark fs-6">상품 소속 카테고리</label>
+                            <select id="goodsCategorySelect" class="form-select form-select-lg py-3" style="font-size: 1rem;">
+                              <option value="CLOTHING">의류 (Clothing - 티셔츠/슬로건 등)</option>
+                              <option value="ACCESSORY">액세서리 (Accessory - 키링/핀배지 등)</option>
+                              <option value="ALBUM">음반 / 도서 (Album/Book - CD/화보 등)</option>
+                              <option value="GOODS">기타 MD / 굿즈 (General MD - 응원봉 등)</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        <hr class="my-4" />
+
+                        <!-- 굿즈 옵션 자동 조합 생성기 -->
+                        <div id="goodsOptionGeneratorContainer" class="border border-2 rounded-3 p-4 mb-4" style="background-color: #f5f0ff; border-color: #d1baff !important;">
+                          <h6 class="fw-bold text-primary mb-3"><i class="bx bx-wand-magic-1 me-1"></i>굿즈 옵션 자동 조합 생성기</h6>
+                          <div class="row g-2 mb-3">
+                            <div class="col-md-5 col-12">
+                              <label class="form-label fw-bold text-dark fs-7">옵션명</label>
+                              <input type="text" id="optGenName" class="form-control form-control-md" placeholder="예: 사이즈, 색상" />
+                            </div>
+                            <div class="col-md-7 col-12">
+                              <label class="form-label fw-bold text-dark fs-7">옵션값 (쉼표로 구분)</label>
+                              <input type="text" id="optGenValues" class="form-control form-control-md" placeholder="예: S, M, L 또는 White, Black" />
+                            </div>
+                          </div>
+                          <button type="button" id="generateOptBtn" class="btn btn-goods-primary btn-sm fw-bold w-100 py-2">
+                            <i class="bx bx-git-branch me-1"></i>옵션 조합 생성 및 적용
+                          </button>
+                        </div>
+
+                        <!-- 선택된 옵션 그룹 및 항목 리스트 -->
+                        <div class="mb-4">
+                          <div class="d-flex justify-content-between align-items-center mb-2">
+                            <label class="form-label fw-bold text-dark fs-6 m-0">설정된 옵션 그룹</label>
+                            <button type="button" id="addOptionGroupBtn" class="btn btn-sm btn-goods-secondary">
+                              <i class="bx bx-plus me-1"></i>수동 옵션 그룹 추가
+                            </button>
+                          </div>
+                          <div id="optionGroupsContainer">
+                            <!-- 여기에 동적으로 추가됨 -->
+                          </div>
+                        </div>
+
+                        <button type="button" id="registerGoodsBtn" class="btn btn-goods-primary btn-lg w-100 py-3 fw-bold shadow-sm" style="min-height: 52px; font-size: 1.1rem;">
+                          <i class="bx bx-check-circle me-2 fs-5"></i>신규 상품(굿즈) 마스터 최종 등록
+                        </button>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Right: 등록된 상품 목록 -->
+                <div class="col-xl-5 col-lg-12">
+                  <div class="card goods-card shadow-sm">
+                    <div class="card-header pb-2 bg-white border-0 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                      <h5 class="card-title m-0 fw-bold text-dark"><i class="bx bx-list-check me-2 text-primary fs-4"></i>등록된 굿즈 목록</h5>
+                    </div>
+                    <div class="card-body">
+                      <!-- 카테고리 필터 칩스 -->
+                      <div class="d-flex gap-2 overflow-x-auto pb-3 mb-3 border-bottom" style="scrollbar-width: none;">
+                        <button class="btn btn-sm btn-outline-secondary rounded-pill active-filter-goods px-3 flex-shrink-0" id="filter-all" onclick="filterGoods('all')">전체</button>
+                        <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 flex-shrink-0" id="filter-clothing" onclick="filterGoods('CLOTHING')">의류</button>
+                        <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 flex-shrink-0" id="filter-accessory" onclick="filterGoods('ACCESSORY')">악세사리</button>
+                        <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 flex-shrink-0" id="filter-album" onclick="filterGoods('ALBUM')">음반/도서</button>
+                        <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 flex-shrink-0" id="filter-goods" onclick="filterGoods('GOODS')">기타 MD</button>
+                      </div>
+
+                      <div id="goodsItemContainer" class="d-flex flex-column gap-3">
+                        <!-- 동적으로 로드되는 굿즈 아이템 카드들 -->
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Footer -->
+            <footer class="content-footer footer bg-footer-theme">
+              <div class="container-xxl d-flex flex-wrap justify-content-between py-2 flex-md-row flex-column">
+                <div class="mb-2 mb-md-0">
+                  © <script>document.write(new Date().getFullYear());</script> FESTIO
+                </div>
+              </div>
+            </footer>
+
+            <div class="content-backdrop fade"></div>
+          </div>
+        </div>
+      </div>
+      <div class="layout-overlay layout-menu-toggle"></div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/assets/vendor/libs/jquery/jquery.js"></script>
+    <script src="/assets/vendor/libs/popper/popper.js"></script>
+    <script src="/assets/vendor/js/bootstrap.js"></script>
+    <script src="/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
+    <script src="/assets/vendor/js/menu.js"></script>
+    <script src="/assets/js/main.js"></script>
+    <script src="/assets/js/staff-sidebar.js"></script>
+    
+    <script src="./js/goods-menu.js"></script>
+  </body>
+</html>
