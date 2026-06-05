@@ -226,6 +226,7 @@ function renderStats() {
   const statWishlists = document.getElementById('statWishlists');
   const statCoupons = document.getElementById('statCoupons');
   const statReviews = document.getElementById('statReviews');
+  const statFoods = document.getElementById('statFoods');
 
   if (statTickets) statTickets.textContent = MOCK_TICKETS.length;
 
@@ -237,6 +238,9 @@ function renderStats() {
 
   // 리뷰 - 목데이터 사용
   if (statReviews) statReviews.textContent = (typeof MOCK_REVIEWS !== 'undefined') ? MOCK_REVIEWS.length : 0;
+
+  // 푸드/굿즈 - 주문 내역 개수 사용
+  if (statFoods) statFoods.textContent = (typeof MOCK_FOOD_ORDERS !== 'undefined') ? MOCK_FOOD_ORDERS.length : 0;
 
   const ticketCount = document.getElementById('ticketCount');
   if (ticketCount) ticketCount.textContent = `${MOCK_TICKETS.length + MOCK_FOOD_ORDERS.length}건`;
@@ -661,11 +665,32 @@ window.openReceiptModal = function (orderId) {
   `;
   document.body.insertAdjacentHTML('beforeend', html);
   document.body.style.overflow = 'hidden';
+
+  // 오버레이(바깥) 영역 클릭 시 닫기
+  const receiptOverlay = document.getElementById('dynamicReceiptModal');
+  if (receiptOverlay) {
+    receiptOverlay.addEventListener('click', (e) => {
+      if (e.target === receiptOverlay) {
+        closeReceiptModal();
+      }
+    });
+  }
 };
 
 window.closeReceiptModal = function () {
   const receiptModal = document.getElementById('dynamicReceiptModal');
   if (receiptModal) receiptModal.remove();
+
+  // QR 모달이 아직 열려 있으면 overflow: hidden 유지, 아니면 복원
+  const qrOverlay = document.getElementById('qrModalOverlay');
+  const dynamicQrModal = document.getElementById('dynamicQrModal');
+  const anyModalStillOpen =
+    (qrOverlay && qrOverlay.classList.contains('active')) ||
+    (dynamicQrModal && dynamicQrModal.style.display !== 'none');
+
+  if (!anyModalStillOpen) {
+    document.body.style.overflow = '';
+  }
 };
 
 window.toggleQrAccordion = function () {
@@ -1726,6 +1751,12 @@ function initProfileFeatures() {
       alert('기본 이미지로 변경되었습니다.');
     });
   }
+
+  // 초기화 시 저장된 아바타 로드
+  const savedAvatar = localStorage.getItem('festio_avatar');
+  if (savedAvatar) {
+    applyAvatarImage(savedAvatar);
+  }
 }
 
 /* 아바타 이미지 적용 (프로필 편집 + 히어로 동기화) */
@@ -1759,6 +1790,9 @@ function applyAvatarImage(imgUrl) {
     }
     heroImg.src = imgUrl;
   }
+
+  // 영속화 저장
+  localStorage.setItem('festio_avatar', imgUrl);
 }
 
 /* 기본 아바타(SVG)로 복원 */
@@ -1784,6 +1818,9 @@ function resetAvatarToDefault() {
   // 파일 input 초기화
   const fileInput = document.getElementById('profileImageInput');
   if (fileInput) fileInput.value = '';
+
+  // 영속화 삭제
+  localStorage.removeItem('festio_avatar');
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -2176,13 +2213,13 @@ function openQrModalView(token, type = 'TICKET') {
                 <div style="font-size: 0.8rem; color: #888; margin-top: 2px;" id="dynamicQrPurchaseDate">${dateStr} 구매</div>
             </div>
             
-            <div style="width: 100%; display: flex; flex-direction: column; gap: 8px;">
-              <div style="display: flex; align-items: center; gap: 8px; width: 100%;">
+            <div style="width: 100%; display: flex; flex-direction: column; align-items: center; gap: 8px;">
+              <div style="display: flex; align-items: center; gap: 8px; width: 80%; max-width: 240px;">
                 <div style="flex: 1; height: 6px; background: #EFEFEF; border-radius: 6px; overflow: hidden; position: relative;">
                   <div id="dynamicQrTimerBar" style="position: absolute; left: 0; top: 0; height: 100%; width: 100%; background: linear-gradient(135deg, #00d2ff, #8930F8); transform-origin: left; transition: transform 1s linear, background 0.3s ease;"></div>
                 </div>
-                <button id="dynamicQrRefresh" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; padding: 2px; color: #8930F8;" title="새로고침">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
+                <button id="dynamicQrRefresh" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 2px; color: #8930F8;" title="새로고침">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
                 </button>
               </div>
               <div style="display: flex; justify-content: center; align-items: center; position: relative;">
@@ -2465,6 +2502,12 @@ document.addEventListener('DOMContentLoaded', () => {
 // 전역 모달 닫기 로직 (ESC 키 및 배경 영역 클릭)
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
+    // 영수증 모달 우선 닫기
+    const receiptModal = document.getElementById('dynamicReceiptModal');
+    if (receiptModal) {
+      closeReceiptModal();
+      return;
+    }
     // 동적 QR 모달 닫기
     const dynamicQrModal = document.getElementById('dynamicQrModal');
     if (dynamicQrModal && dynamicQrModal.style.display !== 'none') {
@@ -2474,21 +2517,36 @@ document.addEventListener('keydown', (e) => {
     document.querySelectorAll('.modal-overlay.active').forEach(modal => {
       modal.classList.remove('active');
     });
+    // 모든 모달이 닫혔으므로 overflow 복원
+    document.body.style.overflow = '';
   }
 });
 
 document.addEventListener('click', (e) => {
+  // 영수증 모달 배경 클릭 시 닫기
+  const receiptModal = document.getElementById('dynamicReceiptModal');
+  if (receiptModal && e.target === receiptModal) {
+    closeReceiptModal();
+    return;
+  }
+
   // 동적 QR 모달 배경 클릭 시 닫기
   const dynamicQrModal = document.getElementById('dynamicQrModal');
   if (dynamicQrModal && dynamicQrModal.style.display !== 'none') {
     if (e.target === dynamicQrModal) {
       dynamicQrModal.style.display = 'none';
+      document.body.style.overflow = '';
     }
   }
 
   // 기타 모든 모달 배경 클릭 시 닫기
   if (e.target.classList.contains('modal-overlay')) {
     e.target.classList.remove('active');
+    // 다른 활성 모달이 없으면 overflow 복원
+    const remaining = document.querySelectorAll('.modal-overlay.active');
+    if (remaining.length === 0) {
+      document.body.style.overflow = '';
+    }
   }
 });
 document.addEventListener('DOMContentLoaded', () => {

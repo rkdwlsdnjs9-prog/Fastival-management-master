@@ -427,6 +427,101 @@ const memberApi = {
   },
 };
 
+/* ── 외부 API 호출 함수 ─────────────────────────────────────── */
+window.fetchKopisEvents = async function () {
+  try {
+    const pages = [1, 2, 3];
+    const fetchPromises = pages.map(p => fetch(`/api/external/kopis?cpage=${p}&rows=100&stdate=20240101&eddate=20241231`).then(r => r.ok ? r.text() : ''));
+    const xmlTexts = await Promise.all(fetchPromises);
+    const parser = new DOMParser();
+    const events = [];
+    
+    xmlTexts.forEach((xmlText, pageIndex) => {
+      if (!xmlText) return;
+      const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
+      const items = xmlDoc.getElementsByTagName('db');
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        const name = item.querySelector('prfnm')?.textContent;
+        const genre = item.querySelector('genrenm')?.textContent || '';
+        let cat = '콘서트/뮤지컬';
+        let mockPrice = 110000;
+        if (genre.includes('연극')) { cat = '연극'; mockPrice = 45000; }
+        else if (genre.includes('클래식') || genre.includes('무용') || genre.includes('국악')) { cat = '클래식/무용'; mockPrice = 30000; }
+        else if (genre.includes('뮤지컬')) { cat = '뮤지컬'; mockPrice = 140000; }
+        else if (genre.includes('대중음악') || genre.includes('콘서트')) { cat = '콘서트'; mockPrice = 120000; }
+
+        let startDateStr = item.querySelector('prfpdfrom')?.textContent?.replace(/\./g, '-');
+        let endDateStr = item.querySelector('prfpdto')?.textContent?.replace(/\./g, '-');
+        if (startDateStr) startDateStr = startDateStr.replace('2024-', '2026-');
+        if (endDateStr) endDateStr = endDateStr.replace('2024-', '2026-');
+
+        events.push(normalizeFestival({
+          id: 'k_' + item.querySelector('mt20id')?.textContent + '_' + pageIndex,
+          name: name,
+          start_date: startDateStr,
+          end_date: endDateStr,
+          is_active: true,
+          category: cat,
+          venue: item.querySelector('fcltynm')?.textContent,
+          thumbnail_url: item.querySelector('poster')?.textContent,
+          min_price: mockPrice,
+          badge_label: null,
+          is_hot: i % 7 === 0,
+          is_new: true,
+          view_count: Math.floor(Math.random() * 5000) + 100
+        }));
+      }
+    });
+    return events;
+  } catch (e) {
+    console.warn('KOPIS fetch error', e);
+    return [];
+  }
+};
+
+window.fetchTourEvents = async function () {
+  try {
+    const pages = [1, 2, 3];
+    const fetchPromises = pages.map(p => fetch(`/api/external/tour?pageNo=${p}&numOfRows=100&eventStartDate=20240101`).then(r => r.ok ? r.json() : null));
+    const jsonResults = await Promise.all(fetchPromises);
+    const events = [];
+
+    jsonResults.forEach((json, pageIndex) => {
+      if (!json) return;
+      const items = json.response?.body?.items?.item || [];
+      if (!Array.isArray(items)) return;
+
+      items.forEach((item, i) => {
+        let startDateStr = item.eventstartdate ? item.eventstartdate.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3') : null;
+        let endDateStr = item.eventenddate ? item.eventenddate.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3') : null;
+        if (startDateStr) startDateStr = startDateStr.replace('2024-', '2026-');
+        if (endDateStr) endDateStr = endDateStr.replace('2024-', '2026-');
+        events.push(normalizeFestival({
+          id: 't_' + item.contentid + '_' + pageIndex,
+          name: item.title,
+          start_date: startDateStr,
+          end_date: endDateStr,
+          is_active: true,
+          category: '지역축제',
+          venue: item.addr1 || item.addr2 || '장소 미정',
+          thumbnail_url: item.firstimage || item.firstimage2,
+          min_price: 0,
+          badge_label: null,
+          is_hot: i % 8 === 0,
+          is_new: true,
+          view_count: Math.floor(Math.random() * 3000) + 50,
+          map_image_url: item.firstimage,
+        }));
+      });
+    });
+    return events;
+  } catch (e) {
+    console.warn('TourAPI fetch error', e);
+    return [];
+  }
+};
+
 /* ═══════════════════════════════════════════════════════════
    festival API (구: eventApi)
    DB 테이블명: festival
@@ -435,7 +530,10 @@ const memberApi = {
 const eventApi = {
   /** 전체 행사 목록 조회 (점진적 로드) */
   getEvents: async (category = null, onProgress = null) => {
+    let allEvents = [];
+
     // 1. 스프링 부트 백엔드 API (/api/festival) 우선 조회 시도
+    let backendSuccess = false;
     try {
       const response = await fetch('/api/festival');
       if (response.ok) {
@@ -445,44 +543,61 @@ const eventApi = {
           list = list.filter(f => f.category === category);
         }
         const normalized = list.map(normalizeFestival);
-        if (onProgress) onProgress(normalized);
-        return normalized;
+        allEvents = [...normalized];
+        if (onProgress) onProgress([...allEvents]);
+        backendSuccess = true;
       }
     } catch (e) {
       console.warn('Java 백엔드 API 조회 실패, Supabase/Mock으로 폴백합니다.', e);
     }
 
-    // 2. Fallback: Mock 데이터 처리
-    if (USE_MOCK) {
-      let list = MOCK.festivals.filter(f => f.is_active);
-      if (category && category !== 'all') {
-        list = list.filter(f => f.category === category);
+    if (!backendSuccess) {
+      // 2. Fallback: Mock 데이터 처리
+      if (USE_MOCK) {
+        let list = MOCK.festivals.filter(f => f.is_active);
+        if (category && category !== 'all') {
+          list = list.filter(f => f.category === category);
+        }
+        const normalized = list.map(normalizeFestival);
+        allEvents = [...normalized];
+        if (onProgress) onProgress([...allEvents]);
+      } else {
+        // 3. Fallback: Supabase 직접 조회
+        const sb = getSupabase();
+        if (sb) {
+          let q = sb.from('festival').select('*').eq('is_active', true).order('created_at', { ascending: false });
+          if (category && category !== 'all') q = q.eq('category', category);
+
+          const { data, error } = await q;
+          if (!error) {
+            const normalized = (data || []).map(normalizeFestival);
+            allEvents = [...normalized];
+            if (onProgress) onProgress([...allEvents]);
+          }
+        }
       }
-      const normalized = list.map(normalizeFestival);
-      if (onProgress) onProgress(normalized);
-      return normalized;
     }
 
-    // 3. Fallback: Supabase 직접 조회
-    const sb = getSupabase();
-    if (!sb) return [];
-
-    let q = sb.from('festival')
-      .select('*')
-      .eq('is_active', true)
-      .order('created_at', { ascending: false });
-
-    // 카테고리 필터 (category 컬럼이 추가된 경우)
-    if (category && category !== 'all') {
-      q = q.eq('category', category);
+    // 4. 외부 API 병렬 호출 (KOPIS, TourAPI) - 프로그레시브 렌더링
+    if (!category || category === 'all' || category === 'concert' || category === 'musical' || category === 'play' || category === 'classic') {
+      window.fetchKopisEvents(1).then(kopisEvents => {
+        if (kopisEvents.length > 0) {
+          allEvents = [...allEvents, ...kopisEvents];
+          if (onProgress) onProgress([...allEvents]);
+        }
+      });
     }
 
-    const { data, error } = await q;
-    if (error) { console.error('[festival] getEvents:', error); return []; }
+    if (!category || category === 'all' || category === 'local' || category === 'exhibition') {
+      window.fetchTourEvents(1).then(tourEvents => {
+        if (tourEvents.length > 0) {
+          allEvents = [...allEvents, ...tourEvents];
+          if (onProgress) onProgress([...allEvents]);
+        }
+      });
+    }
 
-    const normalized = (data || []).map(normalizeFestival);
-    if (onProgress) onProgress(normalized);
-    return normalized;
+    return allEvents;
   },
 
   /** 행사 상세 조회 */

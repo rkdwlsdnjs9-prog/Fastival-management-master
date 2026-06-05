@@ -173,6 +173,7 @@
         <div class="header-actions">
           ${modeSwitchBtnHtml}
           <div class="header-search-bar">${searchSvg}<input type="search" class="header-search-input" placeholder="행사명, 아티스트 검색" aria-label="검색"></div>
+          <button class="header-icon-btn mobile-search-btn" aria-label="검색">${searchSvg}</button>
           <button class="header-icon-btn" aria-label="알림">${alarmSvg}</button>
           ${rightAction}
         </div>

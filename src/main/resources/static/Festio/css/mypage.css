@@ -952,8 +952,9 @@
 .mp-card-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   margin-bottom: 12px;
+  gap: 12px;
 }
 
 .mp-card-title {
@@ -961,6 +962,10 @@
   font-weight: 700;
   color: var(--text-primary);
   margin: 0;
+  flex: 1;
+  word-break: keep-all;
+  white-space: normal;
+  line-height: 1.4;
 }
 
 .mp-badge {
@@ -968,6 +973,8 @@
   border-radius: 999px;
   font-size: 0.75rem;
   font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .status-success,

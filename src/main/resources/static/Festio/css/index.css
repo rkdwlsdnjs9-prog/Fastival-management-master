@@ -931,21 +931,21 @@
 .poster-hover-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.92) 0%, rgba(0, 0, 0, 0.5) 55%, rgba(0, 0, 0, 0.1) 100%);
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.2) 60%, transparent 100%);
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
   padding: 12px 10px;
   opacity: 0;
-  transform: translateY(8px);
-  transition: opacity 0.25s ease, transform 0.25s ease;
+  border-radius: inherit;
+  transition: opacity 0.25s ease;
   z-index: 1;
+  pointer-events: none;
 }
 
 @media (min-width:1024px) {
   .poster-card:hover .poster-hover-overlay {
     opacity: 1;
-    transform: translateY(0);
   }
 }
 
@@ -1541,15 +1541,15 @@
   .whats-hot-section {
     width: 100%;
     max-width: 1200px;
-    margin: 120px auto 40px;
+    margin: 120px auto 80px;
     padding: 0 var(--sp-4);
     display: block;
   }
 
   .whats-hot-title {
-    font-size: 24px;
+    font-size: 32px;
     font-weight: 800;
-    margin-bottom: 24px;
+    margin-bottom: 40px;
     color: #111;
     font-family: var(--font-display);
     letter-spacing: -0.5px;
@@ -1606,7 +1606,7 @@
     position: relative;
     width: 100%;
     border-radius: 8px;
-    overflow: hidden;
+    overflow: visible;
     background: var(--bg-surface1);
   }
 
@@ -1625,6 +1625,7 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
+    border-radius: 8px;
     transition: transform 0.4s ease;
   }
 
@@ -1635,7 +1636,7 @@
   .whats-hot-badge {
     position: absolute;
     bottom: -15px;
-    left: 15px;
+    left: -15px;
     background: #ff5b29;
     /* Orange brand color */
     color: #fff;
@@ -1648,7 +1649,7 @@
     align-items: center;
     justify-content: center;
     border: 3px solid var(--bg-surface);
-    z-index: 1;
+    z-index: 10;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   }
 
@@ -1677,28 +1678,23 @@
   /* --- HOVER OVERLAY --- */
   .whats-hot-overlay {
     position: absolute;
-    top: 50%;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(to top, rgba(15, 15, 15, 0.98) 0%, rgba(20, 20, 20, 0.8) 50%, rgba(30, 30, 30, 0.4) 80%, transparent 100%);
+    inset: 0;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.3) 50%, transparent 100%);
     opacity: 0;
-    transform: translateY(15px);
-    transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1), transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: opacity 0.4s ease;
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
     padding: 20px;
     color: #fff;
     z-index: 5;
-    border-radius: 0 0 8px 8px;
+    border-radius: inherit;
     pointer-events: none;
     overflow: hidden;
   }
 
   .whats-hot-img-wrap:hover .whats-hot-overlay {
     opacity: 1;
-    transform: translateY(0);
   }
 
   /* 내부 정보 요소들의 부드러운 순차적 등장 애니메이션 */
@@ -1837,15 +1833,12 @@
 }
 
 .ticket-open-grid {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
   gap: 20px;
-  flex-wrap: nowrap;
-  overflow-x: auto;
-  /* for smaller screens, though max-width is 1200 */
 }
 
 .ticket-open-item {
-  flex: 1;
   min-width: 200px;
   display: flex;
   flex-direction: column;
@@ -1862,7 +1855,7 @@
   width: 100%;
   padding-top: 133%;
   /* 3:4 aspect ratio */
-  overflow: hidden;
+  overflow: visible;
   border-radius: 4px 4px 0 0;
 }
 
@@ -1873,17 +1866,18 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  border-radius: 4px 4px 0 0;
 }
 
 .ticket-badge {
   position: absolute;
-  bottom: 10px;
-  left: 0;
+  bottom: -10px;
+  left: -10px;
   color: #fff;
   font-size: 12px;
   font-weight: bold;
   padding: 4px 10px;
-  z-index: 1;
+  z-index: 10;
 }
 
 .ticket-badge.red {
@@ -1896,8 +1890,8 @@
 
 .ticket-today-overlay {
   position: absolute;
-  top: 10px;
-  left: 10px;
+  top: -15px;
+  left: -15px;
   width: 60px;
   height: 60px;
   background-color: rgba(0, 0, 0, 0.6);
@@ -1906,7 +1900,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1;
+  z-index: 10;
 }
 
 .today-text {

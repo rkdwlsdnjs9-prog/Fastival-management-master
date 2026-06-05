@@ -399,30 +399,26 @@ function initMobileSearch() {
     });
   });
 
-  const performSearch = () => {
-    if (input && typeof window.applySearch === 'function') {
-      window.applySearch(input.value.trim());
+  const performSearch = (val) => {
+    if (val && val.trim() !== '') {
       Modal.close('modal-mobile-search');
+      window.location.href = `list.html?search=${encodeURIComponent(val.trim())}`;
     }
   };
 
   if (input) {
     on(input, 'keydown', (e) => {
-      if (e.key === 'Enter') performSearch();
+      if (e.key === 'Enter') performSearch(input.value);
     });
   }
   if (searchBtnExecute) {
-    on(searchBtnExecute, 'click', performSearch);
+    on(searchBtnExecute, 'click', () => performSearch(input.value));
   }
 
   const headerInput = document.getElementById('headerSearch');
   if (headerInput) {
-    let timer;
-    on(headerInput, 'input', () => {
-      clearTimeout(timer);
-      timer = setTimeout(() => {
-        if (typeof window.applySearch === 'function') window.applySearch(headerInput.value.trim());
-      }, 300);
+    on(headerInput, 'keydown', (e) => {
+      if (e.key === 'Enter') performSearch(headerInput.value);
     });
   }
 }

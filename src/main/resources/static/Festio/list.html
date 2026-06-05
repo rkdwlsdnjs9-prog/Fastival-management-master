@@ -25,10 +25,10 @@
   <!-- 모바일 검색 모달 -->
   <div class="modal-overlay modal-center" id="modal-mobile-search" role="dialog" aria-modal="true">
     <div class="modal-sheet">
-      <div class="modal-header search-modal-header">
-        <button class="modal-close-btn" data-close-modal="modal-mobile-search" aria-label="닫기">
-          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-            stroke-linecap="round" stroke-linejoin="round">
+      <div class="modal-header search-modal-header" style="display:flex; justify-content:space-between; align-items:center;">
+        <h3 style="font-size:18px; font-weight:bold; margin:0;">통합 검색</h3>
+        <button class="modal-close-btn" data-close-modal="modal-mobile-search" aria-label="닫기" style="width:32px; height:32px; background:rgba(255,255,255,0.1); border-radius:50%; display:flex; align-items:center; justify-content:center;">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px; height:18px;">
             <line x1="18" y1="6" x2="6" y2="18" />
             <line x1="6" y1="6" x2="18" y2="18" />
           </svg>
@@ -57,9 +57,28 @@
     <!-- 새로운 카테고리 비주얼 배너 및 서브 카테고리 (LNB) 영역 -->
     <div id="category-visual-header"></div>
 
-    <!-- 전체 벤토 그리드 섹션 -->
-    <section class="bento-section list-bento-section">
-      <div class="bento-grid" id="bento-grid" aria-label="행사 목록"></div>
+    <!-- 전체 그리드 섹션 -->
+    <section class="poster-section" style="max-width: 1200px; margin: 0 auto; padding: 2rem 1rem;">
+      <div class="list-sort-bar"
+        style="margin-bottom: 2rem; border-bottom: 1px solid var(--border-subtle); padding-bottom: 1rem;">
+        <div class="sort-tabs" style="display: flex; gap: 1.5rem; justify-content: center; margin-bottom: 1.5rem;">
+          <button class="sort-tab active" data-sort="popular"
+            style="background:none; border:none; color:var(--text-main); font-weight:bold; cursor:pointer;">주간랭킹순</button>
+          <span style="color:var(--border-subtle);">|</span>
+          <button class="sort-tab" data-sort="new"
+            style="background:none; border:none; color:var(--text-secondary); cursor:pointer;">신상품순</button>
+          <span style="color:var(--border-subtle);">|</span>
+          <button class="sort-tab" data-sort="closing"
+            style="background:none; border:none; color:var(--text-secondary); cursor:pointer;">종료임박순</button>
+          <span style="color:var(--border-subtle);">|</span>
+          <button class="sort-tab" data-sort="name"
+            style="background:none; border:none; color:var(--text-secondary); cursor:pointer;">상품명순</button>
+        </div>
+        <div class="list-total-count" style="text-align: center; color: var(--text-base); font-size: 15px;">
+          현재 예매 가능한 공연은 총 <strong id="totalCount" style="color: #ff5b29;">0</strong>개 입니다.
+        </div>
+      </div>
+      <div class="poster-grid" id="bento-grid" aria-label="행사 목록"></div>
     </section>
 
     <!-- Bottom Navigation -->

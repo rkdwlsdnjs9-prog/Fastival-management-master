@@ -14,6 +14,8 @@ const CATEGORIES = {
 
 let _events = [];
 let _currentCat = 'all';
+let _currentSub = 'all';
+let _currentSort = 'popular';
 let _wishlist = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -81,6 +83,17 @@ function renderCategoryTabs() {
   const urlParams = new URLSearchParams(window.location.search);
   const currentSub = urlParams.get('sub') || 'all';
 
+  const searchKeyword = urlParams.get('search');
+
+  if (searchKeyword) {
+    container.innerHTML = `
+      <div class="category-banner" style="background: linear-gradient(135deg, #1f1f1f, #333333);">
+        <h1 class="category-banner-title">"${searchKeyword}" 검색 결과</h1>
+      </div>
+    `;
+    return;
+  }
+
   container.innerHTML = `
     <div class="category-banner" style="background: ${catData.bg};">
       <h1 class="category-banner-title">${catData.label}</h1>
@@ -113,12 +126,82 @@ function renderCategoryTabs() {
 }
 
 function renderBentoGrid() {
-  const grid = $('.bento-grid');
+  const grid = $('.poster-grid');
   if (!grid) return;
 
-  // 데이터가 실제 카테고리와 매핑되진 않았으므로 목업으로 전체를 렌더링하거나 일부만 필터링합니다.
-  // 이 예제에서는 기존 코드를 유지하되 카테고리 필터를 제거합니다.
-  const items = _events;
+  const catMap = {
+    'concert': ['콘서트', '콘서트/뮤지컬'],
+    'musical': ['뮤지컬', '콘서트/뮤지컬'],
+    'play': ['연극'],
+    'classic': ['클래식/무용'],
+    'exhibition': ['전시', '스포츠', '박람회'],
+    'family': ['가족', '어린이'],
+    'local': ['지역축제'],
+    'univ': ['대학축제'],
+    'expo': ['박람회']
+  };
+
+  let items = _events;
+  if (_currentCat !== 'all') {
+    const allowedCats = catMap[_currentCat] || [];
+    if (allowedCats.length > 0) {
+      items = items.filter(ev => allowedCats.some(c => ev.category && ev.category.includes(c)));
+    }
+  }
+  // URL에서 sub 및 search 갱신
+  const urlParams = new URLSearchParams(window.location.search);
+  const searchKeyword = urlParams.get('search');
+
+  if (searchKeyword) {
+    const kw = searchKeyword.toLowerCase();
+    items = items.filter(ev => {
+      const name = (ev.eventName || ev.name || '').toLowerCase();
+      const cat = (ev.category || '').toLowerCase();
+      const venue = (ev.venue || '').toLowerCase();
+      return name.includes(kw) || cat.includes(kw) || venue.includes(kw);
+    });
+  }
+
+  _currentSub = urlParams.get('sub') || 'all';
+
+  if (_currentSub !== 'all') {
+    const subData = CATEGORIES[_currentCat]?.subs.find(s => s.k === _currentSub);
+    if (subData) {
+      const kw = subData.v.replace('보기', '').replace('전체', '').trim();
+      if (kw) {
+        items = items.filter(ev =>
+          (ev.category && ev.category.includes(kw)) ||
+          (ev.eventName && ev.eventName.includes(kw)) ||
+          (kw === '오리지널' && ev.eventName && ev.eventName.includes('내한')) ||
+          (kw === '수도권' && ev.venue && (ev.venue.includes('서울') || ev.venue.includes('경기') || ev.venue.includes('인천')))
+        );
+      }
+    }
+  }
+
+  // 1. 종료된 행사 하단으로
+  const active = items.filter(e => calcDday(e.eventDate || e.startDate, e.eventEndDate || e.endDate) !== '종료');
+  const ended = items.filter(e => calcDday(e.eventDate || e.startDate, e.eventEndDate || e.endDate) === '종료');
+
+  // 2. 정렬 로직
+  const sort = (arr) => {
+    if (_currentSort === 'popular') return [...arr].sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0));
+    if (_currentSort === 'new') return [...arr].sort((a, b) => new Date(b.eventDate || b.startDate) - new Date(a.eventDate || a.startDate));
+    if (_currentSort === 'closing') {
+      return [...arr].sort((a, b) => {
+        const da = new Date(a.eventEndDate || a.endDate);
+        const db = new Date(b.eventEndDate || b.endDate);
+        return da - db;
+      });
+    }
+    if (_currentSort === 'name') return [...arr].sort((a, b) => (a.eventName || a.name || '').localeCompare(b.eventName || b.name || ''));
+    return arr;
+  };
+
+  items = [...sort(active), ...ended];
+
+  const totalCountEl = document.getElementById('totalCount');
+  if (totalCountEl) totalCountEl.textContent = items.length.toLocaleString();
 
   if (items.length === 0) {
     grid.innerHTML = `
@@ -129,68 +212,99 @@ function renderBentoGrid() {
     return;
   }
 
-  function wishBtnSVG(isWished) {
-    return isWished
-      ? `<svg class="icon" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="0" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>`
-      : `<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>`;
-  }
-
   grid.innerHTML = items.map(ev => {
-    const isWished = _wishlist.includes(ev.eventNo);
-    const dday = calcDday(ev.eventDate, ev.eventEndDate);
-    const catClass = getCategoryBadgeClass(ev.category);
-    let badgeHTML = '';
-    if (ev.badgeLabel) {
-      badgeHTML = `<span class="badge ${ev.isHot ? 'badge-hot' : ev.badgeLabel === '신규' ? 'badge-new' : ev.badgeLabel === '타임세일' ? 'badge-sale' : 'badge-dday'}">${ev.badgeLabel}</span>`;
-    } else if (dday !== '종료') {
-      badgeHTML = `<span class="badge badge-dday">${dday}</span>`;
-    }
+    const no = ev.eventNo || ev.id;
+    const name = ev.eventName || ev.name || '-';
+    const date = ev.eventDate || ev.startDate;
+    const endDate = ev.eventEndDate || ev.endDate;
+    const price = ev.minPrice || ev.min_price || ev.price || 0;
+    const isHot = ev.isHot || ev.is_hot;
+    const badge = ev.badgeLabel || ev.badge_label || (isHot ? 'HOT' : null);
+    const isAdult = ev.isAdultOnly || false;
+    const isWished = _wishlist.includes(no);
+    const thumb = ev.thumbnailUrl;
+    const dday = calcDday(date, endDate);
+    const views = ev.viewCount || 0;
+
+    const badgeHTML = badge ? `
+      <span class="overlay-badge ${isHot ? 'hot' : badge === '타임세일' ? 'sale' : ''}">
+        ${badge}
+      </span>` : '';
+
+    const ddayHTML = dday !== '종료' ? `<span class="overlay-badge">${dday}</span>` : '';
 
     return `
-      <div class="bento-card bento-card--standard" data-event-no="${ev.eventNo}" role="button" tabindex="0" aria-label="${ev.eventName}">
-        <div class="bento-card-image" style="background: #000;">
-          ${ev.thumbnailUrl
-        ? `<div style="position: absolute; inset: 0; background: url('${ev.thumbnailUrl}') center/cover; filter: blur(15px); opacity: 0.6; transform: scale(1.1);"></div>
-               <img src="${ev.thumbnailUrl}" alt="${ev.eventName}" loading="lazy" style="position: relative; width: 100%; height: 100%; object-fit: contain; z-index: 1;" />`
-        : `<div class="bento-card-image-placeholder">
-                 <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/><path d="M16 3H8L6 7h12l-2-4z"/></svg>
-               </div>`
-      }
-        </div>
-        <button class="bento-card-wish ${isWished ? 'active' : ''}" data-event-no="${ev.eventNo}" data-wished="${isWished}" aria-label="${isWished ? '찜 해제' : '찜 추가'}">
-          ${wishBtnSVG(isWished)}
-        </button>
-        <div class="bento-card-overlay">
-          <div class="bento-card-badge-row">
-            ${badgeHTML}
-            <span class="badge ${catClass}">${ev.category}</span>
-          </div>
-          <div class="bento-card-title">${ev.eventName}</div>
-          <div class="bento-card-action">
-            <div class="bento-card-date">
-              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-              ${formatDateKo(ev.eventDate)}
+      <div class="poster-card" data-event-no="${no}" tabindex="0" role="button" aria-label="${name}">
+        <div class="poster-img-wrap">
+          ${thumb
+        ? `<img src="${thumb}" alt="${name}" loading="lazy" onload="if(this.naturalWidth >= this.naturalHeight) this.closest('.poster-card').style.display='none';">`
+        : `<div class="poster-placeholder">
+                 <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+               </div>`}
+          ${isAdult ? `<span class="poster-adult-badge">19+</span>` : ''}
+          <button class="poster-wish-btn ${isWished ? 'active' : ''}" data-event-no="${no}" data-wished="${isWished}" aria-label="${isWished ? '찜 해제' : '찜 추가'}">
+            <svg class="icon" viewBox="0 0 24 24" fill="${isWished ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+          </button>
+          <div class="poster-hover-overlay" aria-hidden="true">
+            <div class="overlay-title">${name}</div>
+            <div class="overlay-badges">${badgeHTML}${ddayHTML}</div>
+            <div class="overlay-date">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              ${date ? formatDateKo(date) : '-'}
             </div>
-            <div class="bento-card-price">${formatKRW(ev.minPrice)}~</div>
+            <div class="overlay-price-row">
+              <span class="overlay-price">${price > 0 ? formatKRW(price) : '무료'}</span>
+            </div>
           </div>
+        </div>
+        <div class="poster-info">
+          <div class="poster-info-badges">
+            ${badge ? `<span class="badge ${isHot ? 'badge-hot' : 'badge-dday'}">${badge}</span>` : ''}
+            ${dday !== '종료' && !badge ? `<span class="badge badge-dday">${dday}</span>` : ''}
+          </div>
+          <p class="poster-info-title">${name}</p>
+          <p class="poster-info-date">${date ? formatDateKo(date) : '-'}</p>
+          <p class="poster-info-price">${price > 0 ? formatKRW(price) : '무료'}</p>
         </div>
       </div>
     `;
   }).join('');
 
   on(grid, 'click', (e) => {
-    const wishBtn = e.target.closest('.bento-card-wish');
+    const wishBtn = e.target.closest('.poster-wish-btn');
     if (wishBtn) {
       e.stopPropagation();
       toggleWish(wishBtn);
       return;
     }
-    const card = e.target.closest('.bento-card');
+    const card = e.target.closest('.poster-card');
     if (card) {
       window.location.href = `detail.html?eventNo=${card.dataset.eventNo}`;
     }
   });
+
+  // 정렬 탭 이벤트 (초기화 방지를 위해 딱 한번만 바인딩되도록 위임하거나 상단에서 처리)
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+  const sortTabs = document.querySelector('.sort-tabs');
+  if (sortTabs) {
+    sortTabs.addEventListener('click', (e) => {
+      if (e.target.tagName === 'BUTTON') {
+        document.querySelectorAll('.sort-tab').forEach(b => {
+          b.classList.remove('active');
+          b.style.color = 'var(--text-secondary)';
+          b.style.fontWeight = 'normal';
+        });
+        e.target.classList.add('active');
+        e.target.style.color = 'var(--text-main)';
+        e.target.style.fontWeight = 'bold';
+        _currentSort = e.target.dataset.sort;
+        renderBentoGrid();
+      }
+    });
+  }
+});
 
 async function toggleWish(btn) {
   if (typeof Auth !== 'undefined' && !Auth.isLoggedIn()) {

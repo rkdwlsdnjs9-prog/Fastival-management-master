@@ -44,9 +44,10 @@ async function loadData() {
     _events = partial || [];
     renderPosterGrid();
     updateStats();
-    if (_heroSlides.length === 0) buildHeroSlides();
+    buildHeroSlides();
     renderTimesale();
     renderWhatsHot();
+    renderTicketOpenAndUnivFest();
   };
 
   await eventApi.getEvents(null, onProgress).catch(console.error);
@@ -54,24 +55,34 @@ async function loadData() {
 
 /* ═══ 히어로 슬라이더 ════════════════════════════════════════ */
 function buildHeroSlides() {
-  const hot = _events.filter(e => e.isHot).slice(0, 5);
-  const rest = _events.filter(e => !e.isHot).slice(0, 7);
+  const hot = _events.filter(e => e.isHot || e.is_hot).slice(0, 5);
+  const rest = _events.filter(e => !(e.isHot || e.is_hot)).slice(0, 7);
   let picks = [...hot, ...rest];
+
+  if (picks.length < 12) {
+    const ongoing = _events.filter(e => !picks.includes(e) && (e.category === '콘서트' || e.category === '뮤지컬' || e.category === '콘서트/뮤지컬' || e.category === '연극'))
+      .sort((a, b) => (b.viewCount || b.view_count || 0) - (a.viewCount || a.view_count || 0));
+    picks = [...picks, ...ongoing];
+  }
+  picks = picks.slice(0, 12);
+
   while (picks.length > 0 && picks.length < 12) {
     picks = picks.concat(picks);
   }
   picks = picks.slice(0, 12);
+
   _heroSlides = picks.map(ev => {
-    const parts = (ev.eventDate || '').split('-');
-    const dateStr = parts.length === 3 ? `${parseInt(parts[1])}월 ${parseInt(parts[2])}일` : ev.eventDate;
+    const rawDate = ev.eventDate || ev.startDate || ev.start_date || '';
+    const parts = rawDate.split('-');
+    const dateStr = parts.length >= 3 ? `${parseInt(parts[1])}월 ${parseInt(parts[2].slice(0, 2))}일` : rawDate;
     return {
       eventNo: ev.eventNo || ev.id,
       title: ev.eventName || ev.name,
       category: ev.category,
       date: dateStr,
       venue: ev.venue,
-      badge: ev.badgeLabel || (ev.isHot ? 'HOT' : '추천'),
-      thumbnailUrl: ev.thumbnailUrl,
+      badge: ev.badgeLabel || ev.badge_label || (ev.isHot || ev.is_hot ? 'HOT' : '추천'),
+      thumbnailUrl: ev.thumbnailUrl || ev.thumbnail_url || 'https://source.unsplash.com/random/800x600?concert',
     };
   });
   renderHeroSlides();
@@ -215,27 +226,29 @@ function renderWhatsHot() {
     const formattedDate = ev.startDate ? formatDate(ev.startDate) : (ev.eventDate ? formatDate(ev.eventDate) : '-');
 
     return `
-      <a href="detail.html?eventNo=${ev.eventNo || ev.id}" class="whats-hot-item ${isLarge ? 'large' : ''}">
+      <a href="detail.html?eventNo=${ev.eventNo || ev.id}" class="whats-hot-item ${isLarge ? 'large' : ''}" id="whats-hot-${ev.eventNo || ev.id}">
         <div class="whats-hot-img-wrap">
-          <img src="${ev.thumbnailUrl || ''}" alt="${ev.eventName || ev.name}" class="whats-hot-img">
-          <div class="whats-hot-badge">${badgeText}</div>
-          
-          <div class="whats-hot-overlay">
-            <h3 class="overlay-title">${(ev.eventName || ev.name || '').replace('HOT', '<span style="color:red">HOT</span>')}</h3>
-            <div class="overlay-badges">
-              ${isNewHtml}
-              ${ddayHtml}
-            </div>
-            <div class="overlay-date">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-              ${formattedDate}
-            </div>
-            <div class="overlay-price">${priceText}</div>
-            <div class="overlay-views">
-              <svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-              조회 ${viewsText}
+          <div class="whats-hot-img-inner" style="position:relative; width:100%; height:100%; overflow:hidden; border-radius:8px;">
+            <img src="${ev.thumbnailUrl || ''}" alt="${ev.eventName || ev.name}" class="whats-hot-img" onload="if(this.naturalWidth >= this.naturalHeight) document.getElementById('whats-hot-${ev.eventNo || ev.id}').style.display='none';">
+            
+            <div class="whats-hot-overlay" style="border-radius:8px;">
+              <h3 class="overlay-title">${(ev.eventName || ev.name || '').replace('HOT', '<span style="color:red">HOT</span>')}</h3>
+              <div class="overlay-badges">
+                ${isNewHtml}
+                ${ddayHtml}
+              </div>
+              <div class="overlay-date">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                ${formattedDate}
+              </div>
+              <div class="overlay-price">${priceText}</div>
+              <div class="overlay-views">
+                <svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                조회 ${viewsText}
+              </div>
             </div>
           </div>
+          <div class="whats-hot-badge">${badgeText}</div>
         </div>
         ${infoHtml}
       </a>
@@ -363,8 +376,8 @@ function buildPosterCard(ev, idx) {
   const date = ev.eventDate || ev.startDate;
   const endDate = ev.eventEndDate || ev.endDate;
   const price = ev.minPrice || 0;
-  const badge = ev.badgeLabel;
-  const isHot = ev.isHot;
+  const isHot = ev.isHot || ev.is_hot;
+  const badge = ev.badgeLabel || ev.badge_label || (isHot ? 'HOT' : null);
   const isAdult = ev.isAdultOnly || false;
   const isWished = _wishlist.includes(no);
   const thumb = ev.thumbnailUrl;
@@ -391,7 +404,7 @@ function buildPosterCard(ev, idx) {
     <div class="poster-card" data-event-no="${no}" tabindex="0" role="button" aria-label="${name}">
       <div class="poster-img-wrap">
         ${thumb
-      ? `<img src="${thumb}" alt="${name}" loading="lazy">`
+      ? `<img src="${thumb}" alt="${name}" loading="lazy" onload="if(this.naturalWidth >= this.naturalHeight) this.closest('.poster-card').style.display='none';">`
       : `<div class="poster-placeholder">
                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
              </div>`}
@@ -478,52 +491,46 @@ function renderTimesale() {
   container.innerHTML = active.map(ev => {
     const no = ev.eventNo || ev.id;
     const name = ev.eventName || ev.name;
-    const price = ev.minPrice || 0;
-    const thumb = ev.thumbnailUrl;
+    const price = ev.minPrice || ev.price || 0;
+    const thumb = ev.thumbnailUrl || ev.thumbnail_url;
     return `
-      <div class="timesale-card" data-event-no="${no}">
+      <a href="detail.html?eventNo=${no}" class="timesale-card">
         <div class="timesale-card-img">
-          ${thumb ? `<img src="${thumb}" alt="${name}" loading="lazy">` : `<div class="timesale-card-img-placeholder"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>`}
+          ${thumb ? `<img src="${thumb}" alt="${name}" loading="lazy">` : `<div class="timesale-card-img-placeholder"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg></div>`}
         </div>
         <div class="timesale-card-body">
-          <p class="timesale-card-title">${name}</p>
+          <div class="timesale-card-title">${name}</div>
           <div class="timesale-price-row">
-            <span class="timesale-price">${formatKRW(price)}</span>
-            ${price > 0 ? `<span class="timesale-orig">${formatKRW(Math.round(price * 1.2))}</span>
-            <span class="timesale-pct">20%</span>` : ''}
+            ${price > 0 ? `
+              <span class="timesale-price">${formatKRW(price)}</span>
+              <span class="timesale-orig">${formatKRW(Math.round(price * 1.25))}</span>
+              <span class="timesale-pct">20%↓</span>
+            ` : `<span class="timesale-price">무료</span>`}
           </div>
         </div>
-      </div>`;
+      </a>`;
   }).join('');
 
-  on(container, 'click', e => {
-    const card = e.target.closest('.timesale-card');
-    if (card) location.href = `detail.html?eventNo=${card.dataset.eventNo}`;
-  });
-
+  // 스크롤 버튼 이벤트 바인딩
   const prevBtn = document.querySelector('.timesale-nav.prev');
   const nextBtn = document.querySelector('.timesale-nav.next');
-  if (prevBtn) {
-    prevBtn.addEventListener('click', () => {
-      container.scrollBy({ left: -300, behavior: 'smooth' });
-    });
-  }
-  if (nextBtn) {
-    nextBtn.addEventListener('click', () => {
-      container.scrollBy({ left: 300, behavior: 'smooth' });
-    });
+  if (prevBtn && nextBtn) {
+    prevBtn.onclick = () => container.scrollBy({ left: -250, behavior: 'smooth' });
+    nextBtn.onclick = () => container.scrollBy({ left: 250, behavior: 'smooth' });
   }
 }
 
-/* ═══ 카운트다운 ════════════════════════════════════════════ */
 function initCountdown() {
-  const target = new Date(); target.setHours(23, 59, 59, 0);
+  function pad(n) { return n < 10 ? '0' + n : n; }
   const tick = () => {
-    const diff = Math.max(0, target - new Date());
-    const h = Math.floor(diff / 3600000);
-    const m = Math.floor((diff % 3600000) / 60000);
-    const s = Math.floor((diff % 60000) / 1000);
-    const pad = n => String(n).padStart(2, '0');
+    const now = new Date();
+    const end = new Date();
+    end.setHours(23, 59, 59, 999);
+    const diff = end - now;
+    if (diff <= 0) return;
+    const h = Math.floor(diff / (1000 * 60 * 60));
+    const m = Math.floor((diff / (1000 * 60)) % 60);
+    const s = Math.floor((diff / 1000) % 60);
     const hEl = $('.countdown-hours');
     const mEl = $('.countdown-minutes');
     const sEl = $('.countdown-seconds');
@@ -533,6 +540,80 @@ function initCountdown() {
   };
   tick();
   setInterval(tick, 1000);
+}
+
+/* ═══ 티켓오픈/대학축제 ════════════════════════════════════ */
+function renderTicketOpenAndUnivFest() {
+  const ticketOpenGrid = document.getElementById('ticketOpenGrid');
+  const univFestGrid = document.getElementById('univFestGrid');
+
+  // KOPIS & TourAPI (현재일 기준 개봉 예정이 빠른 순)
+  if (ticketOpenGrid) {
+    // 1. 기존 DOM 초기화 (스켈레톤 등)
+    ticketOpenGrid.innerHTML = '';
+
+    const todayStr = new Date().toISOString().split('T')[0].replace(/-/g, '.');
+    let ticketEvents = _events.filter(e => {
+      const d = (e.eventDate || e.startDate || e.start_date || '').replace(/-/g, '.');
+      const badge = e.badgeLabel || e.badge_label;
+      return (badge === 'KOPIS' || badge === 'TourAPI') && d >= todayStr;
+    }).sort((a, b) => {
+      const dA = (a.eventDate || a.startDate || a.start_date || '').replace(/-/g, '.');
+      const dB = (b.eventDate || b.startDate || b.start_date || '').replace(/-/g, '.');
+      return dA.localeCompare(dB);
+    });
+
+    ticketEvents = ticketEvents.slice(0, 5);
+
+    // 데이터가 5개 미만일 경우 예비로 KOPIS/TourAPI 전체 중 추가
+    if (ticketEvents.length < 5) {
+      const fallback = _events.filter(e => {
+        const badge = e.badgeLabel || e.badge_label;
+        return (badge === 'KOPIS' || badge === 'TourAPI') && !ticketEvents.includes(e);
+      });
+      ticketEvents = [...ticketEvents, ...fallback].slice(0, 5);
+    }
+
+    // 그래도 데이터가 없을 때는 인기 있는 행사로 대체
+    if (ticketEvents.length === 0) {
+      const popularFallback = _events.filter(e => calcDday(e.eventDate || e.startDate || e.start_date, e.eventEndDate || e.endDate || e.end_date) !== '종료')
+        .sort((a, b) => (b.viewCount || b.view_count || 0) - (a.viewCount || a.view_count || 0))
+        .slice(0, 5);
+      ticketEvents = popularFallback;
+    }
+
+    if (ticketEvents.length > 0) {
+      ticketOpenGrid.innerHTML = ticketEvents.map((ev, i) => {
+        const no = ev.eventNo || ev.id;
+        const name = ev.eventName || ev.name;
+        const thumb = ev.thumbnailUrl || ev.thumbnail_url;
+        const date = ev.eventDate || ev.startDate || ev.start_date;
+        // 단독/선예매 등 뱃지 교차 배정 (원래 KOPIS/TourAPI지만 티켓오픈 느낌을 주기 위함)
+        const badgeText = i % 2 === 0 ? '단독' : '선예매';
+        const badgeClass = i % 2 === 0 ? 'red' : 'orange';
+        const badge = `<div class="ticket-badge ${badgeClass}">${badgeText}</div>`;
+
+        const dday = calcDday(date, ev.eventEndDate || ev.endDate);
+        const todayOverlay = dday === 'D-DAY' ? `<div class="ticket-today-overlay"><span class="today-text">Today</span></div>` : '';
+
+        return `
+          <a href="detail.html?eventNo=${no}" class="ticket-open-item">
+            <div class="ticket-img-wrap">
+              ${thumb ? `<img src="${thumb}" alt="${name}" class="ticket-cover">` : `<div class="ticket-cover" style="background:var(--bg-elevated);"></div>`}
+              ${badge}
+              ${todayOverlay}
+            </div>
+            <div class="ticket-info">
+              <div class="ticket-date">${date ? formatDateKo(date) : '-'}</div>
+              <div class="ticket-name">${name}</div>
+            </div>
+          </a>
+        `;
+      }).join('');
+    } else {
+      ticketOpenGrid.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding: 2rem;">티켓 오픈 예정 행사가 없습니다.</div>';
+    }
+  }
 }
 
 /* ═══ 통계 업데이트 ═════════════════════════════════════════ */
