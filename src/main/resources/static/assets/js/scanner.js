@@ -27,6 +27,10 @@ export function initializeQRScanner(containerId, onScanSuccess, onScanFailure) {
   }
 }
 
+let isProcessing = false;
+let lastScannedText = "";
+let lastScannedTime = 0;
+
 function startNewScanner(containerId, onScanSuccess, onScanFailure) {
   html5Qrcode = new Html5Qrcode(containerId);
   
@@ -36,9 +40,28 @@ function startNewScanner(containerId, onScanSuccess, onScanFailure) {
       fps: 10,
       qrbox: { width: 250, height: 250 }
     },
-    (decodedText) => {
-      playBeep(decodedText);
-      onScanSuccess(decodedText);
+    async (decodedText) => {
+      // 똑같은 티켓을 3초 이내에 연속으로 중복 스캔하는 것 방지
+      if (decodedText === lastScannedText && (Date.now() - lastScannedTime) < 3000) {
+          return;
+      }
+
+      if (isProcessing) return;
+      isProcessing = true;
+      lastScannedText = decodedText;
+      lastScannedTime = Date.now();
+
+      try {
+        const result = await onScanSuccess(decodedText);
+        if (result && result.status) {
+            playBeep(result.status);
+        }
+      } catch (e) {
+        console.error(e);
+      } finally {
+        // 즉시 락 해제! (새로운 다음 손님 티켓을 바로 찍을 수 있게)
+        isProcessing = false;
+      }
     },
     (errorMessage) => {
       // Quietly ignore library scanning errors
@@ -47,6 +70,10 @@ function startNewScanner(containerId, onScanSuccess, onScanFailure) {
     console.error("Camera start failed: ", err);
     if (onScanFailure) onScanFailure(err);
   });
+}
+
+export function resumeScanning() {
+  isProcessing = false;
 }
 
 export function stopQRScanner() {
@@ -69,7 +96,7 @@ export function stopQRScanner() {
 }
 
 // Play simulated sounds using browser AudioContext
-function playBeep(text) {
+function playBeep(status) {
   try {
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     const oscillator = audioCtx.createOscillator();
@@ -78,9 +105,7 @@ function playBeep(text) {
     oscillator.connect(gainNode);
     gainNode.connect(audioCtx.destination);
 
-    // Determine tone based on ticket validation state
-    const result = validateTicketState(text);
-    if (result.status === "VALID") {
+    if (status === "VALID") {
       oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); // High double-beep for success
       gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
       oscillator.start();
@@ -96,7 +121,7 @@ function playBeep(text) {
         osc2.start();
         osc2.stop(audioCtx.currentTime + 0.1);
       }, 120);
-    } else if (result.status === "ALREADY_ENTERED") {
+    } else if (status === "ALREADY_ENTERED") {
       oscillator.frequency.setValueAtTime(440, audioCtx.currentTime); // Mid-tone flat beep for warning
       gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
       oscillator.start();
@@ -112,8 +137,35 @@ function playBeep(text) {
   }
 }
 
-// Validates ticket state and performs mutations in the Mock DB
-export function validateTicketState(ticketId) {
+// Validates ticket state and performs mutations in the Mock DB or Memory DB
+export async function validateTicketState(text) {
+  // New Backend Check for Live QR Tickets
+  if (text.startsWith("FESTIO:TICKET:")) {
+      try {
+          const res = await fetch('/api/order/tickets/scan', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ qrText: text })
+          });
+          const data = await res.json();
+          const scanLog = {
+              timestamp: new Date().toLocaleTimeString(),
+              ticketId: text.split(":")[2] || text,
+              status: data.status,
+              statusText: data.status === "VALID" ? "인증 성공 (정상 티켓)" : (data.status === "ALREADY_ENTERED" ? "중복 입장" : "미등록/위조 티켓"),
+              color: data.status === "VALID" ? "green" : (data.status === "ALREADY_ENTERED" ? "purple" : "red"),
+              seatId: data.seats || "-",
+              holder: "현장 고객"
+          };
+          publish("scan-log", { ticketId: scanLog.ticketId, status: data.status, log: scanLog });
+          return { status: data.status, message: data.message, log: scanLog };
+      } catch (e) {
+          return { status: "INVALID", message: "서버 통신 오류", log: null };
+      }
+  }
+
+  // Fallback: Mock DB Logic for backward compatibility
+  const ticketId = text;
   const ticket = DB.tickets.find(t => t.id === ticketId);
   
   if (!ticket) {

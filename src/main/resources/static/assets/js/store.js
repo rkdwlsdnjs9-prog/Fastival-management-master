@@ -13,18 +13,8 @@ const initialDB = {
     { id: "staffD", pw: "staff444", name: "굿즈 스태프 D" }
   ],
   seats: {},
-  goods: [
-    { id: "g1", name: "공식 일러스트 슬로건 타올", price: 18000, currentStock: 30, preAllocated: 2 },
-    { id: "g2", name: "캐릭터 리미티드 에디션 키링", price: 8500, currentStock: 5, preAllocated: 0 },
-    { id: "g3", name: "아티스트 리무버블 스티커팩", price: 5000, currentStock: 50, preAllocated: 0 },
-    { id: "g4", name: "유니크 일러스트 엽서북 (한정판)", price: 12000, currentStock: 0, preAllocated: 0 } // 품절 예제
-  ],
-  food: [
-    { id: "f1", name: "시그니처 아메리카노", price: 4500, outOfStock: false },
-    { id: "f2", name: "얼그레이 버블 밀크티", price: 6000, outOfStock: false },
-    { id: "f3", name: "버터 소금빵 & 아메리카노 세트", price: 8000, outOfStock: false },
-    { id: "f4", name: "한정판 딸기 치즈 블렌디드", price: 6800, outOfStock: true }
-  ],
+  goods: [],
+  food: [],
   tickets: [
     { id: "T-1001", seat: "A-5", status: "VALID", type: "ADULT", used: false, holder: "김태희" },
     { id: "T-1002", seat: "A-6", status: "VALID", type: "CHILD", used: false, holder: "박보검" },

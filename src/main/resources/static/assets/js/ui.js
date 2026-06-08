@@ -55,7 +55,101 @@ export function initUI() {
 }
 
 // Per-page init — called by each standalone HTML page
-export function initPage(viewId) {
+export async function initPage(viewId = 'dashboard') {
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('camera_only') === 'true') {
+    // 순수 풀스크린 카메라 전용 창 (사이드바, 헤더 없음)
+    document.body.innerHTML = `
+      <div style="width:100vw; height:100vh; background:#000; display:flex; flex-direction:column;">
+        <div style="background:rgba(15,23,42,0.9); padding:15px; text-align:center; color:#38bdf8; font-weight:bold; font-size:16px;">
+          입장 스캐너 (새창 모드)
+        </div>
+        <div id="qr-camera-reader" style="flex:1; width:100%; min-height:100%; border:none; background:#000;"></div>
+        
+        <!-- Confirm Scan Overlay -->
+        <div id="scan-confirm-screen" style="display:none; position:absolute; bottom:10%; left:50%; transform:translateX(-50%); z-index:10000; width:90%; max-width:350px; background:rgba(15,23,42,0.95); border-radius:16px; box-shadow:0 15px 35px rgba(0,0,0,0.8); padding:20px; text-align:center; border:2px solid #eab308;">
+          <h2 style="margin:0 0 10px 0; font-size:20px; font-weight:900; color:#eab308;">입장 처리 대기</h2>
+          <div id="scan-confirm-ticket" style="font-family:var(--font-mono); color:#f8fafc; font-size:18px; margin-bottom:15px; font-weight:bold;"></div>
+          <p style="margin:0 0 20px 0; font-size:15px; color:#cbd5e1;">이 티켓을 입장 처리하시겠습니까?</p>
+          <div style="display:flex; gap:10px;">
+            <button id="btn-cancel-scan" class="btn btn-rigid btn-red" style="flex:1;">취소</button>
+            <button id="btn-confirm-scan" class="btn btn-rigid btn-green" style="flex:1;">확인</button>
+          </div>
+        </div>
+        
+        <!-- Active Validation Overlay -->
+        <div id="scan-validation-screen" style="display:none; position:absolute; bottom:10%; left:50%; transform:translateX(-50%); z-index:9999; width:90%; max-width:350px; background:rgba(15,23,42,0.95); border-radius:16px; box-shadow:0 15px 35px rgba(0,0,0,0.8); padding:20px; text-align:center; border:2px solid #38bdf8;">
+          <h2 id="scan-result-title" style="margin:0 0 5px 0; font-size:24px; font-weight:900;">VALID</h2>
+          <div id="scan-result-ticket-number" style="font-family:var(--font-mono); color:#38bdf8; font-size:20px; margin-bottom:10px; font-weight:bold; letter-spacing:1px;"></div>
+          <p id="scan-result-msg" style="margin:0; font-size:14px; color:#cbd5e1; word-break:keep-all;"></p>
+          <button id="btn-close-scan-overlay" class="btn btn-rigid btn-green" style="margin-top:15px; width:100%; font-weight:bold; padding:12px;">닫기</button>
+        </div>
+      </div>
+    `;
+
+    function askConfirmScan(decodedText) {
+      return new Promise((resolve) => {
+        const confirmScreen = document.getElementById("scan-confirm-screen");
+        const tNumElem = document.getElementById("scan-confirm-ticket");
+        const btnOk = document.getElementById("btn-confirm-scan");
+        const btnCancel = document.getElementById("btn-cancel-scan");
+        
+        const tNum = decodedText.startsWith("FESTIO:TICKET:") ? decodedText.split(":")[2] : decodedText;
+        tNumElem.innerText = `🎫 ${tNum}`;
+        
+        confirmScreen.style.display = "block";
+        
+        btnOk.onclick = () => { confirmScreen.style.display = "none"; resolve(true); };
+        btnCancel.onclick = () => { confirmScreen.style.display = "none"; resolve(false); };
+      });
+    }
+
+    async function triggerScanValidationUI(ticketId) {
+      const result = await validateTicketState(ticketId);
+      const overlay = document.getElementById("scan-validation-screen");
+      const title = document.getElementById("scan-result-title");
+      const msg = document.getElementById("scan-result-msg");
+      const tNum = document.getElementById("scan-result-ticket-number");
+      const closeBtn = document.getElementById("btn-close-scan-overlay");
+
+      title.innerText = result.status;
+      msg.innerText = result.message;
+      tNum.innerText = (result.log && result.log.ticketId) ? `🎫 티켓 번호: ${result.log.ticketId}` : `🎫 ${ticketId}`;
+      closeBtn.className = "btn btn-rigid";
+
+      if (result.status === "VALID") {
+        overlay.style.borderColor = "#10b981"; title.innerText = "입장하셨습니다"; title.style.color = "#10b981"; closeBtn.classList.add("btn-green");
+      } else if (result.status === "ALREADY_ENTERED") {
+        overlay.style.borderColor = "#a855f7"; title.innerText = "중복 입장 불가"; title.style.color = "#a855f7"; closeBtn.classList.add("btn-purple");
+      } else {
+        overlay.style.borderColor = "#ef4444"; title.innerText = "입장 불가"; title.style.color = "#ef4444"; closeBtn.classList.add("btn-red");
+      }
+
+      overlay.style.display = "block";
+      if (window.scanPopupTimeout) clearTimeout(window.scanPopupTimeout);
+      window.scanPopupTimeout = setTimeout(() => { overlay.style.display = "none"; }, 2500);
+
+      closeBtn.onclick = () => {
+        overlay.style.display = "none";
+        if (window.scanPopupTimeout) clearTimeout(window.scanPopupTimeout);
+      };
+      return result;
+    }
+
+    // 바로 카메라 시작
+    setTimeout(() => {
+        initializeQRScanner("qr-camera-reader", async (decodedText) => {
+          const isConfirmed = await askConfirmScan(decodedText);
+          if (isConfirmed) {
+              return await triggerScanValidationUI(decodedText);
+          }
+          return null;
+        });
+    }, 500);
+    
+    return; // Stop running normal dashboard init
+  }
+
   const user = getCurrentUser();
   if (!user) {
     // Redirect unauthenticated users back to login
@@ -81,8 +175,8 @@ export function initPage(viewId) {
   setupGlobalSubscriptions();
 
   // Render this page's content
-  renderViewData(viewId);
-  loadSidebarMenu(viewId);
+  renderViewData(viewId || 'dashboard');
+  loadSidebarMenu(viewId || 'dashboard');
 }
 
 function _setupSharedUI() {
@@ -721,13 +815,33 @@ function renderScannerScreen() {
     <div class="panel-rigid" style="max-width: 600px; margin: 0 auto;">
       <div class="panel-header-rigid">입장 게이트 실시간 QR 카메라 스캐너</div>
       <div class="panel-body-rigid text-center">
-        <div id="qr-camera-reader-wrapper">
+        <div id="qr-camera-reader-wrapper" style="position:relative;">
           <div id="qr-camera-reader" style="width: 100%; max-width: 450px; margin: 0 auto; border: 2px solid #2d3748; background:#1a202c;">
             <!-- html5-qrcode camera goes here -->
           </div>
-          <button id="btn-stop-camera" class="btn btn-rigid btn-red" style="display:none;">카메라 끄기 / 스캔 중단</button>
+          <button id="btn-stop-camera" class="btn btn-rigid btn-red" style="display:none; margin-top:10px;">카메라 끄기 / 스캔 중단</button>
+          
+          <!-- Confirm Scan Overlay -->
+          <div id="scan-confirm-screen" style="display:none; position:absolute; bottom:10%; left:50%; transform:translateX(-50%); z-index:10000; width:90%; max-width:350px; background:rgba(15,23,42,0.95); border-radius:16px; box-shadow:0 15px 35px rgba(0,0,0,0.8); padding:20px; text-align:center; border:2px solid #eab308;">
+            <h2 style="margin:0 0 10px 0; font-size:20px; font-weight:900; color:#eab308;">입장 처리 대기</h2>
+            <div id="scan-confirm-ticket" style="font-family:var(--font-mono); color:#f8fafc; font-size:18px; margin-bottom:15px; font-weight:bold;"></div>
+            <p style="margin:0 0 20px 0; font-size:15px; color:#cbd5e1;">이 티켓을 입장 처리하시겠습니까?</p>
+            <div style="display:flex; gap:10px;">
+              <button id="btn-cancel-scan" class="btn btn-rigid btn-red" style="flex:1;">취소</button>
+              <button id="btn-confirm-scan" class="btn btn-rigid btn-green" style="flex:1;">확인</button>
+            </div>
+          </div>
+          
+          <!-- Active Validation Overlay (Floating over camera) -->
+          <div id="scan-validation-screen" style="display:none; position:absolute; bottom:10%; left:50%; transform:translateX(-50%); z-index:9999; width:90%; max-width:350px; background:rgba(15,23,42,0.95); border-radius:16px; box-shadow:0 15px 35px rgba(0,0,0,0.8); padding:20px; text-align:center; border:2px solid #38bdf8;">
+            <div id="scan-result-card-inner" style="background:transparent; padding:0; box-shadow:none;">
+              <h2 id="scan-result-title" style="margin:0 0 5px 0; font-size:24px; font-weight:900;">VALID</h2>
+              <div id="scan-result-ticket-number" style="font-family:var(--font-mono); color:#38bdf8; font-size:20px; margin-bottom:10px; font-weight:bold; letter-spacing:1px;"></div>
+              <p id="scan-result-msg" style="margin:0; font-size:14px; color:#cbd5e1; word-break:keep-all;"></p>
+              <button id="btn-close-scan-overlay" class="btn btn-rigid btn-green" style="margin-top:15px; width:100%; font-weight:bold; padding:12px;">확인 및 계속 스캔</button>
+            </div>
+          </div>
         </div>
-        
         <div style="margin-top: 15px;">
           <button id="btn-start-camera" class="btn btn-rigid btn-blue">카메라 연결 및 스캔 시작</button>
         </div>
@@ -741,15 +855,6 @@ function renderScannerScreen() {
         </div>
       </div>
     </div>
-
-    <!-- Active Validation Overlay -->
-    <div id="scan-validation-screen" class="scan-validation-overlay" style="display:none;">
-      <div class="scan-result-card" id="scan-result-card-inner">
-        <h1 id="scan-result-title">VALID</h1>
-        <p id="scan-result-msg"></p>
-        <button id="btn-close-scan-overlay" class="btn btn-rigid btn-green" style="margin-top:20px; font-weight:bold;">확인</button>
-      </div>
-    </div>
   `;
 
   // QR Camera bindings
@@ -757,64 +862,181 @@ function renderScannerScreen() {
   const startCamBtn = document.getElementById("btn-start-camera");
   const stopCamBtn = document.getElementById("btn-stop-camera");
   
+  // Confirmation Prompt Logic
+  function askConfirmScan(decodedText) {
+    return new Promise((resolve) => {
+      const confirmScreen = document.getElementById("scan-confirm-screen");
+      const tNumElem = document.getElementById("scan-confirm-ticket");
+      const btnOk = document.getElementById("btn-confirm-scan");
+      const btnCancel = document.getElementById("btn-cancel-scan");
+      
+      const tNum = decodedText.startsWith("FESTIO:TICKET:") ? decodedText.split(":")[2] : decodedText;
+      tNumElem.innerText = `🎫 ${tNum}`;
+      
+      confirmScreen.style.display = "block";
+      
+      btnOk.onclick = () => {
+        confirmScreen.style.display = "none";
+        resolve(true);
+      };
+      btnCancel.onclick = () => {
+        confirmScreen.style.display = "none";
+        resolve(false);
+      };
+    });
+  }
+
   startCamBtn.onclick = () => {
     initializeQRScanner("qr-camera-reader", 
-      (decodedText) => {
-        triggerScanValidationUI(decodedText);
+      async (decodedText) => {
+        const isConfirmed = await askConfirmScan(decodedText);
+        if (isConfirmed) {
+            return await triggerScanValidationUI(decodedText);
+        } else {
+            return null;
+        }
       }
     );
+    
+    // CSS Transform 버그 회피: wrapper를 body 최상단으로 강제 이동
+    const wrapper = document.getElementById("qr-camera-reader-wrapper");
+    if (!document.getElementById("qr-wrapper-placeholder")) {
+        const placeholder = document.createElement("div");
+        placeholder.id = "qr-wrapper-placeholder";
+        wrapper.parentNode.insertBefore(placeholder, wrapper);
+    }
+    document.body.appendChild(wrapper);
+    
+    // 확실한 100% 꽉찬 화면을 위해 강제로 인라인 스타일 적용
     wrapper.classList.add("fullscreen-mode");
+    wrapper.style.position = "fixed";
+    wrapper.style.top = "0";
+    wrapper.style.left = "0";
+    wrapper.style.width = "100vw";
+    wrapper.style.height = "100vh";
+    wrapper.style.backgroundColor = "#000";
+    wrapper.style.zIndex = "999999";
+    wrapper.style.display = "flex";
+    wrapper.style.flexDirection = "column";
+    wrapper.style.justifyContent = "center";
+    wrapper.style.alignItems = "center";
+    
+    // 강제로 빈 여백 없이 늘리기 위한 설정
+    const reader = document.getElementById("qr-camera-reader");
+    if(reader) {
+        reader.style.width = "100vw";
+        reader.style.height = "100vh";
+        reader.style.maxWidth = "none";
+        reader.style.maxHeight = "none";
+    }
+    
+    // 비디오 강제 확장을 위한 스타일 주입
+    if (!document.getElementById("fullscreen-video-style")) {
+        const style = document.createElement("style");
+        style.id = "fullscreen-video-style";
+        style.innerHTML = `
+            #qr-camera-reader__scan_region, #qr-camera-reader video {
+                width: 100vw !important;
+                height: 100vh !important;
+                object-fit: cover !important;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    
     startCamBtn.style.display = "none";
+    
+    // 버튼 스타일이 망가지지 않도록 기본 인라인 속성만 지정 (나머지는 CSS가 처리)
     stopCamBtn.style.display = "inline-block";
+    stopCamBtn.style.zIndex = "1000000";
   };
 
   stopCamBtn.onclick = () => {
     stopQRScanner();
+    
+    // 원래 위치로 복귀
+    const wrapper = document.getElementById("qr-camera-reader-wrapper");
+    const placeholder = document.getElementById("qr-wrapper-placeholder");
+    if (wrapper && placeholder) {
+        placeholder.parentNode.insertBefore(wrapper, placeholder);
+    }
+    
     wrapper.classList.remove("fullscreen-mode");
+    wrapper.style = "position:relative;"; // 스타일 초기화
+    
+    const reader = document.getElementById("qr-camera-reader");
+    if(reader) {
+        reader.style = "width: 100%; max-width: 450px; margin: 0 auto; border: 2px solid #2d3748; background:#1a202c;";
+    }
+    
+    const styleElem = document.getElementById("fullscreen-video-style");
+    if (styleElem) styleElem.remove();
+    
     startCamBtn.style.display = "inline-block";
     stopCamBtn.style.display = "none";
   };
 
   // Manual verify binding
-  document.getElementById("btn-manual-verify").onclick = () => {
+  document.getElementById("btn-manual-verify").onclick = async () => {
     const input = document.getElementById("manual-ticket-id");
     const id = input.value.trim().toUpperCase();
     if (!id) return;
-    triggerScanValidationUI(id);
+    const isConfirmed = await askConfirmScan(id);
+    if (isConfirmed) {
+        await triggerScanValidationUI(id);
+    }
     input.value = "";
   };
 }
 
-function triggerScanValidationUI(ticketId) {
-  const result = validateTicketState(ticketId);
+async function triggerScanValidationUI(ticketId) {
+  const result = await validateTicketState(ticketId);
   const overlay = document.getElementById("scan-validation-screen");
-  const innerCard = document.getElementById("scan-result-card-inner");
   const title = document.getElementById("scan-result-title");
   const msg = document.getElementById("scan-result-msg");
+  const tNum = document.getElementById("scan-result-ticket-number");
   const closeBtn = document.getElementById("btn-close-scan-overlay");
 
   title.innerText = result.status;
   msg.innerText = result.message;
+  
+  if (result.log && result.log.ticketId) {
+      tNum.innerText = `🎫 티켓 번호: ${result.log.ticketId}`;
+  } else {
+      tNum.innerText = `🎫 ${ticketId}`;
+  }
 
   // Clear colors
-  innerCard.className = "scan-result-card";
   closeBtn.className = "btn btn-rigid";
 
   if (result.status === "VALID") {
-    innerCard.classList.add("result-green");
+    overlay.style.borderColor = "#10b981"; // Green
+    title.innerText = "입장하셨습니다";
+    title.style.color = "#10b981";
     closeBtn.classList.add("btn-green");
   } else if (result.status === "ALREADY_ENTERED") {
-    innerCard.classList.add("result-purple");
+    overlay.style.borderColor = "#a855f7"; // Purple
+    title.innerText = "중복 입장 불가";
+    title.style.color = "#a855f7";
     closeBtn.classList.add("btn-purple");
   } else {
-    innerCard.classList.add("result-red");
+    overlay.style.borderColor = "#ef4444"; // Red
+    title.innerText = "입장 불가";
+    title.style.color = "#ef4444";
     closeBtn.classList.add("btn-red");
   }
 
-  overlay.style.display = "flex";
+  overlay.style.display = "block";
+
+  // 2.5초 후 팝업 자동 닫기 (새로운 스캔을 방해하지 않음)
+  if (window.scanPopupTimeout) clearTimeout(window.scanPopupTimeout);
+  window.scanPopupTimeout = setTimeout(() => {
+    overlay.style.display = "none";
+  }, 2500);
 
   closeBtn.onclick = () => {
     overlay.style.display = "none";
+    if (window.scanPopupTimeout) clearTimeout(window.scanPopupTimeout);
     
     // Refresh currently active screen dynamically
     const activeView = document.querySelector(".content-view.active");
@@ -823,6 +1045,8 @@ function triggerScanValidationUI(ticketId) {
       renderViewData(viewId);
     }
   };
+  
+  return result;
 }
 
 function updateRecentScanLogsTable() {
@@ -1339,7 +1563,7 @@ async function renderRefundScreen() {
       statusLabel = `<span class="badge badge-green">결제 완료</span>`;
       actionBtnHtml = `<button class="btn btn-rigid btn-small btn-red btn-request-ref" data-id="${o.id}">환불 요청</button>`;
     } else if (o.payment_status === "REFUND_REQUESTED") {
-      statusLabel = `<span class="badge badge-amber animate-pulse">환불대기</span>`;
+      statusLabel = `<span class="badge badge-amber animate-pulse">환불 접수</span>`;
       actionBtnHtml = `<button class="btn btn-rigid btn-small btn-purple btn-accept-ref" data-id="${o.id}">환불 수락 (Cancel API)</button>`;
     } else if (o.payment_status === "REFUNDED") {
       statusLabel = `<span class="badge badge-red">환불 완료</span>`;
@@ -1373,10 +1597,19 @@ async function renderRefundScreen() {
 
   // Action Click Bindings
   document.querySelectorAll(".btn-request-ref").forEach(btn => {
-    btn.onclick = () => {
+    btn.onclick = async () => {
       const id = btn.getAttribute("data-id");
-      if (confirm(`주문 ${id}에 대한 환불 요청을 작성하시겠습니까?`)) {
-        requestRefund(id);
+      if (confirm(`주문 ${id}에 대한 환불을 즉시 완료 처리하시겠습니까?`)) {
+        try {
+          await fetch(`/api/order/tickets/${id}/status`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: "REFUNDED" })
+          });
+          alert(`주문 ${id}이(가) 환불 완료 처리되었습니다.`);
+        } catch (e) {
+          console.error(e);
+        }
         renderRefundScreen();
       }
     };
@@ -1767,6 +2000,15 @@ function renderGoodsInventoryScreen() {
               <label>최초 재고수량</label>
               <input type="number" id="new-g-stock" placeholder="예: 50" class="input-rigid" required>
             </div>
+            <div class="form-group-rigid" style="margin-top: 15px; padding-top: 15px; border-top: 1px dashed #e2e8f0;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <label style="margin: 0;">옵션 등록 (선택)</label>
+                <button type="button" class="btn btn-small btn-blue btn-add-g-option" style="padding: 2px 8px; font-size: 12px; border-radius: 4px;">+ 옵션 추가</button>
+              </div>
+              <div id="goods-options-container" style="display: flex; flex-direction: column; gap: 8px;">
+                <!-- Options will be added here -->
+              </div>
+            </div>
           </div>
           <div class="registration-modal-footer">
             <button type="button" id="btn-cancel-goods" class="btn btn-rigid btn-red">취소</button>
@@ -1780,9 +2022,59 @@ function renderGoodsInventoryScreen() {
   renderAdminGoodsList();
 
   const modal = document.getElementById("goods-modal-overlay");
+  
+  // Options logic
+  const btnAddGOpt = document.querySelector(".btn-add-g-option");
+  const gOptContainer = document.getElementById("goods-options-container");
+  if (btnAddGOpt) {
+    btnAddGOpt.onclick = () => {
+      const row = document.createElement("div");
+      row.className = "option-row";
+      row.style.cssText = "display: flex; gap: 10px; align-items: center;";
+      row.innerHTML = `
+        <input type="text" placeholder="옵션사항 (예: 사이즈업)" class="input-rigid opt-name" style="flex: 2;">
+        <input type="number" placeholder="추가가격 (예: 500)" class="input-rigid opt-price" style="flex: 1;">
+        <button type="button" class="btn btn-small btn-green btn-opt-soldout" data-soldout="false" style="padding: 2px 6px; font-size: 11px; white-space: nowrap;">판매중</button>
+        <button type="button" class="btn-remove-option" style="background:none; border:none; color:#ef4444; font-size:16px; cursor:pointer;" title="삭제">&times;</button>
+      `;
+      gOptContainer.appendChild(row);
+      row.querySelector(".btn-remove-option").onclick = () => row.remove();
+      row.querySelector(".btn-opt-soldout").onclick = function() {
+        if (this.dataset.soldout === "false") {
+          this.dataset.soldout = "true";
+          this.className = "btn btn-small btn-red btn-opt-soldout";
+          this.innerText = "품절";
+        } else {
+          this.dataset.soldout = "false";
+          this.className = "btn btn-small btn-green btn-opt-soldout";
+          this.innerText = "판매중";
+        }
+      };
+    };
+  }
+  gOptContainer.querySelectorAll(".btn-remove-option").forEach(btn => {
+    btn.onclick = () => btn.parentElement.remove();
+  });
+  gOptContainer.querySelectorAll(".btn-opt-soldout").forEach(btn => {
+    btn.onclick = function() {
+      if (this.dataset.soldout === "false") {
+        this.dataset.soldout = "true";
+        this.className = "btn btn-small btn-red btn-opt-soldout";
+        this.innerText = "품절";
+      } else {
+        this.dataset.soldout = "false";
+        this.className = "btn btn-small btn-green btn-opt-soldout";
+        this.innerText = "판매중";
+      }
+    };
+  });
+
   document.getElementById("btn-open-goods-modal").onclick = () => {
     document.getElementById("new-goods-form").reset();
     document.getElementById("new-goods-form").removeAttribute("data-edit-id");
+    // 초기화 시 빈 공간으로 유지 (옵션 기본창 없음)
+    gOptContainer.innerHTML = "";
+
     document.querySelector("#goods-modal-overlay .registration-modal-header span").innerText = "굿즈 신규 등록";
     document.querySelector("#new-goods-form button[type='submit']").innerText = "등록";
     modal.style.display = "flex";
@@ -1881,6 +2173,15 @@ function renderFnbInventoryScreen() {
               <label>가격 (원)</label>
               <input type="number" id="new-f-price" placeholder="예: 6000" class="input-rigid" required>
             </div>
+            <div class="form-group-rigid" style="margin-top: 15px; padding-top: 15px; border-top: 1px dashed #e2e8f0;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <label style="margin: 0;">옵션 등록 (선택)</label>
+                <button type="button" class="btn btn-small btn-blue btn-add-f-option" style="padding: 2px 8px; font-size: 12px; border-radius: 4px;">+ 옵션 추가</button>
+              </div>
+              <div id="food-options-container" style="display: flex; flex-direction: column; gap: 8px;">
+                <!-- Options will be added here -->
+              </div>
+            </div>
           </div>
           <div class="registration-modal-footer">
             <button type="button" id="btn-cancel-food" class="btn btn-rigid btn-red">취소</button>
@@ -1894,9 +2195,46 @@ function renderFnbInventoryScreen() {
   renderAdminFoodList();
 
   const modal = document.getElementById("food-modal-overlay");
+
+  // Options logic
+  const btnAddFOpt = document.querySelector(".btn-add-f-option");
+  const fOptContainer = document.getElementById("food-options-container");
+  if (btnAddFOpt) {
+    btnAddFOpt.onclick = () => {
+      const row = document.createElement("div");
+      row.className = "option-row";
+      row.style.cssText = "display: flex; gap: 10px; align-items: center;";
+      row.innerHTML = `
+        <input type="text" placeholder="옵션사항 (예: 샷추가)" class="input-rigid opt-name" style="flex: 2;">
+        <input type="number" placeholder="추가가격 (예: 500)" class="input-rigid opt-price" style="flex: 1;">
+        <button type="button" class="btn btn-small btn-green btn-opt-soldout" data-soldout="false" style="padding: 2px 6px; font-size: 11px; white-space: nowrap;">판매중</button>
+        <button type="button" class="btn-remove-option" style="background:none; border:none; color:#ef4444; font-size:16px; cursor:pointer;" title="삭제">&times;</button>
+      `;
+      fOptContainer.appendChild(row);
+      row.querySelector(".btn-remove-option").onclick = () => row.remove();
+      row.querySelector(".btn-opt-soldout").onclick = function() {
+        if (this.dataset.soldout === "false") {
+          this.dataset.soldout = "true";
+          this.className = "btn btn-small btn-red btn-opt-soldout";
+          this.innerText = "품절";
+        } else {
+          this.dataset.soldout = "false";
+          this.className = "btn btn-small btn-green btn-opt-soldout";
+          this.innerText = "판매중";
+        }
+      };
+    };
+  }
+  fOptContainer.querySelectorAll(".btn-remove-option").forEach(btn => {
+    btn.onclick = () => btn.parentElement.remove();
+  });
+
   document.getElementById("btn-open-food-modal").onclick = () => {
     document.getElementById("new-food-form").reset();
     document.getElementById("new-food-form").removeAttribute("data-edit-id");
+    // 초기화 시 빈 공간으로 유지 (옵션 기본창 없음)
+    fOptContainer.innerHTML = "";
+
     document.querySelector("#food-modal-overlay .registration-modal-header span").innerText = "F&B 신규 등록";
     document.querySelector("#new-food-form button[type='submit']").innerText = "등록";
     modal.style.display = "flex";

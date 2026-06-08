@@ -9,26 +9,20 @@ import org.springframework.context.annotation.Configuration;
 public class DummyDataInit {
 
     @Bean
-    public CommandLineRunner initDatabase(ProductService productService) {
+    public CommandLineRunner initDatabase(ProductService productService, org.springframework.jdbc.core.JdbcTemplate jdbcTemplate) {
         return args -> {
             System.out.println("==================================================");
-            System.out.println("   [테스트] Supabase DB에 더미 데이터 주입을 시작합니다...");
-            System.out.println("==================================================");
-
+            System.out.println("   [데이터 초기화] 현재 데이터 주입/삭제 기능은 비활성화되어 있습니다...");
+            System.out.println("   [데이터베이스 스키마 업데이트] orders 테이블에 qr_code, is_entered, ticket_type 속성 추가 시도 중...");
             try {
-                // 굿즈(GOODS) 더미 데이터 생성 (자동 주입 비활성화)
-                // productService.registerGoods("페스티벌 공식 야광봉", 15000, 100, "lightstick.png");
-                // productService.registerGoods("2026 한정판 후드티", 45000, 50, "hoodie.png");
-
-                // 식음료(FOOD) 더미 데이터 생성 (자동 주입 비활성화)
-                // productService.registerFood("매콤달콤 닭강정", 12000, "chicken.png");
-                // productService.registerFood("시원한 얼음 생맥주", 5000, "beer.png");
-
-                System.out.println(">> 데이터 주입 성공! Supabase의 'order_item' 테이블을 확인해주세요.");
+                jdbcTemplate.execute("ALTER TABLE orders ADD COLUMN IF NOT EXISTS qr_code VARCHAR(255) UNIQUE;");
+                jdbcTemplate.execute("ALTER TABLE orders ADD COLUMN IF NOT EXISTS is_entered BOOLEAN DEFAULT FALSE;");
+                jdbcTemplate.execute("ALTER TABLE orders ADD COLUMN IF NOT EXISTS ticket_type VARCHAR(50);");
+                System.out.println("   [데이터베이스 스키마 업데이트] 완료!");
             } catch (Exception e) {
-                System.out.println(">> 데이터 주입 실패: " + e.getMessage());
-                e.printStackTrace();
+                System.out.println("   [데이터베이스 스키마 업데이트] 실패 (또는 이미 존재함): " + e.getMessage());
             }
+            System.out.println("==================================================");
         };
     }
 }
