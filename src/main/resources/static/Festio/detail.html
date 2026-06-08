@@ -331,12 +331,11 @@
               data-payment="total">-</span></div>
         </div>
         <div class="coupon-apply-row" id="coupon-apply-row">
-          <select class="form-input flex-1" id="coupon-select" aria-label="쿠폰 선택">
-            <option value="">쿠폰 선택</option>
-          </select>
+          <input type="text" class="form-input flex-1" id="coupon-input" placeholder="쿠폰 코드 입력 (예: FESTIO2026)"
+            aria-label="쿠폰 입력">
           <button class="btn btn-outline btn-sm" id="btn-apply-coupon">적용</button>
         </div>
-        <div class="coupon-applied hidden">
+        <div class="coupon-applied hidden" id="coupon-applied-info">
           <span class="coupon-applied-text">쿠폰 적용됨</span>
           <div class="coupon-row">
             <span class="coupon-applied-amt">-0원</span>
@@ -355,7 +354,7 @@
               <rect x="1" y="4" width="22" height="16" rx="2" />
               <line x1="1" y1="10" x2="23" y2="10" />
             </svg>
-            <span class="pay-method-name">카드</span>
+            <span class="pay-method-name">카드 (Toss)</span>
           </button>
           <button class="pay-method-btn" data-method="virtual">
             <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -363,8 +362,25 @@
               <rect x="2" y="5" width="20" height="14" rx="2" />
               <line x1="2" y1="10" x2="22" y2="10" />
             </svg>
-            <span class="pay-method-name">가상계좌</span>
+            <span class="pay-method-name">가상계좌 (Toss)</span>
           </button>
+          <button class="pay-method-btn" data-method="festiopay">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M12 6v12" />
+              <path d="M8 12h8" />
+            </svg>
+            <span class="pay-method-name">FESTIO Pay</span>
+          </button>
+        </div>
+
+        <!-- FESTIO Pay 전용 영역 (선택 시 노출) -->
+        <div id="festiopay-area" class="hidden"
+          style="margin-top:15px; padding:15px; background:var(--bg-elevated); border-radius:var(--radius-md); text-align:center;">
+          <p style="font-size:14px; margin-bottom:10px;">현재 잔액: <strong id="festiopay-balance"
+              class="text-accent-color">0</strong> 원</p>
+          <button class="btn btn-outline btn-sm" id="btn-charge-festiopay">충전하기</button>
         </div>
       </div>
       <div class="modal-footer">

@@ -354,6 +354,21 @@ async function initiateTossPayment() {
   const discount = _appliedCoupon?.discountAmount || 0;
   const amount = gross - discount;
 
+  // FESTIO Pay 결제 시뮬레이션
+  if (_selectedPayMethod === 'festiopay') {
+    const balEl = $('#festiopay-balance');
+    let balance = parseInt(balEl ? balEl.textContent.replace(/[^0-9]/g, '') : 0);
+    if (balance < amount) {
+      Toast.warning('잔액이 부족합니다. 충전 후 다시 시도해주세요.');
+      return;
+    }
+    // 결제 성공 처리
+    Toast.success('FESTIO Pay로 결제되었습니다.');
+    Modal.closeAll();
+    showBookingSuccess();
+    return;
+  }
+
   // 2. Toss Payments 결제 요청
   try {
     const tossPayments = TossPayments(TOSS_CLIENT_KEY);
@@ -361,7 +376,6 @@ async function initiateTossPayment() {
     const methodMap = {
       card: '카드',
       virtual: '가상계좌',
-      phone: '휴대폰',
     };
 
     await tossPayments.requestPayment(methodMap[_selectedPayMethod] || '카드', {
@@ -371,8 +385,6 @@ async function initiateTossPayment() {
       customerName: user.name,
       successUrl: `${window.location.origin}/payment-success.html?orderNo=${_orderNo}`,
       failUrl: `${window.location.origin}/payment-fail.html?orderNo=${_orderNo}`,
-      // 테스트 환경에서 카드 결제 자동 성공:
-      // 카드번호: 4242424242424242 / 만료: 임의 미래 날짜 / CVV: 임의 3자리
     });
 
   } catch (err) {
@@ -486,35 +498,60 @@ function initBookingBtn() {
 /* ─── 결제 방법 선택 ─────────────────────────────────────────── */
 function initPaymentMethodSelect() {
   on(document, 'click', (e) => {
-    const option = e.target.closest('.payment-method-option');
+    const option = e.target.closest('.pay-method-btn');
     if (!option) return;
-    $$('.payment-method-option').forEach(o => o.classList.remove('selected'));
+    $$('.pay-method-btn').forEach(o => o.classList.remove('selected'));
     option.classList.add('selected');
     _selectedPayMethod = option.dataset.method || 'card';
+
+    const festioArea = $('#festiopay-area');
+    if (festioArea) {
+      if (_selectedPayMethod === 'festiopay') {
+        festioArea.classList.remove('hidden');
+        // 임시 잔액 표시
+        const balEl = $('#festiopay-balance');
+        if (balEl) balEl.textContent = formatKRW(50000); // 5만 원 임시 설정
+      } else {
+        festioArea.classList.add('hidden');
+      }
+    }
+  });
+
+  on($('#btn-charge-festiopay'), 'click', () => {
+    Toast.success('50,000 포인트가 충전되었습니다.');
+    const balEl = $('#festiopay-balance');
+    if (balEl) balEl.textContent = formatKRW(100000); // 잔액 증가 시뮬레이션
   });
 }
 
 /* ─── 쿠폰 적용 ─────────────────────────────────────────────── */
 function initCouponApply() {
   on($('#btn-apply-coupon'), 'click', async () => {
-    const select = $('#coupon-select');
-    if (!select?.value) { Toast.warning('쿠폰을 선택해 주세요.'); return; }
-    const couponNo = parseInt(select.value);
+    const input = $('#coupon-input');
+    const code = input?.value?.trim();
+    if (!code) { Toast.warning('쿠폰 코드를 입력해 주세요.'); return; }
+
     const zone = _eventDetail?.zones.find(z => z.zoneNo === _selectedZoneNo);
     if (!zone) return;
 
-    const res = await couponApi.validateCoupon(couponNo, zone.price * _quantity);
-    if (!res) { Toast.error('쿠폰 확인에 실패했습니다.'); return; }
-    if (!res.valid) { Toast.warning(res.reason); return; }
+    // 단순 시뮬레이션 로직 (입력값이 'FESTIO2026'이면 10% 할인)
+    let discountAmount = 0;
+    const gross = zone.price * _quantity;
+    if (code === 'FESTIO2026') {
+      discountAmount = Math.floor(gross * 0.1); // 10% 할인
+    } else {
+      Toast.warning('유효하지 않은 쿠폰 코드입니다.');
+      return;
+    }
 
-    _appliedCoupon = { couponNo, discountAmount: res.discountAmount };
+    _appliedCoupon = { couponNo: code, discountAmount: discountAmount };
 
-    const appliedBox = $('.coupon-applied-badge');
-    const applyRow = $('.coupon-apply-row');
+    const appliedBox = $('#coupon-applied-info');
+    const applyRow = $('#coupon-apply-row');
     if (appliedBox) {
       appliedBox.classList.remove('hidden');
-      const amountEl = appliedBox.querySelector('.coupon-applied-amount');
-      if (amountEl) amountEl.textContent = `-${formatKRW(res.discountAmount)}`;
+      const amountEl = appliedBox.querySelector('.coupon-applied-amt');
+      if (amountEl) amountEl.textContent = `-${formatKRW(discountAmount)}`;
     }
     if (applyRow) applyRow.classList.add('hidden');
 
@@ -524,10 +561,12 @@ function initCouponApply() {
 
   on($('#btn-remove-coupon'), 'click', () => {
     _appliedCoupon = null;
-    const appliedBox = $('.coupon-applied-badge');
-    const applyRow = $('.coupon-apply-row');
+    const appliedBox = $('#coupon-applied-info');
+    const applyRow = $('#coupon-apply-row');
     if (appliedBox) appliedBox.classList.add('hidden');
     if (applyRow) applyRow.classList.remove('hidden');
+    const input = $('#coupon-input');
+    if (input) input.value = '';
 
     const zone = _eventDetail?.zones.find(z => z.zoneNo === _selectedZoneNo);
     if (zone) updatePaymentSummary(zone);

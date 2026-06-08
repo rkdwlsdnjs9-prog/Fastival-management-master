@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="ko" class="layout-menu-fixed layout-compact" data-assets-path="/assets/" data-template="vertical-menu-template-free">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+    <title>매출 분석 대시보드 | FESTIO</title>
+
+    <link rel="icon" type="image/x-icon" href="/assets/img/favicon/favicon.ico" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Pretendard+Variable:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/assets/vendor/fonts/iconify-icons.css" />
+    <link rel="stylesheet" href="/assets/vendor/css/core.css" />
+    <link rel="stylesheet" href="/assets/css/demo.css" />
+    <link rel="stylesheet" href="/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
+    <script src="/assets/vendor/js/helpers.js"></script>
+    <script src="/assets/js/config.js"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <link rel="stylesheet" href="./css/sales-dashboard.css" />
+  </head>
+
+  <body>
+    <div class="layout-wrapper layout-content-navbar">
+      <div class="layout-container">
+        
+        <!-- Sidebar Menu -->
+        <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
+          <!-- staff-sidebar.js 가 런타임에 동적으로 삽입 -->
+        </aside>
+
+        <div class="layout-page">
+          <!-- Navbar -->
+          <nav class="layout-navbar container-xxl navbar navbar-expand-xl navbar-detached align-items-center bg-navbar-theme" id="layout-navbar">
+            <div class="layout-menu-toggle navbar-nav align-items-xl-center me-4 me-xl-0 d-xl-none">
+              <a class="nav-item nav-link px-0 me-xl-6" href="javascript:void(0)">
+                <i class="bx bx-menu bx-sm"></i>
+              </a>
+            </div>
+            <div class="navbar-nav-right d-flex align-items-center" id="navbar-collapse">
+              <h5 class="mb-0 fw-bold"><i class="bx bx-line-chart me-2 text-primary"></i>가맹점 실시간 매출 및 정산 분석 대시보드</h5>
+              <ul class="navbar-nav flex-row align-items-center ms-auto">
+                <li class="nav-item dropdown-user dropdown">
+                  <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown">
+                    <div class="avatar avatar-online">
+                      <img src="/assets/img/avatars/1.png" class="w-px-40 h-auto rounded-circle" />
+                    </div>
+                  </a>
+                  <ul class="dropdown-menu dropdown-menu-end">
+                    <li>
+                      <a class="dropdown-item" href="#">
+                        <div class="d-flex">
+                          <div class="flex-shrink-0 me-3">
+                            <div class="avatar avatar-online">
+                              <img src="/assets/img/avatars/1.png" class="w-px-40 h-auto rounded-circle" />
+                            </div>
+                          </div>
+                          <div class="flex-grow-1">
+                            <span class="fw-medium d-block" id="navUserName">스태프</span>
+                            <small class="text-muted" id="navUserRole">점주용 권한</small>
+                          </div>
+                        </div>
+                      </a>
+                    </li>
+                  </ul>
+                </li>
+              </ul>
+            </div>
+          </nav>
+
+          <!-- Content wrapper -->
+          <div class="content-wrapper">
+            <div class="container-xxl flex-grow-1 container-p-y">
+              
+              <!-- 1. 최상단 대형 요약 카드 섹션 -->
+              <div class="row g-4 mb-6">
+                <!-- 총 매출 금액 -->
+                <div class="col-xl-4 col-md-6 col-12">
+                  <div class="card dashboard-card gradient-card-1 p-4">
+                    <div class="d-flex justify-content-between align-items-start">
+                      <div>
+                        <span class="fs-6 fw-bold opacity-80">총 매출 금액 (PAID Total)</span>
+                        <div class="metric-value mt-2" id="valTotalRevenue">₩0</div>
+                      </div>
+                      <span class="avatar avatar-md bg-white bg-opacity-20 rounded-circle d-flex align-items-center justify-content-center">
+                        <i class="bx bx-won fs-3 text-white"></i>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 총 주문 건수 -->
+                <div class="col-xl-4 col-md-6 col-12">
+                  <div class="card dashboard-card gradient-card-2 p-4">
+                    <div class="d-flex justify-content-between align-items-start">
+                      <div>
+                        <span class="fs-6 fw-bold opacity-80">총 주문 건수 (Orders)</span>
+                        <div class="metric-value mt-2" id="valTotalOrders">0건</div>
+                      </div>
+                      <span class="avatar avatar-md bg-white bg-opacity-20 rounded-circle d-flex align-items-center justify-content-center">
+                        <i class="bx bx-receipt fs-3 text-white"></i>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 평균 주문 단가 -->
+                <div class="col-xl-4 col-md-6 col-12">
+                  <div class="card dashboard-card gradient-card-3 p-4">
+                    <div class="d-flex justify-content-between align-items-start">
+                      <div>
+                        <span class="fs-6 fw-bold opacity-80">평균 주문 단가 (AOV)</span>
+                        <div class="metric-value mt-2" id="valAverageOrderValue">₩0</div>
+                      </div>
+                      <span class="avatar avatar-md bg-white bg-opacity-20 rounded-circle d-flex align-items-center justify-content-center">
+                        <i class="bx bx-user-check fs-3 text-white"></i>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 2. 시각화 차트 연동 영역 -->
+              <div class="row g-4 mb-6">
+                <!-- 메인 차트 카드 -->
+                <div class="col-lg-8 col-12">
+                  <div class="card dashboard-card p-4 h-100">
+                    <div class="card-header pb-2 bg-white border-0 d-flex justify-content-between align-items-center">
+                      <h5 class="card-title m-0 fw-bold text-dark" id="chartTitle">실시간 통계 분석 차트</h5>
+                      <span class="badge bg-label-primary fs-8" id="storeRoleTag">분석 중</span>
+                    </div>
+                    <div class="card-body d-flex align-items-center justify-content-center" style="position: relative; min-height: 350px;">
+                      <canvas id="salesAnalyticsChart" style="max-height: 380px; width: 100%;"></canvas>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 옵션 선호도 분석 차트 (Goods 전용 추가 차트) 또는 부스 부가 정보 -->
+                <div class="col-lg-4 col-12">
+                  <div class="card dashboard-card p-4 h-100">
+                    <div class="card-header pb-2 bg-white border-0">
+                      <h5 class="card-title m-0 fw-bold text-dark" id="sidePanelTitle">인기 항목 순위</h5>
+                    </div>
+                    <div class="card-body">
+                      <!-- 굿즈용 Pie 차트 영역 -->
+                      <div id="goodsPieContainer" style="display: none; position: relative; height: 200px;" class="mb-4">
+                        <canvas id="optionsPieChart"></canvas>
+                      </div>
+
+                      <!-- 실시간 리스트형 통계 테이블 -->
+                      <div class="list-group list-group-flush" id="rankingListContainer">
+                        <!-- 동적으로 상위 5개 순위 바인딩 -->
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 3. 정산 요약 섹션 -->
+              <div class="row">
+                <div class="col-12">
+                  <div class="card dashboard-card p-4">
+                    <h5 class="card-title fw-bold text-dark mb-4"><i class="bx bx-wallet me-2 text-primary"></i>축제 종료 후 예상 정산(Settlement) 요약</h5>
+                    
+                    <div class="settlement-box p-4">
+                      <div class="row g-4 text-center">
+                        <div class="col-md-4 col-12 settlement-col">
+                          <span class="text-muted fw-bold">매출 총계 (A)</span>
+                          <h3 class="fw-bold text-dark mt-2" id="settleTotalSales">₩0</h3>
+                        </div>
+                        <div class="col-md-4 col-12 settlement-col">
+                          <span class="text-danger fw-bold">플랫폼 수수료 (B) (10.0%)</span>
+                          <h3 class="fw-bold text-danger mt-2" id="settlePlatformFee">₩0</h3>
+                        </div>
+                        <div class="col-md-4 col-12">
+                          <span class="text-success fw-bold">실제 정산 예정액 (A - B)</span>
+                          <h3 class="fw-bold text-success mt-2" id="settlePayout">₩0</h3>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="alert alert-warning mt-4 mb-0 d-flex align-items-center" role="alert">
+                      <i class="bx bx-info-circle fs-4 me-2 text-warning"></i>
+                      <div class="fs-7 text-dark">
+                        본 정산 정보는 실시간 결제 완료(PAID) 상태의 주문액을 단순 집계한 것이며, 축제 사무국과의 최종 대조 과정에서 일부 변동될 수 있습니다.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Footer -->
+            <footer class="content-footer footer bg-footer-theme">
+              <div class="container-xxl d-flex flex-wrap justify-content-between py-2 flex-md-row flex-column">
+                <div class="mb-2 mb-md-0">
+                  © <script>document.write(new Date().getFullYear());</script> FESTIO
+                </div>
+              </div>
+            </footer>
+
+            <div class="content-backdrop fade"></div>
+          </div>
+        </div>
+      </div>
+      <div class="layout-overlay layout-menu-toggle"></div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/assets/vendor/libs/jquery/jquery.js"></script>
+    <script src="/assets/vendor/libs/popper/popper.js"></script>
+    <script src="/assets/vendor/js/bootstrap.js"></script>
+    <script src="/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
+    <script src="/assets/vendor/js/menu.js"></script>
+    <script src="/assets/js/main.js"></script>
+    <script src="/assets/js/staff-sidebar.js"></script>
+    
+    <script src="./js/sales-dashboard.js"></script>
+  </body>
+</html>

@@ -1,0 +1,48 @@
+body {
+        font-family: 'Pretendard Variable', sans-serif;
+      }
+      .dashboard-card {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        transition: transform 0.2s, box-shadow 0.2s;
+      }
+      .dashboard-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 35px rgba(0, 0, 0, 0.08);
+      }
+      .metric-value {
+        font-size: 2.2rem;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        line-height: 1.2;
+      }
+      .gradient-card-1 {
+        background: linear-gradient(135deg, #7F00FF 0%, #E100FF 100%);
+        color: white;
+      }
+      .gradient-card-2 {
+        background: linear-gradient(135deg, #00C6FF 0%, #0072FF 100%);
+        color: white;
+      }
+      .gradient-card-3 {
+        background: linear-gradient(135deg, #1D976C 0%, #93F9B9 100%);
+        color: white;
+      }
+      .settlement-box {
+        background: #f8f9fc;
+        border: 1px solid #e2e4f0;
+        border-radius: 12px;
+      }
+      .settlement-col {
+        border-right: 1px solid #e2e4f0;
+      }
+      @media (max-width: 767.98px) {
+        .settlement-col {
+          border-right: none;
+          border-bottom: 1px solid #e2e4f0;
+          padding-bottom: 1.5rem;
+        }
+      }

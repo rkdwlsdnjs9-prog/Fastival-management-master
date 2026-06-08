@@ -51,8 +51,46 @@ document.addEventListener("DOMContentLoaded", function () {
     // 현재 URL 경로 분석
     const path = window.location.pathname;
 
+    const userSpecificRole = localStorage.getItem('userSpecificRole') || sessionStorage.getItem('userSpecificRole');
+    const isGoodsStaff = userSpecificRole === 'ROLE_GOODS_STAFF';
+
     // 스탭 및 점주 전용 초정밀 라우터 매핑
-    const menuTree = [
+    const menuTree = isGoodsStaff ? [
+        {
+            type: "header",
+            text: "굿즈 매니지먼트 (Goods)"
+        },
+        {
+            type: "item",
+            text: "굿즈 판매소 설정",
+            icon: "bx bx-store-alt",
+            url: "/features/payment/staff/goods-store.html"
+        },
+        {
+            type: "item",
+            text: "MD 및 굿즈 등록",
+            icon: "bx bx-list-plus",
+            url: "/features/payment/staff/goods-menu.html"
+        },
+        {
+            type: "item",
+            text: "옵션별 재고 관리",
+            icon: "bx bx-package",
+            url: "/features/payment/staff/goods-inventory.html"
+        },
+        {
+            type: "item",
+            text: "실시간 주문 및 픽업",
+            icon: "bx bx-receipt",
+            url: "/features/payment/staff/goods-orders.html"
+        },
+        {
+            type: "item",
+            text: "실시간 매출 대시보드",
+            icon: "bx bx-line-chart",
+            url: "/features/payment/staff/sales-dashboard.html"
+        }
+    ] : [
         {
             type: "header",
             text: "스태프 매니지먼트 (Staff)"
@@ -80,12 +118,20 @@ document.addEventListener("DOMContentLoaded", function () {
             text: "O2O 실시간 주문 수락",
             icon: "bx bx-receipt",
             url: "/features/payment/staff/o2o-orders.html"
+        },
+        {
+            type: "item",
+            text: "실시간 매출 대시보드",
+            icon: "bx bx-line-chart",
+            url: "/features/payment/staff/sales-dashboard.html"
         }
     ];
 
+    const homeUrl = isGoodsStaff ? "/features/payment/staff/goods-store.html" : "/features/payment/staff/store-management.html";
+
     let html = `
     <div class="app-brand demo" style="background: #11142d !important;">
-        <a href="/features/payment/staff/store-management.html" class="app-brand-link">
+        <a href="${homeUrl}" class="app-brand-link">
             <span class="app-brand-logo demo">
                 <span class="text-info">
                     <svg width="25" viewBox="0 0 25 42" version="1.1" xmlns="http://www.w3.org/2000/svg">

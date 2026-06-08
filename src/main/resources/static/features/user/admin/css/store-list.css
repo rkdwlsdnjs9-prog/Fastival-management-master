@@ -1,0 +1,35 @@
+.premium-gradient {
+        background: linear-gradient(135deg, #696cff 0%, #a2a4ff 100%);
+        color: white;
+      }
+      .stat-card {
+        transition: transform 0.2s;
+      }
+      .stat-card:hover {
+        transform: translateY(-5px);
+      }
+      .hover-underline:hover {
+        text-decoration: underline;
+      }
+      .cursor-pointer {
+        cursor: pointer;
+      }
+      
+      /* 가로형 카드 그리드 스타일 (Premium Card Design) */
+      .festival-select-card {
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 1.5px solid #e5e7eb !important;
+        border-radius: 12px;
+        overflow: hidden;
+        background: #ffffff;
+      }
+      .festival-select-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 18px rgba(105, 108, 255, 0.08);
+        border-color: #a2a4ff !important;
+      }
+      .festival-select-card.active {
+        border-color: #696cff !important;
+        background-color: rgba(105, 108, 255, 0.04) !important;
+        box-shadow: 0 4px 14px rgba(105, 108, 255, 0.16);
+      }

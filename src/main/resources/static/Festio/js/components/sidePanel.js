@@ -154,7 +154,7 @@ const SIDE_PANEL_HTML = `
         </svg>
         찜
       </a>
-      <button class="side-link-item">
+      <a href="cart.html" class="side-link-item">
         <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
           stroke-linejoin="round">
           <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
@@ -162,7 +162,7 @@ const SIDE_PANEL_HTML = `
           <path d="M16 10a4 4 0 01-8 0" />
         </svg>
         장바구니
-      </button>
+      </a>
     </div>
 
     <!-- 최근 본 상품 -->

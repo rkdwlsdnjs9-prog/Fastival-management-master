@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="ko" class="layout-menu-fixed layout-compact" data-assets-path="/assets/"
   data-template="vertical-menu-template-free">
 
@@ -20,20 +20,7 @@
   <link rel="stylesheet" href="/assets/vendor/libs/apex-charts/apex-charts.css" />
   <script src="/assets/vendor/js/helpers.js"></script>
   <script src="/assets/js/config.js"></script>
-  <style>
-    .premium-gradient {
-      background: linear-gradient(135deg, #696cff 0%, #a2a4ff 100%);
-      color: white;
-    }
-
-    .stat-card {
-      transition: transform 0.2s;
-    }
-
-    .stat-card:hover {
-      transform: translateY(-5px);
-    }
-  </style>
+  <link rel="stylesheet" href="./css/inventory-control.css" />
 </head>
 
 <body>
@@ -126,6 +113,13 @@
                     </div>
                   </div>
 
+                  <!-- 3. Goods Staff Accordion View (ROLE_GOODS_STAFF 전용) -->
+                  <div id="goods-accordion-container" class="card-body border-top p-3 bg-light" style="display: none;">
+                    <div class="accordion" id="inventoryAccordion">
+                      <!-- Dynamically loaded -->
+                    </div>
+                  </div>
+
                 </div>
               </div>
             </div>
@@ -159,249 +153,7 @@
   <script src="/assets/js/main.js"></script>
   <script src="/assets/js/staff-sidebar.js"></script>
 
-  <script>
-    // Token Getter
-    function getAuthHeader() {
-      const token = localStorage.getItem('userToken') || sessionStorage.getItem('userToken');
-      return token ? 'Bearer ' + token : '';
-    }
-
-    // API 호출 전 세션 토큰 유효성 검사 및 리다이렉트
-    function checkSession() {
-      const token = getAuthHeader();
-      if (!token) {
-        alert("로그인 세션이 만료되었거나 권한이 없습니다. 로그인 페이지로 이동합니다.");
-        location.href = "/features/payment/staff/store-management.html"; // 로그인 유도
-        return false;
-      }
-      return true;
-    }
-
-    // 가용 실재고 수량별 배민 스타일 상태 배지 반환
-    function getBadgeHtml(availableStock, isSoldout) {
-      if (isSoldout) {
-        return `<span class="badge bg-danger py-2 px-3 fs-7"><i class="bx bx-x-circle me-1"></i>수동 품절</span>`;
-      }
-      if (availableStock >= 50) {
-        return `<span class="badge bg-success py-2 px-3 fs-7"><i class="bx bx-check-circle me-1"></i>🟢 안전</span>`;
-      } else if (availableStock > 0) {
-        return `<span class="badge bg-warning text-dark py-2 px-3 fs-7"><i class="bx bx-error me-1"></i>🟡 품절 임박</span>`;
-      } else {
-        return `<span class="badge bg-danger py-2 px-3 fs-7"><i class="bx bx-block me-1"></i>🔴 완전 품절</span>`;
-      }
-    }
-
-    // 실시간 재고 데이터 로드
-    function loadInventory() {
-      if (!checkSession()) return;
-
-      fetch('/api/payment/staff/menus', {
-        method: 'GET',
-        headers: {
-          'Authorization': getAuthHeader()
-        }
-      })
-        .then(response => {
-          if (response.status === 401 || response.status === 403) {
-            throw new Error("UNAUTHORIZED");
-          }
-          if (!response.ok) throw new Error("재고 데이터를 불러오는데 실패했습니다.");
-          return response.json();
-        })
-        .then(menus => {
-          renderInventory(menus);
-        })
-        .catch(error => {
-          console.error('재고 로드 실패:', error);
-          if (error.message === "UNAUTHORIZED") {
-            alert("인증 정보가 만료되었습니다. 다시 로그인해주세요.");
-            location.href = "/features/payment/staff/store-management.html";
-          } else {
-            alert(error.message);
-          }
-        });
-    }
-
-    // UI 동적 렌더링
-    function renderInventory(menus) {
-      const desktopTbody = document.getElementById('desktop-inventory-tbody');
-      const mobileList = document.getElementById('mobile-inventory-list');
-
-      desktopTbody.innerHTML = '';
-      mobileList.innerHTML = '';
-
-      if (menus.length === 0) {
-        const emptyRow = `<tr><td colspan="6" class="text-center py-4 text-muted fs-6"><i class="bx bx-info-circle me-1"></i>등록된 메뉴가 없습니다. 신규 메뉴를 등록해주세요.</td></tr>`;
-        desktopTbody.innerHTML = emptyRow;
-
-        const emptyCard = `<div class="col-12 text-center py-4 text-muted fs-6 bg-white rounded border"><i class="bx bx-info-circle me-1"></i>등록된 메뉴가 없습니다.</div>`;
-        mobileList.innerHTML = emptyCard;
-        return;
-      }
-
-      menus.forEach(item => {
-        const totalStock = item.total_stock !== undefined ? item.total_stock : 0;
-        const reservedStock = item.reserved_stock !== undefined ? item.reserved_stock : 0;
-        const availableStock = item.available_stock !== undefined ? item.available_stock : 0;
-        const isSoldout = item.is_soldout === true || item.status === "SOLD_OUT";
-
-        const badgeHtml = getBadgeHtml(availableStock, isSoldout);
-
-        // 1. Desktop & Large Tablet Landscape Row
-        const row = document.createElement('tr');
-        if (isSoldout) {
-          row.className = 'table-light text-muted';
-        } else if (availableStock < 50) {
-          row.className = 'table-warning';
-        }
-
-        row.innerHTML = `
-        <td><strong class="fs-6 ${isSoldout ? 'text-muted' : 'text-dark'}">${item.name}</strong></td>
-        <td>
-          <div class="d-flex align-items-center gap-1">
-            <button class="btn btn-sm btn-outline-secondary px-2" onclick="changeStock(${item.id}, ${totalStock}, -10)" ${isSoldout ? 'disabled' : ''}>-10</button>
-            <input type="number" class="form-control form-control-sm text-center fw-bold" value="${totalStock}" style="width: 75px;" onchange="updateStock(${item.id}, this.value)" ${isSoldout ? 'disabled' : ''} />
-            <button class="btn btn-sm btn-outline-primary px-2" onclick="changeStock(${item.id}, ${totalStock}, 10)" ${isSoldout ? 'disabled' : ''}>+10</button>
-          </div>
-        </td>
-        <td class="fs-6 text-muted">${reservedStock} 개</td>
-        <td><span class="fw-bold ${isSoldout ? 'text-muted' : (availableStock < 50 ? 'text-danger' : 'text-primary')} fs-5">${availableStock} 개</span></td>
-        <td class="text-center">${badgeHtml}</td>
-        <td class="text-end pe-4">
-          <div class="form-check form-switch d-inline-block">
-            <input class="form-check-input status-toggle-api" type="checkbox" ${isSoldout ? '' : 'checked'} onchange="toggleSoldout(${item.id}, '${item.name.replace(/'/g, "\\'")}', this.checked)" style="transform: scale(1.6); cursor: pointer;" />
-          </div>
-        </td>
-      `;
-        desktopTbody.appendChild(row);
-
-        // 2. Tablet Portrait & Mobile Card Layout
-        const card = document.createElement('div');
-        card.className = 'col-12';
-
-        let cardBorderClass = 'border-success';
-        if (isSoldout) {
-          cardBorderClass = 'bg-light border-light';
-        } else if (availableStock < 50) {
-          cardBorderClass = 'border-warning bg-warning bg-opacity-10';
-        }
-
-        card.innerHTML = `
-        <div class="card shadow-sm border border-2 ${cardBorderClass}">
-          <div class="card-body p-4">
-            <div class="d-flex justify-content-between align-items-start mb-3">
-              <div>
-                <h5 class="fw-bold ${isSoldout ? 'text-muted' : 'text-dark'} mb-1">${item.name}</h5>
-                ${badgeHtml}
-              </div>
-              <div class="form-check form-switch">
-                <input class="form-check-input status-toggle-api" type="checkbox" ${isSoldout ? '' : 'checked'} onchange="toggleSoldout(${item.id}, '${item.name.replace(/'/g, "\\'")}', this.checked)" style="transform: scale(1.75); cursor: pointer; margin-right: 8px;" />
-              </div>
-            </div>
-            <div class="bg-white rounded p-3 mb-3 d-flex justify-content-between text-center border">
-              <div>
-                <small class="text-muted d-block mb-1">총 재고</small>
-                <span class="fw-bold ${isSoldout ? 'text-muted' : 'text-dark'} fs-6">${totalStock}개</span>
-              </div>
-              <div class="border-start"></div>
-              <div>
-                <small class="text-muted d-block mb-1">가선점</small>
-                <span class="fw-bold text-muted fs-6">${reservedStock}개</span>
-              </div>
-              <div class="border-start"></div>
-              <div>
-                <small class="${isSoldout ? 'text-muted' : (availableStock < 50 ? 'text-danger' : 'text-primary')} d-block mb-1 fw-bold">가용 실재고</small>
-                <span class="fw-bold ${isSoldout ? 'text-muted' : (availableStock < 50 ? 'text-danger' : 'text-primary')} fs-5">${availableStock}개</span>
-              </div>
-            </div>
-            <div class="d-flex gap-2">
-              <button class="btn btn-outline-secondary btn-lg flex-grow-1 py-3 fw-bold" onclick="changeStock(${item.id}, ${totalStock}, -10)" ${isSoldout || totalStock <= 0 ? 'disabled' : ''}><i class="bx bx-minus me-1"></i> 10개</button>
-              <button class="btn btn-outline-primary btn-lg flex-grow-1 py-3 fw-bold" onclick="changeStock(${item.id}, ${totalStock}, 10)" ${isSoldout ? 'disabled' : ''}><i class="bx bx-plus me-1"></i> 10개</button>
-            </div>
-          </div>
-        </div>
-      `;
-        mobileList.appendChild(card);
-      });
-    }
-
-    // 재고 편차 조정 함수
-    function changeStock(menuId, currentTotal, delta) {
-      const newTotal = Math.max(0, currentTotal + delta);
-      updateStock(menuId, newTotal);
-    }
-
-    // 초기 재고량 업데이트 요청 API 호출
-    function updateStock(menuId, totalStock) {
-      if (!checkSession()) return;
-
-      const parsedStock = parseInt(totalStock);
-      if (isNaN(parsedStock) || parsedStock < 0) {
-        alert("올바른 재고 수량을 입력해주세요.");
-        loadInventory();
-        return;
-      }
-
-      fetch(`/api/payment/staff/menus/${menuId}/stock`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': getAuthHeader()
-        },
-        body: JSON.stringify({ totalStock: parsedStock })
-      })
-        .then(response => {
-          if (!response.ok) throw new Error("재고 업데이트에 실패했습니다.");
-          return response.json();
-        })
-        .then(data => {
-          // 갱신 후 자연스럽게 재고 리로드
-          loadInventory();
-        })
-        .catch(error => {
-          console.error('재고 업데이트 오류:', error);
-          alert(error.message);
-        });
-    }
-
-    // 배민 스타일 수동 품절 토글
-    function toggleSoldout(menuId, menuName, isChecked) {
-      if (!checkSession()) return;
-      const isSoldout = !isChecked;
-
-      fetch(`/api/payment/staff/menus/${menuId}/soldout`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': getAuthHeader()
-        },
-        body: JSON.stringify({ isSoldout: isSoldout })
-      })
-        .then(response => {
-          if (!response.ok) throw new Error("품절 상태 제어에 실패했습니다.");
-          return response.json();
-        })
-        .then(data => {
-          const activeSoldout = data.isSoldout;
-          if (activeSoldout) {
-            alert(`🔴 [${menuName}] 상품이 [수동 품절] 처리되었습니다.\n소비자 모바일 화면에서 즉시 주문 버튼이 비활성화되었습니다.`);
-          } else {
-            alert(`🟢 [${menuName}] 상품이 [판매 개시] 처리되었습니다.\n소비자가 정상적으로 모바일 주문을 넣을 수 있습니다.`);
-          }
-          loadInventory(); // 상태 스타일 실시간 동기화
-        })
-        .catch(error => {
-          console.error('품절 처리 API 오류:', error);
-          alert(error.message);
-          loadInventory(); // 오류 발생 시 이전 값 복구
-        });
-    }
-
-    // DOM 로드 시 즉시 데이터 바인딩 실행
-    document.addEventListener('DOMContentLoaded', () => {
-      loadInventory();
-    });
-  </script>
+  <script src="./js/inventory-control.js"></script>
 </body>
 
 </html>

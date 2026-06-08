@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover">
+  <title>장바구니 | FESTIO</title>
+  <link rel="stylesheet" href="css/common.css">
+  <link rel="stylesheet" href="css/cart.css">
+  <!-- Toss Payments SDK -->
+  <script src="https://js.tosspayments.com/v1/payment"></script>
+</head>
+
+<body>
+  <script src="js/components/sidePanel.js"></script>
+  <script src="js/components/appHeader.js"></script>
+
+  <!-- 모바일 검색 모달 -->
+  <div class="modal-overlay modal-center" id="modal-mobile-search" role="dialog" aria-modal="true">
+    <div class="modal-sheet">
+      <div class="modal-header search-modal-header"
+        style="display:flex; justify-content:space-between; align-items:center;">
+        <h3 style="font-size:18px; font-weight:bold; margin:0; color:#fff;">통합 검색</h3>
+        <button class="modal-close-btn" data-close-modal="modal-mobile-search" aria-label="닫기"
+          style="width:32px; height:32px; background:rgba(255,255,255,0.1); border-radius:50%; display:flex; align-items:center; justify-content:center;">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round" style="width:18px; height:18px;">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="mobile-search-form">
+          <div class="mobile-search-input-wrap">
+            <svg class="icon search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            <input type="search" class="filter-range-input mobile-search-input" id="mobileSearchInput"
+              placeholder="행사명, 아티스트 검색" autocomplete="off">
+          </div>
+          <button class="btn btn-pastel-blue" id="btn-mobile-search-execute">검색</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-container" aria-live="polite"></div>
+
+  <main class="page-body">
+    <div class="cart-layout">
+      <div class="cart-header">
+        <h1 class="cart-title">장바구니</h1>
+      </div>
+
+      <div class="cart-container">
+        <!-- 좌측: 카트 리스트 -->
+        <div class="cart-list-col">
+          <div class="cart-list" id="cart-list-container">
+            <!-- 장바구니 아이템 동적 렌더링 -->
+          </div>
+        </div>
+
+        <!-- 우측: 결제 정보 패널 -->
+        <div class="cart-summary-col">
+          <div class="cart-summary-card">
+            <h3 class="summary-title">주문 예상 금액</h3>
+            <div class="summary-row">
+              <span>상품 금액</span>
+              <span id="cart-total-price">0원</span>
+            </div>
+            <div class="summary-row">
+              <span>쿠폰 할인</span>
+              <span id="cart-total-discount" class="text-accent-color">-0원</span>
+            </div>
+            <div class="summary-divider"></div>
+            <div class="summary-row total-row">
+              <span>결제 예정 금액</span>
+              <span id="cart-final-price">0원</span>
+            </div>
+
+            <!-- 결제 수단 선택 -->
+            <p class="summary-subtitle" style="margin-top:20px;">결제 수단</p>
+            <div class="pay-method-grid">
+              <button class="pay-method-btn selected" data-method="card">카드</button>
+              <button class="pay-method-btn" data-method="virtual">가상계좌</button>
+              <button class="pay-method-btn" data-method="festiopay">FESTIO Pay</button>
+            </div>
+
+            <div id="cart-festiopay-area" class="hidden"
+              style="margin-top:15px; padding:15px; background:var(--bg-base); border-radius:var(--radius-md); text-align:center;">
+              <p style="font-size:14px; margin-bottom:10px;">현재 잔액: <strong id="cart-festiopay-balance"
+                  class="text-accent-color">50,000</strong> 원</p>
+              <button class="btn btn-outline btn-sm" id="btn-cart-charge-festiopay">충전하기</button>
+            </div>
+
+            <button class="btn btn-primary btn-full" id="btn-cart-checkout" style="margin-top:24px;">결제하기</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="js/components/bottomNav.js"></script>
+  <script src="js/components/appFooter.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/common.js"></script>
+  <script src="js/cart.js"></script>
+</body>
+
+</html>

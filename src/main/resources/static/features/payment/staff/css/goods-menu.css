@@ -1,0 +1,50 @@
+body {
+        font-family: 'Pretendard Variable', sans-serif;
+      }
+      .goods-premium-gradient {
+        background: linear-gradient(135deg, #7F00FF 0%, #E100FF 100%);
+        color: white;
+      }
+      .goods-card {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        transition: transform 0.2s, box-shadow 0.2s;
+      }
+      .goods-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 35px rgba(127, 0, 255, 0.08);
+      }
+      .btn-goods-primary {
+        background: linear-gradient(135deg, #7F00FF 0%, #9b30ff 100%);
+        border: none;
+        color: white;
+        transition: all 0.2s ease;
+      }
+      .btn-goods-primary:hover {
+        background: linear-gradient(135deg, #9b30ff 0%, #E100FF 100%);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 15px rgba(127, 0, 255, 0.3);
+        color: white;
+      }
+      .btn-goods-secondary {
+        background: rgba(127, 0, 255, 0.08);
+        border: 1.5px solid rgba(127, 0, 255, 0.25);
+        color: #7F00FF;
+        font-weight: 600;
+      }
+      .btn-goods-secondary:hover {
+        background: rgba(127, 0, 255, 0.15);
+        color: #7F00FF;
+      }
+      .active-filter-goods {
+        background: #7F00FF !important;
+        color: white !important;
+        border-color: #7F00FF !important;
+      }
+      .badge-goods-label {
+        background-color: rgba(127, 0, 255, 0.1);
+        color: #7F00FF;
+      }

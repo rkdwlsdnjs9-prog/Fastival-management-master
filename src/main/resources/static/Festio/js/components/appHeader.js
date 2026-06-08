@@ -62,8 +62,12 @@
         <span class="mode-btn-label">관리자 모드</span>
       </a>`;
   } else if (isLoggedIn && userRole === 'STAFF') {
+    const userSpecificRole = localStorage.getItem('userSpecificRole') || sessionStorage.getItem('userSpecificRole');
+    const targetUrl = userSpecificRole === 'ROLE_GOODS_STAFF'
+      ? '/features/payment/staff/goods-store.html'
+      : '/features/payment/staff/store-management.html';
     modeSwitchBtnHtml = `
-      <a href="/features/payment/staff/store-management.html" id="modeSwitchBtn" class="header-mode-switch-btn header-mode-switch-staff" aria-label="업주 모드로 전환">
+      <a href="${targetUrl}" id="modeSwitchBtn" class="header-mode-switch-btn header-mode-switch-staff" aria-label="업주 모드로 전환">
         ${staffModeBtnSvg}
         <span class="mode-btn-label">업주 모드</span>
       </a>`;
@@ -111,76 +115,92 @@
       @media (max-width: 480px) {
         .mode-btn-label { display: none; }
         .header-mode-switch-btn { padding: 8px; border-radius: 50%; }
+        .desktop-only { display: none !important; }
+      }
+      @media (min-width: 1024px) {
+        .mobile-only { display: none !important; }
+        /* 데스크톱에서는 header-back-btn 대신 로고와 메뉴를 보여줌 */
+        .header-back-btn { display: none !important; }
+        /* 데스크톱에서 isDetail인 경우 햄버거 메뉴 강제 표시 */
+        .header-hamburger { display: flex !important; }
       }
     `;
     document.head.appendChild(style);
   }
 
-  if (isDetail) {
-    // 4-1. 상세 페이지 헤더 (뒤로가기, 찜, 공유 버튼 레이아웃)
-    headerHtml = `
-      <header class="app-header">
-        <button class="header-hamburger" id="hamburgerBtn" aria-label="메뉴">${hamburgerSvg}</button>
-        <button class="header-back-btn" aria-label="뒤로가기">${backSvg}<span class="header-title">행사 상세</span></button>
-        <div class="header-spacer"></div>
-        <div class="header-actions">
-          ${modeSwitchBtnHtml}
-          <button class="header-icon-btn" id="btn-wish-detail" data-wished="false" aria-label="찜">${wishSvg}</button>
-          <button class="header-icon-btn" aria-label="공유">${shareSvg}</button>
-        </div>
-      </header>
-    `;
-  } else if (isIndex) {
-    // 4-2. 메인(홈) 페이지 헤더 (검색바, MY티켓 등 확장된 기능 레이아웃)
-    headerHtml = `
-      <header class="app-header header-home" role="banner" id="appHeader">
-        <button class="header-hamburger" id="hamburgerBtn" aria-label="전체 메뉴 열기" aria-expanded="false">${hamburgerSvg}</button>
-        <a href="index.html" class="header-logo" aria-label="FESTIO 홈"><span class="header-logo-text">FESTIO</span></a>
-        ${catNavHtml}
-        <div class="header-spacer"></div>
-        <div class="header-actions">
-          ${modeSwitchBtnHtml}
-          <a href="mypage.html" class="header-text-btn" aria-label="MY티켓">${ticketSvg}MY티켓</a>
-          <div class="header-search-bar" role="search">${searchSvg}<input type="search" class="header-search-input" id="headerSearch" placeholder="행사명, 아티스트 검색" autocomplete="off" aria-label="검색"></div>
-          <button class="header-icon-btn mobile-search-btn" aria-label="검색">${searchSvg}</button>
-          <button class="header-icon-btn" aria-label="알림">${alarmSvg}</button>
-          ${isLoggedIn ? `
-            <a href="mypage.html" class="header-icon-btn" aria-label="마이페이지">${mypageSvg}</a>
-          ` : `
-            <a href="login.html" class="header-text-btn aria-label="로그인">로그인</a>
-          `}
-        </div>
-      </header>
-    `;
-  } else {
-    // 4-3. 일반 서브 페이지 헤더 (목록, 이용안내, 마이페이지 등 기본 레이아웃)
-    // 마이페이지의 경우 우측 액션이 '로그아웃' 버튼이 되며, 그 외에는 '마이페이지' 이동 아이콘이 렌더링됩니다.
-    let rightAction = '';
-    if (isMypage) {
-      rightAction = `<button class="header-icon-btn" id="btn-logout" aria-label="로그아웃">${logoutSvg}</button>`;
-    } else {
-      rightAction = isLoggedIn
-        ? `<a href="mypage.html" class="header-icon-btn" aria-label="마이페이지">${mypageSvg}</a>`
-        : `<a href="login.html" class="header-text-btn aria-label="로그인">로그인</a>`;
-    }
+  const detailHideClass = isDetail ? 'desktop-only' : '';
 
-    headerHtml = `
-      <header class="app-header" role="banner" id="appHeader">
-        <button class="header-hamburger" id="hamburgerBtn" aria-label="전체 메뉴">${hamburgerSvg}</button>
-        <a href="index.html" class="header-logo"><span class="header-logo-text">FESTIO</span></a>
-        ${catNavHtml}
-        <div class="header-spacer"></div>
-        <div class="header-actions">
-          ${modeSwitchBtnHtml}
-          <div class="header-search-bar">${searchSvg}<input type="search" class="header-search-input" placeholder="행사명, 아티스트 검색" aria-label="검색"></div>
-          <button class="header-icon-btn mobile-search-btn" aria-label="검색">${searchSvg}</button>
-          <button class="header-icon-btn" aria-label="알림">${alarmSvg}</button>
-          ${rightAction}
-        </div>
-      </header>
-    `;
+  // 4-2. 통합 헤더 레이아웃 (홈, 서브 페이지, 상세 페이지 공통)
+  let rightAction = '';
+  if (isMypage) {
+    rightAction = `<button class="header-icon-btn ${detailHideClass}" id="btn-logout" aria-label="로그아웃" title="로그아웃">${logoutSvg}</button>`;
+  } else {
+    rightAction = isLoggedIn
+      ? `<a href="mypage.html" class="header-icon-btn ${detailHideClass}" aria-label="마이페이지" title="마이페이지">${mypageSvg}</a>`
+      : `<a href="login.html" class="header-text-btn ${detailHideClass}" aria-label="로그인">로그인</a>`;
   }
 
+  const headerClass = isIndex ? 'app-header header-home' : 'app-header';
+
+  // 상세 페이지일 경우에만 표시할 버튼 (데스크톱에선 숨기고 싶다면 CSS 클래스 추가 가능)
+  const detailExtraActions = isDetail ? `
+    <button class="header-icon-btn mobile-only" id="btn-wish-detail" data-wished="false" aria-label="찜">${wishSvg}</button>
+    <button class="header-icon-btn mobile-only" aria-label="공유">${shareSvg}</button>
+  ` : '';
+
+  const detailBackBtn = isDetail ? `
+    <button class="header-back-btn mobile-only" aria-label="뒤로가기">${backSvg}<span class="header-title">행사 상세</span></button>
+  ` : '';
+
+  headerHtml = `
+    <header class="${headerClass}" role="banner" id="appHeader">
+      <button class="header-hamburger ${detailHideClass}" id="hamburgerBtn" aria-label="전체 메뉴 열기" aria-expanded="false">${hamburgerSvg}</button>
+      ${detailBackBtn}
+      <a href="index.html" class="header-logo ${detailHideClass}" aria-label="FESTIO 홈"><span class="header-logo-text">FESTIO</span></a>
+      ${catNavHtml}
+      <div class="header-spacer"></div>
+      <div class="header-actions">
+        ${modeSwitchBtnHtml}
+        ${detailExtraActions}
+        <a href="mypage.html" class="header-text-btn ${detailHideClass}" aria-label="MY티켓">${ticketSvg}MY티켓</a>
+        <div class="header-search-bar ${detailHideClass}" role="search">${searchSvg}<input type="search" class="header-search-input" id="headerSearch" placeholder="행사명, 아티스트 검색" autocomplete="off" aria-label="검색"></div>
+        <button class="header-icon-btn mobile-search-btn ${detailHideClass}" data-open-modal="modal-mobile-search" aria-label="검색">${searchSvg}</button>
+        <button class="header-icon-btn ${detailHideClass}" aria-label="알림">${alarmSvg}</button>
+        ${rightAction}
+      </div>
+    </header>
+  `;
+
+
+  const searchModalHtml = `
+  <div class="modal-overlay modal-center" id="modal-mobile-search" role="dialog" aria-modal="true">
+    <div class="modal-sheet">
+      <div class="modal-header search-modal-header" style="display:flex; justify-content:space-between; align-items:center;">
+        <h3 style="font-size:18px; font-weight:bold; margin:0;">통합 검색</h3>
+        <button class="modal-close-btn" data-close-modal="modal-mobile-search" aria-label="닫기">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="mobile-search-form">
+          <div class="mobile-search-input-wrap">
+            <svg class="icon search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            <input type="search" class="mobile-search-input" placeholder="행사명, 아티스트명 검색" autocomplete="off">
+          </div>
+          <button class="btn btn-primary" style="margin-top:16px; width:100%;">검색</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  `;
+
   // 6. 생성된 헤더 마크업을 현재 페이지의 DOM에 직접 삽입
-  document.write(headerHtml);
+  document.write(headerHtml + searchModalHtml);
 })();

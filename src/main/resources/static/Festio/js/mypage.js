@@ -398,11 +398,21 @@ async function renderWishGrid() {
           : `<div class="wish-poster-placeholder">
                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
                  </div>`}
-            <button class="wish-remove-btn" data-event-no="${no}" aria-label="찜 해제">
-              <svg class="icon" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
-              </svg>
-            </button>
+            <div class="wish-item-actions">
+              <button class="wish-action-btn wish-add-cart-btn" data-event-no="${no}" data-event-name="${name}" data-price="${price}" aria-label="장바구니 담기">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
+                  <line x1="3" y1="6" x2="21" y2="6" />
+                  <path d="M16 10a4 4 0 01-8 0" />
+                </svg>
+              </button>
+              <button class="wish-action-btn wish-remove-btn" data-event-no="${no}" aria-label="삭제">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+              </button>
+            </div>
           </div>
           <div class="wish-poster-info">
             <p class="wish-poster-name">${name}</p>
@@ -412,8 +422,16 @@ async function renderWishGrid() {
         </div>`;
     }).join('');
 
-    // 카드 클릭 → 상세페이지 / 찜 해제 버튼
+    // 카드 클릭 → 상세페이지 / 장바구니 담기 / 찜 해제 버튼
     wishGrid.addEventListener('click', async (e) => {
+      const addCartBtn = e.target.closest('.wish-add-cart-btn');
+      if (addCartBtn) {
+        e.stopPropagation();
+        const no = parseInt(addCartBtn.dataset.eventNo);
+        // API Call to add cart
+        if (window.Toast) Toast.success('장바구니에 담았습니다.');
+        return;
+      }
       const removeBtn = e.target.closest('.wish-remove-btn');
       if (removeBtn) {
         e.stopPropagation();
@@ -2213,18 +2231,14 @@ function openQrModalView(token, type = 'TICKET') {
                 <div style="font-size: 0.8rem; color: #888; margin-top: 2px;" id="dynamicQrPurchaseDate">${dateStr} 구매</div>
             </div>
             
-            <div style="width: 100%; display: flex; flex-direction: column; align-items: center; gap: 8px;">
-              <div style="display: flex; align-items: center; gap: 8px; width: 80%; max-width: 240px;">
-                <div style="flex: 1; height: 6px; background: #EFEFEF; border-radius: 6px; overflow: hidden; position: relative;">
-                  <div id="dynamicQrTimerBar" style="position: absolute; left: 0; top: 0; height: 100%; width: 100%; background: linear-gradient(135deg, #00d2ff, #8930F8); transform-origin: left; transition: transform 1s linear, background 0.3s ease;"></div>
-                </div>
-                <button id="dynamicQrRefresh" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 2px; color: #8930F8;" title="새로고침">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
-                </button>
+            <div style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 12px; max-width: 280px; margin: 4px auto 0;">
+              <span id="dynamicQrTimerText" style="font-size: 0.9rem; font-weight: 800; color: #8930F8; display: inline-block; min-width: 42px; text-align: center;">03:00</span>
+              <div style="flex: 1; height: 6px; background: #EFEFEF; border-radius: 6px; overflow: hidden; position: relative;">
+                <div id="dynamicQrTimerBar" style="position: absolute; left: 0; top: 0; height: 100%; width: 100%; background: linear-gradient(135deg, #00d2ff, #8930F8); transform-origin: left; transition: transform 1s linear, background 0.3s ease;"></div>
               </div>
-              <div style="display: flex; justify-content: center; align-items: center; position: relative;">
-                <span id="dynamicQrTimerText" style="font-size: 0.9rem; font-weight: 800; transition: color 0.3s ease; display: inline-block;">03:00</span>
-              </div>
+              <button id="dynamicQrRefresh" style="background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 4px; color: #8930F8; transition: transform 0.2s;" title="새로고침">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
+              </button>
             </div>
 
             <div class="qr-accordion">
