@@ -9,7 +9,7 @@
     })();
   
 
-
+    document.addEventListener("DOMContentLoaded", function () {
     // 1. 가상 매출 차트 렌더링
     const options = {
       series: [{
@@ -752,3 +752,4 @@
         }
       }
     }, 150);
+});
