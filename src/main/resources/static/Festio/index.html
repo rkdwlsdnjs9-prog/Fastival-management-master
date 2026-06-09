@@ -17,7 +17,7 @@
   <!-- ══ 헤더 ═══════════════════════════════════════════════════ -->
   <script src="js/components/appHeader.js"></script>
 
-  
+
 
   <!-- 토스트 -->
   <div class="toast-container" aria-live="polite"></div>
@@ -304,7 +304,15 @@
       <div class="partner-inner">
 
         <!-- 헤더 텍스트 -->
-        <div class="partner-header">
+        <div class="partner-header" style="position: relative;">
+          <button type="button" class="partner-close-btn" id="partnerCloseBtn" aria-label="닫기"
+            style="position: absolute; top: 0; right: 0; background: #f3f4f6; border: none; cursor: pointer; padding: 6px; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+              stroke-linejoin="round" style="width: 20px; height: 20px; color: #333;">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
           <span class="partner-eyebrow">BUSINESS INQUIRY</span>
           <h2 class="partner-title">함께 성장할 파트너를 찾습니다</h2>
           <p class="partner-sub">행사 제휴, 푸드트럭 입점, 굿즈 셀러까지 — 하나의 폼으로 간편하게 신청하세요.</p>
@@ -540,8 +548,24 @@
       <path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13" stroke="currentColor" stroke-width="2"
         stroke-linecap="round" stroke-linejoin="round" />
     </svg>
-    제휴 신청하기
+    <span class="partner-floating-popup-text">제휴 신청하기</span>
   </button>
+
+  <!-- 플로팅 스크롤 이동 버튼 -->
+  <div class="floating-scroll-btns" id="floatingScrollBtns">
+    <button class="scroll-btn scroll-up" id="btnScrollUp" aria-label="위로 이동">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+        stroke-linejoin="round">
+        <polyline points="18 15 12 9 6 15"></polyline>
+      </svg>
+    </button>
+    <button class="scroll-btn scroll-down" id="btnScrollDown" aria-label="아래로 이동">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+        stroke-linejoin="round">
+        <polyline points="6 9 12 15 18 9"></polyline>
+      </svg>
+    </button>
+  </div>
 
   <script src="js/components/appFooter.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

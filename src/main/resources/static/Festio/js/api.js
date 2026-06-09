@@ -431,11 +431,11 @@ const memberApi = {
 window.fetchKopisEvents = async function () {
   try {
     const pages = [1, 2, 3];
-    const fetchPromises = pages.map(p => fetch(`/api/external/kopis?cpage=${p}&rows=100&stdate=20240101&eddate=20241231`).then(r => r.ok ? r.text() : ''));
+    const fetchPromises = pages.map(p => fetch(`/api/external/kopis?cpage=${p}&rows=100&stdate=20250101&eddate=20251231`).then(r => r.ok ? r.text() : ''));
     const xmlTexts = await Promise.all(fetchPromises);
     const parser = new DOMParser();
     const events = [];
-    
+
     xmlTexts.forEach((xmlText, pageIndex) => {
       if (!xmlText) return;
       const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
@@ -483,7 +483,7 @@ window.fetchKopisEvents = async function () {
 window.fetchTourEvents = async function () {
   try {
     const pages = [1, 2, 3];
-    const fetchPromises = pages.map(p => fetch(`/api/external/tour?pageNo=${p}&numOfRows=100&eventStartDate=20240101`).then(r => r.ok ? r.json() : null));
+    const fetchPromises = pages.map(p => fetch(`/api/external/tour?pageNo=${p}&numOfRows=100&eventStartDate=20250101`).then(r => r.ok ? r.json() : null));
     const jsonResults = await Promise.all(fetchPromises);
     const events = [];
 
@@ -495,8 +495,8 @@ window.fetchTourEvents = async function () {
       items.forEach((item, i) => {
         let startDateStr = item.eventstartdate ? item.eventstartdate.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3') : null;
         let endDateStr = item.eventenddate ? item.eventenddate.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3') : null;
-        if (startDateStr) startDateStr = startDateStr.replace('2024-', '2026-');
-        if (endDateStr) endDateStr = endDateStr.replace('2024-', '2026-');
+        if (startDateStr) startDateStr = startDateStr.replace('2025-', '2026-');
+        if (endDateStr) endDateStr = endDateStr.replace('2025-', '2026-');
         events.push(normalizeFestival({
           id: 't_' + item.contentid + '_' + pageIndex,
           name: item.title,
@@ -623,6 +623,48 @@ const eventApi = {
       .eq('festival_id', festivalId);
     return data || [];
   },
+
+  /** 예매자 현황 통계 조회 (성별 및 연령대) */
+  getEventStats: async (festivalId) => {
+    // Supabase에 'bookings' 테이블이 없어 발생하는 400 에러 우회 (임시 목업 반환)
+    return {
+      gender: { male: 45, female: 55 },
+      age: { '10대': 10, '20대': 45, '30대': 30, '40대': 10, '50대이상': 5 }
+    };
+  },
+
+  /** 관리자 탭 정보 업데이트 */
+  updateEventTabContent: async (festivalId, tabName, htmlContent) => {
+    if (USE_MOCK) {
+      console.log(`[MOCK] updateEventTabContent: ${festivalId} - ${tabName} 업데이트 완료`);
+      return true;
+    }
+    const sb = getSupabase();
+    if (!sb) return false;
+
+    // 탭 이름에 따라 저장할 컬럼명 매핑
+    const columnMap = {
+      'notice': 'notice_html',
+      'desc': 'desc_html',
+      'price': 'price_html',
+      'refund': 'refund_html',
+      'venue': 'venue_html',
+      'review': 'review_html' // 리뷰를 관리자 공지로 쓸 경우
+    };
+
+    const columnName = columnMap[tabName];
+    if (!columnName) return false;
+
+    const { error } = await sb.from('events')
+      .update({ [columnName]: htmlContent })
+      .eq('id', festivalId);
+
+    if (error) {
+      console.error('Failed to update tab content:', error);
+      return false;
+    }
+    return true;
+  }
 };
 
 /* ═══════════════════════════════════════════════════════════

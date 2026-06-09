@@ -136,7 +136,6 @@ body {
   display: flex;
   flex-direction: column;
   -webkit-font-smoothing: antialiased;
-  overflow-x: hidden;
 }
 
 a {
@@ -211,12 +210,18 @@ svg {
   right: 0;
   z-index: var(--z-header);
   height: var(--header-h);
-  background: var(--bg-surface1);
-  border-bottom: 1px solid var(--border-subtle);
+  background: transparent;
+  border-bottom: 1px solid transparent;
   display: flex;
   align-items: center;
   gap: var(--sp-3);
   padding: 0 var(--sp-4);
+  transition: background 0.3s ease, border-color 0.3s ease;
+}
+
+.app-header:hover {
+  background: var(--bg-surface1);
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 @media (min-width:1024px) {
@@ -1179,13 +1184,22 @@ svg {
   transform: translateY(20px) scale(0.95);
   opacity: 0;
 
-  background: var(--bg-primary);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   box-shadow: var(--shadow-lg);
+}
+
+.modal-overlay.modal-center.active {
+  pointer-events: none;
+  /* Allow clicking and scrolling the background */
 }
 
 .modal-overlay.modal-center.active .modal-sheet {
   transform: translateY(0) scale(1);
   opacity: 1;
+  pointer-events: all;
+  /* Keep the modal sheet itself clickable */
 }
 
 .modal-overlay.modal-center .search-modal-header {

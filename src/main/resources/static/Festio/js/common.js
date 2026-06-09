@@ -34,15 +34,22 @@ function maskName(name) {
   return name[0] + '*'.repeat(name.length - 2) + name[name.length - 1];
 }
 function calcDday(start, end) {
+  if (!start) return '종료';
   const today = new Date(); today.setHours(0, 0, 0, 0);
-  const s = new Date(start); s.setHours(0, 0, 0, 0);
+  const s = new Date(start); 
+  if (isNaN(s)) return '종료';
+  s.setHours(0, 0, 0, 0);
+  
   if (end) {
-    const e = new Date(end); e.setHours(0, 0, 0, 0);
-    if (today >= s && today <= e) {
-      const diff = Math.round((e - today) / 86400000);
-      return diff === 0 ? '오늘종료' : `진행중(D-${diff})`;
+    const e = new Date(end); 
+    if (!isNaN(e)) {
+      e.setHours(0, 0, 0, 0);
+      if (today >= s && today <= e) {
+        const diff = Math.round((e - today) / 86400000);
+        return diff === 0 ? '오늘종료' : `진행중(D-${diff})`;
+      }
+      if (today > e) return '종료';
     }
-    if (today > e) return '종료';
   }
   const diff = Math.round((s - today) / 86400000);
   if (diff < 0) return '종료';

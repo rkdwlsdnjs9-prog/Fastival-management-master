@@ -176,25 +176,25 @@
   <div class="modal-overlay modal-center" id="modal-mobile-search" role="dialog" aria-modal="true">
     <div class="modal-sheet">
       <div class="modal-header search-modal-header" style="display:flex; justify-content:space-between; align-items:center;">
-        <h3 style="font-size:18px; font-weight:bold; margin:0;">통합 검색</h3>
-        <button class="modal-close-btn" data-close-modal="modal-mobile-search" aria-label="닫기">
+        <h3 style="font-size:18px; font-weight:bold; margin:0; color:#000;">통합 검색</h3>
+        <button class="modal-close-btn" data-close-modal="modal-mobile-search" aria-label="닫기" style="color: #333; background: #f3f4f6; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border: none;">
           <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-            stroke-linecap="round" stroke-linejoin="round">
+            stroke-linecap="round" stroke-linejoin="round" style="width: 20px; height: 20px;">
             <line x1="18" y1="6" x2="6" y2="18" />
             <line x1="6" y1="6" x2="18" y2="18" />
           </svg>
         </button>
       </div>
       <div class="modal-body">
-        <div class="mobile-search-form">
-          <div class="mobile-search-input-wrap">
-            <svg class="icon search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <div class="mobile-search-form" style="display: flex; gap: 10px; align-items: center;">
+          <div class="mobile-search-input-wrap" style="flex: 1; display: flex; align-items: center; background: rgba(0,0,0,0.05); border-radius: 8px; padding: 0 12px;">
+            <svg class="icon search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;color:#666;">
               <circle cx="11" cy="11" r="8" />
               <line x1="21" y1="21" x2="16.65" y2="16.65" />
             </svg>
-            <input type="search" class="mobile-search-input" placeholder="행사명, 아티스트명 검색" autocomplete="off">
+            <input type="search" class="mobile-search-input" placeholder="행사명, 아티스트명 검색" autocomplete="off" style="width: 100%; border: none; background: transparent; outline: none; padding: 12px 8px; font-size: 15px; color: #000;">
           </div>
-          <button class="btn btn-primary" style="margin-top:16px; width:100%;">검색</button>
+          <button class="btn btn-primary" style="padding: 10px 16px; border-radius: 8px; font-size: 14px; white-space: nowrap;">검색</button>
         </div>
       </div>
     </div>

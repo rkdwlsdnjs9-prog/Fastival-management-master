@@ -169,12 +169,29 @@ function renderBentoGrid() {
     if (subData) {
       const kw = subData.v.replace('보기', '').replace('전체', '').trim();
       if (kw) {
-        items = items.filter(ev =>
-          (ev.category && ev.category.includes(kw)) ||
-          (ev.eventName && ev.eventName.includes(kw)) ||
-          (kw === '오리지널' && ev.eventName && ev.eventName.includes('내한')) ||
-          (kw === '수도권' && ev.venue && (ev.venue.includes('서울') || ev.venue.includes('경기') || ev.venue.includes('인천')))
-        );
+        items = items.filter(ev => {
+          const cat = ev.category || '';
+          const name = ev.eventName || ev.name || '';
+          const venue = ev.venue || '';
+
+          if (cat.includes(kw) || name.includes(kw)) return true;
+
+          if (kw === '국내뮤지션') return !name.includes('내한');
+          if (kw === '해외뮤지션' || kw === '오리지널') return name.includes('내한');
+          if (kw === '페스티벌') return name.includes('페스티벌') || name.includes('워터밤') || name.includes('페프');
+          if (kw === '라이선스') return name.includes('라이선스') || name.includes('한국어');
+          if (kw === '창작') return !name.includes('내한') && !name.includes('라이선스');
+          if (kw === '수도권') return venue.includes('서울') || venue.includes('경기') || venue.includes('인천');
+          if (kw === '강원권') return venue.includes('강원');
+          if (kw === '충청권') return venue.includes('대전') || venue.includes('세종') || venue.includes('충청');
+          if (kw === '경상권') return venue.includes('부산') || venue.includes('대구') || venue.includes('울산') || venue.includes('경상');
+          if (kw === '전라권') return venue.includes('광주') || venue.includes('전라');
+          if (kw === '제주권') return venue.includes('제주');
+          if (kw === '봄축제') return name.includes('봄') || name.includes('스프링') || cat.includes('봄');
+          if (kw === '가을축제') return name.includes('가을') || name.includes('어텀') || cat.includes('가을');
+
+          return false;
+        });
       }
     }
   }

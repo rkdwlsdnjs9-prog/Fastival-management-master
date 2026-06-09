@@ -43,7 +43,6 @@ async function loadData() {
   const onProgress = (partial) => {
     _events = partial || [];
     renderPosterGrid();
-    updateStats();
     buildHeroSlides();
     renderTimesale();
     renderWhatsHot();
@@ -198,9 +197,31 @@ function renderWhatsHot() {
   const grid = document.getElementById('whatsHotGrid');
   if (!grid) return;
 
-  // We need 7 popular items: 1 large, 6 small
-  const popularEvents = [..._events].sort((a, b) => (b.viewCount || b.views || 0) - (a.viewCount || a.views || 0)).slice(0, 7);
-  if (popularEvents.length < 7) {
+  // Priority keywords for WHAT'S HOT
+  const hotKeywords = ['k-pop', '아이돌', '내한', '뮤지컬', '오페라'];
+  const getScore = (ev) => {
+    let score = (ev.viewCount || ev.views || 0);
+    const title = (ev.eventName || ev.name || '').toLowerCase();
+    const cat = (ev.category || '').toLowerCase();
+    if (hotKeywords.some(k => title.includes(k) || cat.includes(k))) {
+      score += 1000000;
+    }
+    return score;
+  };
+
+  let popularEvents = [..._events].sort((a, b) => getScore(b) - getScore(a)).slice(0, 9);
+
+  if (popularEvents.length < 9) {
+    const fallback = _events.filter(e => !popularEvents.includes(e) && calcDday(e.eventDate || e.startDate, e.eventEndDate || e.endDate) !== '종료');
+    popularEvents = popularEvents.concat(fallback.slice(0, 9 - popularEvents.length));
+  }
+  if (popularEvents.length < 9 && _events.length > 0) {
+    while (popularEvents.length < 9) {
+      popularEvents = popularEvents.concat(_events.slice(0, 9 - popularEvents.length));
+    }
+  }
+
+  if (popularEvents.length === 0) {
     grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px;">데이터가 부족합니다.</div>';
     return;
   }
@@ -229,7 +250,7 @@ function renderWhatsHot() {
       <a href="detail.html?eventNo=${ev.eventNo || ev.id}" class="whats-hot-item ${isLarge ? 'large' : ''}" id="whats-hot-${ev.eventNo || ev.id}">
         <div class="whats-hot-img-wrap">
           <div class="whats-hot-img-inner" style="position:relative; width:100%; height:100%; overflow:hidden; border-radius:8px;">
-            <img src="${ev.thumbnailUrl || ''}" alt="${ev.eventName || ev.name}" class="whats-hot-img" onload="if(this.naturalWidth >= this.naturalHeight) document.getElementById('whats-hot-${ev.eventNo || ev.id}').style.display='none';">
+            <img src="${ev.thumbnailUrl || ''}" alt="${ev.eventName || ev.name}" class="whats-hot-img">
             
             <div class="whats-hot-overlay" style="border-radius:8px;">
               <h3 class="overlay-title">${(ev.eventName || ev.name || '').replace('HOT', '<span style="color:red">HOT</span>')}</h3>
@@ -259,6 +280,32 @@ function renderWhatsHot() {
 }
 
 /* ═══ 카테고리 탭바 (모바일) ════════════════════════════════ */
+
+window.applyCategory = function (cat, sub) {
+  _currentCat = cat;
+  _currentSub = sub || 'all';
+  _page = 1;
+
+  // URL 파라미터 업데이트
+  const url = new URL(location.href);
+  url.searchParams.set('cat', cat);
+  if (sub !== 'all' && sub) url.searchParams.set('sub', sub);
+  else url.searchParams.delete('sub');
+  window.history.replaceState({}, '', url);
+
+  renderMobileCatTabbar();
+
+  // common.js에 정의된 함수 호출
+  if (typeof renderDesktopSubnav === 'function') {
+    renderDesktopSubnav(cat, _currentSub);
+  } else if (window.renderDesktopSubnav) {
+    window.renderDesktopSubnav(cat, _currentSub);
+  }
+
+  // 데이터 다시 불러오기
+  loadData();
+};
+
 function renderMobileCatTabbar() {
   const container = document.getElementById('catTabbar');
   if (!container) return;
@@ -307,9 +354,16 @@ function getFilteredEvents() {
     );
   }
 
-  // 종료된 행사 하단으로
-  const active = items.filter(e => calcDday(e.eventDate || e.startDate, e.eventEndDate || e.endDate) !== '종료');
-  const ended = items.filter(e => calcDday(e.eventDate || e.startDate, e.eventEndDate || e.endDate) === '종료');
+  const getStatus = (e) => {
+    const dday = calcDday(e.eventDate || e.startDate, e.eventEndDate || e.endDate);
+    if (dday === '종료') return 3; // 종료
+    if (dday.includes('진행중') || dday === '오늘종료' || dday === 'D-DAY') return 1; // 진행 중
+    return 2; // 진행 예정 (D-x)
+  };
+
+  const ongoing = items.filter(e => getStatus(e) === 1);
+  const upcoming = items.filter(e => getStatus(e) === 2);
+  const ended = items.filter(e => getStatus(e) === 3);
 
   // 정렬
   const sort = (arr) => {
@@ -318,7 +372,7 @@ function getFilteredEvents() {
     return arr; // latest (API 순서)
   };
 
-  return [...sort(active), ...ended];
+  return [...sort(ongoing), ...sort(upcoming), ...sort(ended)];
 }
 
 function renderPosterGrid() {
@@ -404,7 +458,7 @@ function buildPosterCard(ev, idx) {
     <div class="poster-card" data-event-no="${no}" tabindex="0" role="button" aria-label="${name}">
       <div class="poster-img-wrap">
         ${thumb
-      ? `<img src="${thumb}" alt="${name}" loading="lazy" onload="if(this.naturalWidth >= this.naturalHeight) this.closest('.poster-card').style.display='none';">`
+      ? `<img src="${thumb}" alt="${name}" loading="lazy">`
       : `<div class="poster-placeholder">
                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
              </div>`}
@@ -599,74 +653,52 @@ function renderTicketOpenAndUnivFest() {
         return `
           <a href="detail.html?eventNo=${no}" class="ticket-open-item">
             <div class="ticket-img-wrap">
-              ${thumb ? `<img src="${thumb}" alt="${name}" class="ticket-cover">` : `<div class="ticket-cover" style="background:var(--bg-elevated);"></div>`}
+              ${thumb ? `<img src="${thumb}" alt="${name}" class="ticket-cover">` : `<div class="ticket-cover" style="background:var(--bg-elevated)"></div>`}
               ${badge}
               ${todayOverlay}
             </div>
             <div class="ticket-info">
-              <div class="ticket-date">${date ? formatDateKo(date) : '-'}</div>
-              <div class="ticket-name">${name}</div>
+              <h4 class="ticket-title">${name}</h4>
+              <p class="ticket-date">${date}</p>
             </div>
           </a>
         `;
-      }).join('');
+      }).join("");
     } else {
-      ticketOpenGrid.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding: 2rem;">티켓 오픈 예정 행사가 없습니다.</div>';
+      ticketOpenGrid.innerHTML = `<div class="empty-state">티켓 오픈 예정인 행사가 없습니다.</div>`;
     }
   }
 }
 
-/* ═══ 통계 업데이트 ═════════════════════════════════════════ */
-function updateStats() {
-  const total = document.getElementById('statTotal');
-  const hot = document.getElementById('statHot');
-  if (total) total.innerHTML = `<span>${_events.length}</span>개`;
-  if (hot) hot.innerHTML = `<span>${_events.filter(e => e.isHot).length}</span>개`;
-}
-
-/* ═══ 카테고리/검색 적용 (전역) ════════════════════════════ */
-window.applyCategory = (cat, sub = 'all') => {
-  _currentCat = cat;
-  _currentSub = sub;
-  _page = 1;
-  _searchQuery = '';
-  sessionStorage.setItem('idx_cat', cat);
-  sessionStorage.setItem('idx_sub', sub);
-
-  // 모바일 탭 active
-  $$('.cat-tabbar-item').forEach(t => t.classList.toggle('active', t.dataset.cat === cat));
-  // 데스크톱 헤더 active
-  $$('.header-cat-item').forEach(t => t.classList.toggle('active', t.dataset.cat === cat));
-  // 서브탭 업데이트
-  renderDesktopSubnav(cat, sub);
-
-  renderPosterGrid();
-};
-
-window.applySubCategory = (sub) => {
-  _currentSub = sub;
-  _page = 1;
-  renderPosterGrid();
-};
-
-window.applySort = (sort) => {
-  _currentSort = sort;
-  _page = 1;
-  renderPosterGrid();
-};
-
-window.applySearch = (q) => {
-  _searchQuery = q;
-  _page = 1;
-  renderPosterGrid();
-};
-
-/* ═══ 더보기 ════════════════════════════════════════════════ */
 function initLoadMore() {
-  on(document.getElementById('loadMoreBtn'), 'click', () => {
-    _page++;
-    renderPosterGrid();
+  const loadMoreBtn = document.getElementById('btnLoadMore'); // FIXED ID
+  if (!loadMoreBtn) return;
+
+  loadMoreBtn.addEventListener('click', () => {
+    if (window.innerWidth >= 1024) {
+      location.href = `list.html?cat=${_currentCat}`;
+    }
   });
+
+  window.addEventListener('scroll', () => {
+    if (window.innerWidth < 1024) {
+      loadMoreBtn.style.display = 'none';
+      const wrap = document.getElementById('loadMoreWrap');
+      if (!wrap || wrap.style.display === 'none') return;
+
+      const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+      if (scrollTop + clientHeight >= scrollHeight - 300) {
+        if (!window._isFetchingMore) {
+          window._isFetchingMore = true;
+          _page++;
+          renderPosterGrid();
+          setTimeout(() => { window._isFetchingMore = false; }, 500);
+        }
+      }
+    } else {
+      loadMoreBtn.style.display = '';
+    }
+  }, { passive: true });
 }
 
 /* ═══ URL 파라미터 읽기 ════════════════════════════════════ */
@@ -712,19 +744,36 @@ document.addEventListener('DOMContentLoaded', async () => {
   let isPartnerFormOpen = false;
 
   if (partnerSection && floatingPopup) {
-    // 1. 스크롤 300px 이상 내렸을 때 팝업 노출 로직
+    floatingPopup.classList.add('show'); // 초기 상태 노출
+
+    // 1. 스크롤 300px 이상 내렸을 때 팝업 노출 및 크기 축소 로직
     window.addEventListener('scroll', () => {
       const scrollY = window.scrollY;
 
-      // 제휴폼이 열려있지 않고, 스크롤이 300 이상일 때만 노출
-      if (!isPartnerFormOpen && scrollY > 300) {
+      // 제휴폼이 열려있지 않으면 항상 노출하되, 300px 이상일 때 축소(scrolled)
+      if (!isPartnerFormOpen) {
         floatingPopup.classList.add('show');
+        if (scrollY > 300) {
+          floatingPopup.classList.add('scrolled');
+        } else {
+          floatingPopup.classList.remove('scrolled');
+        }
       } else {
         floatingPopup.classList.remove('show');
+        floatingPopup.classList.remove('scrolled');
+      }
+
+      // 플로팅 위아래 스크롤 버튼 노출
+      const scrollBtns = document.getElementById('floatingScrollBtns');
+      if (scrollBtns) {
+        if (scrollY > 300) {
+          scrollBtns.classList.add('show');
+        } else {
+          scrollBtns.classList.remove('show');
+        }
       }
     }, { passive: true });
 
-    // 2. 플로팅 팝업 클릭 시 제휴폼 영역 열고 스무스 스크롤 이동
     // 2. 플로팅 팝업 클릭 시 제휴폼 영역 열고 스무스 스크롤 이동
     floatingPopup.addEventListener('click', () => {
       isPartnerFormOpen = true;
@@ -733,10 +782,48 @@ document.addEventListener('DOMContentLoaded', async () => {
       // 제휴폼 펼치기
       partnerSection.classList.add('open');
 
-      // 애니메이션이 약간 진행된 후 스크롤 이동하여 자연스럽게 포커스 맞춤
+      // 애니메이션이 약간 진행된 후 스크롤 이동하여 자연스럽게 포커스 맞춤 (데스크톱만)
       setTimeout(() => {
-        partnerSection.scrollIntoView({ behavior: 'smooth', block: 'end' });
+        if (window.innerWidth >= 1024) {
+          partnerSection.scrollIntoView({ behavior: 'smooth', block: 'end' });
+        }
       }, 100);
+    });
+
+    // 모바일 등에서 닫기 버튼 처리
+    const partnerCloseBtn = document.getElementById('partnerCloseBtn');
+    if (partnerCloseBtn) {
+      partnerCloseBtn.addEventListener('click', () => {
+        partnerSection.classList.remove('open');
+        isPartnerFormOpen = false;
+        // 팝업 버튼 다시 노출
+        if (window.scrollY < 300) {
+          floatingPopup.classList.add('show');
+        } else {
+          floatingPopup.classList.add('show', 'scrolled');
+        }
+      });
+    }
+
+    // Removed duplicate partner popup click listener here
+  }
+
+  // 상하단 스크롤 버튼 이벤트 추가
+  const btnScrollUp = document.getElementById('btnScrollUp');
+  const btnScrollDown = document.getElementById('btnScrollDown');
+  if (btnScrollUp) {
+    btnScrollUp.addEventListener('click', () => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  }
+  if (btnScrollDown) {
+    btnScrollDown.addEventListener('click', () => {
+      const timesaleSection = document.querySelector('.timesale-section') || document.querySelector('.ticket-section');
+      if (timesaleSection) {
+        timesaleSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } else {
+        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+      }
     });
   }
 });

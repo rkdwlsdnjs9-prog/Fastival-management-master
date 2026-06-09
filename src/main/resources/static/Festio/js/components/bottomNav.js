@@ -28,7 +28,7 @@
       <a href="list.html" class="bottom-nav-item ${isList ? 'active' : ''}" aria-label="전체행사">
         ${listSvg}<span>전체행사</span>
       </a>
-      <button class="bottom-nav-item" aria-label="검색">
+      <button class="bottom-nav-item mobile-search-btn" aria-label="검색">
         ${searchSvg}<span>검색</span>
       </button>
       <button class="bottom-nav-item" aria-label="찜">
