@@ -1,7 +1,7 @@
 // UI rendering and core control panel module
 import { DB, saveDB, publish, subscribe, addNotification, toggleWebsocketSimulation } from './store.js';
 import { getCurrentUser, login, logout, getStaffList, generateTemporaryAccount } from './auth.js';
-import { initializeQRScanner, stopQRScanner, validateTicketState, validateExchangeQR } from './scanner.js';
+import { initializeQRScanner, stopQRScanner, validateTicketState, validateExchangeQR } from './scanner.js?v=totp-fix';
 import { getSeatStats, renderSeatMap, setupRealtimeSeatSync, manualReserveSeat, releaseSeat } from './seats.js';
 import { calculateTicketPrice, requestTossPayment, requestRefund, acceptRefund } from './payments.js';
 import { getGoodsAvailableStock, lockGoodsStock, unlockGoodsStock, finalizeGoodsPurchase, updateGoodsStock, registerGoods, toggleFoodIngredientOut, registerFood, updateSeasonalPrice, toggleActiveSeason } from './inventory.js';
@@ -821,22 +821,13 @@ function renderScannerScreen() {
           </div>
           <button id="btn-stop-camera" class="btn btn-rigid btn-red" style="display:none; margin-top:10px;">카메라 끄기 / 스캔 중단</button>
           
-          <!-- Confirm Scan Overlay -->
-          <div id="scan-confirm-screen" style="display:none; position:absolute; bottom:10%; left:50%; transform:translateX(-50%); z-index:10000; width:90%; max-width:350px; background:rgba(15,23,42,0.95); border-radius:16px; box-shadow:0 15px 35px rgba(0,0,0,0.8); padding:20px; text-align:center; border:2px solid #eab308;">
-            <h2 style="margin:0 0 10px 0; font-size:20px; font-weight:900; color:#eab308;">입장 처리 대기</h2>
-            <div id="scan-confirm-ticket" style="font-family:var(--font-mono); color:#f8fafc; font-size:18px; margin-bottom:15px; font-weight:bold;"></div>
-            <p style="margin:0 0 20px 0; font-size:15px; color:#cbd5e1;">이 티켓을 입장 처리하시겠습니까?</p>
-            <div style="display:flex; gap:10px;">
-              <button id="btn-cancel-scan" class="btn btn-rigid btn-red" style="flex:1;">취소</button>
-              <button id="btn-confirm-scan" class="btn btn-rigid btn-green" style="flex:1;">확인</button>
-            </div>
-          </div>
+          <!-- Confirm Scan Overlay (Removed to speed up line) -->
           
           <!-- Active Validation Overlay (Floating over camera) -->
           <div id="scan-validation-screen" style="display:none; position:absolute; bottom:10%; left:50%; transform:translateX(-50%); z-index:9999; width:90%; max-width:350px; background:rgba(15,23,42,0.95); border-radius:16px; box-shadow:0 15px 35px rgba(0,0,0,0.8); padding:20px; text-align:center; border:2px solid #38bdf8;">
             <div id="scan-result-card-inner" style="background:transparent; padding:0; box-shadow:none;">
               <h2 id="scan-result-title" style="margin:0 0 5px 0; font-size:24px; font-weight:900;">VALID</h2>
-              <div id="scan-result-ticket-number" style="font-family:var(--font-mono); color:#38bdf8; font-size:20px; margin-bottom:10px; font-weight:bold; letter-spacing:1px;"></div>
+              <div id="scan-result-ticket-number" style="display:none;"></div>
               <p id="scan-result-msg" style="margin:0; font-size:14px; color:#cbd5e1; word-break:keep-all;"></p>
               <button id="btn-close-scan-overlay" class="btn btn-rigid btn-green" style="margin-top:15px; width:100%; font-weight:bold; padding:12px;">확인 및 계속 스캔</button>
             </div>
@@ -844,14 +835,6 @@ function renderScannerScreen() {
         </div>
         <div style="margin-top: 15px;">
           <button id="btn-start-camera" class="btn btn-rigid btn-blue">카메라 연결 및 스캔 시작</button>
-        </div>
-        
-        <div class="manual-input-box">
-          <label>QR 스캔 곤란 시 수동 티켓 ID 검증</label>
-          <div style="display:flex; gap:10px; margin-top:5px;">
-            <input type="text" id="manual-ticket-id" placeholder="T-XXXX 포맷 입력" class="input-rigid" style="flex:1;">
-            <button id="btn-manual-verify" class="btn btn-rigid btn-green">검증 & 입장</button>
-          </div>
         </div>
       </div>
     </div>
@@ -862,39 +845,15 @@ function renderScannerScreen() {
   const startCamBtn = document.getElementById("btn-start-camera");
   const stopCamBtn = document.getElementById("btn-stop-camera");
   
-  // Confirmation Prompt Logic
+  // Confirmation Prompt Logic (Bypassed for speed)
   function askConfirmScan(decodedText) {
-    return new Promise((resolve) => {
-      const confirmScreen = document.getElementById("scan-confirm-screen");
-      const tNumElem = document.getElementById("scan-confirm-ticket");
-      const btnOk = document.getElementById("btn-confirm-scan");
-      const btnCancel = document.getElementById("btn-cancel-scan");
-      
-      const tNum = decodedText.startsWith("FESTIO:TICKET:") ? decodedText.split(":")[2] : decodedText;
-      tNumElem.innerText = `🎫 ${tNum}`;
-      
-      confirmScreen.style.display = "block";
-      
-      btnOk.onclick = () => {
-        confirmScreen.style.display = "none";
-        resolve(true);
-      };
-      btnCancel.onclick = () => {
-        confirmScreen.style.display = "none";
-        resolve(false);
-      };
-    });
+    return Promise.resolve(true); // 항상 즉시 승인 (팝업 안 띄움)
   }
 
   startCamBtn.onclick = () => {
     initializeQRScanner("qr-camera-reader", 
       async (decodedText) => {
-        const isConfirmed = await askConfirmScan(decodedText);
-        if (isConfirmed) {
-            return await triggerScanValidationUI(decodedText);
-        } else {
-            return null;
-        }
+        return await triggerScanValidationUI(decodedText);
       }
     );
     
@@ -973,19 +932,6 @@ function renderScannerScreen() {
     if (styleElem) styleElem.remove();
     
     startCamBtn.style.display = "inline-block";
-    stopCamBtn.style.display = "none";
-  };
-
-  // Manual verify binding
-  document.getElementById("btn-manual-verify").onclick = async () => {
-    const input = document.getElementById("manual-ticket-id");
-    const id = input.value.trim().toUpperCase();
-    if (!id) return;
-    const isConfirmed = await askConfirmScan(id);
-    if (isConfirmed) {
-        await triggerScanValidationUI(id);
-    }
-    input.value = "";
   };
 }
 
@@ -1456,12 +1402,63 @@ async function renderTicketingScreen() {
           });
 
           if (!res.ok) throw new Error("API Error");
+          const result = await res.json();
 
           // Publish global payment complete
           publish("payment-complete", { customer: holder, amount: totalPrice });
           addNotification("TICKET", `현장 고객 ${holder}님 일괄 예매 완료: 좌석 [${seatIdsText}]`);
 
-          alert(`결제 및 좌석 ${selectedSeats.length}개 예매가 성공적으로 서버에 저장되었습니다!`);
+          // ================= [ 방안 3: 영수증 프린터로 모바일 접속용 QR 인쇄 ] =================
+          const secretStr = result.qrPayload.replace('SECRET:', '');
+          const ticketUrl = `${window.location.origin}/features/user/ticket/view.html?orderId=${result.orderId}&secret=${secretStr}`;
+          const qrImgSrc = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(ticketUrl)}`;
+          
+          const printWindow = window.open('', '_blank', 'width=400,height=700');
+          const receiptHtml = `
+            <html>
+            <head>
+              <title>영수증 티켓 출력</title>
+              <style>
+                body { font-family: 'Malgun Gothic', 'Courier New', monospace; width: 300px; margin: 0 auto; padding: 20px; text-align: center; color: black; background: white; }
+                .divider { border-bottom: 1px dashed black; margin: 15px 0; }
+                .title { font-size: 22px; font-weight: bold; margin-bottom: 5px; }
+                .qrcode { margin: 20px 0; }
+                .info { font-size: 14px; text-align: left; line-height: 1.6; }
+                .footer { font-size: 12px; margin-top: 20px; }
+                @media print {
+                  @page { margin: 0; }
+                  body { width: 100%; margin: 0; padding: 0; }
+                }
+              </style>
+            </head>
+            <body>
+              <div class="title">FESTIO 영수증 티켓</div>
+              <div>[ 현장결제 완료 ]</div>
+              <div class="divider"></div>
+              <div class="info">
+                <strong>주문번호:</strong> ORD-${result.orderId}<br>
+                <strong>좌석정보:</strong> ${seatIdsText}<br>
+                <strong>티켓번호:</strong> ${result.ticketNumber}<br>
+                <strong>결제금액:</strong> ${totalPrice.toLocaleString()}원
+              </div>
+              <div class="divider"></div>
+              <div class="qrcode">
+                <img src="${qrImgSrc}" width="160" height="160" onload="window.print();" />
+              </div>
+              <div style="font-weight: bold; font-size: 16px; margin-bottom: 10px;">스마트폰으로 스캔하세요!</div>
+              <div class="footer">
+                카메라 앱으로 위 QR코드를 스캔하시면<br>입장용 움직이는 모바일 티켓이 열립니다.<br><br>
+                입장 게이트 스태프에게<br>폰 화면을 보여주세요.
+              </div>
+              <div class="divider"></div>
+              <div>감사합니다</div>
+            </body>
+            </html>
+          `;
+          printWindow.document.write(receiptHtml);
+          printWindow.document.close();
+          // ==============================================================================
+
           selectedSeats = [];
           
           // Re-render to fetch newly reserved seats from backend

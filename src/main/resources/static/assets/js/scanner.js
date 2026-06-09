@@ -140,7 +140,7 @@ function playBeep(status) {
 // Validates ticket state and performs mutations in the Mock DB or Memory DB
 export async function validateTicketState(text) {
   // New Backend Check for Live QR Tickets
-  if (text.startsWith("FESTIO:TICKET:")) {
+  if (text.startsWith("FESTIO:TICKET:") || text.startsWith("TOTP:")) {
       try {
           const res = await fetch('/api/order/tickets/scan', {
               method: 'POST',

@@ -167,9 +167,8 @@ public class OrderController {
     }
 
     // -------------------------------------------------------------
-    // [메모리(RAM) 기반 QR 텍스트 임시 보관소] - DB 저장 안 함!
+    // [Supabase DB 기반 QR 데이터 연동 및 TOTP]
     // -------------------------------------------------------------
-    private static final Map<Long, Map<String, String>> qrMemoryStore = new java.util.concurrent.ConcurrentHashMap<>();
 
     private String generateRandomTicketNumber() {
         String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -181,24 +180,91 @@ public class OrderController {
         return sb.toString();
     }
 
+    private String generateHexSecret() {
+        java.security.SecureRandom random = new java.security.SecureRandom();
+        byte[] bytes = new byte[20];
+        random.nextBytes(bytes);
+        StringBuilder sb = new StringBuilder();
+        for (byte b : bytes) {
+            sb.append(String.format("%02x", b));
+        }
+        return sb.toString();
+    }
+
+    private boolean verifyTotp(String hexSecret, String codeToVerify) {
+        try {
+            byte[] key = new byte[hexSecret.length() / 2];
+            for (int i = 0; i < key.length; i++) {
+                key[i] = (byte) Integer.parseInt(hexSecret.substring(i * 2, i * 2 + 2), 16);
+            }
+            long currentTime = System.currentTimeMillis() / 30000;
+            
+            for (int i = -1; i <= 1; i++) {
+                String calculated = generateTotpCode(key, currentTime + i);
+                if (calculated.equals(codeToVerify)) {
+                    return true;
+                }
+            }
+            return false;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private String generateTotpCode(byte[] key, long timeWindow) throws Exception {
+        byte[] data = new byte[8];
+        for (int i = 7; i >= 0; i--) {
+            data[i] = (byte) (timeWindow & 0xFF);
+            timeWindow >>= 8;
+        }
+        
+        javax.crypto.Mac mac = javax.crypto.Mac.getInstance("HmacSHA1");
+        mac.init(new javax.crypto.spec.SecretKeySpec(key, "RAW"));
+        byte[] hash = mac.doFinal(data);
+        
+        int offset = hash[hash.length - 1] & 0xF;
+        int binary =
+            ((hash[offset] & 0x7f) << 24) |
+            ((hash[offset + 1] & 0xff) << 16) |
+            ((hash[offset + 2] & 0xff) << 8) |
+            (hash[offset + 3] & 0xff);
+            
+        int otp = binary % 1000000;
+        return String.format("%06d", otp);
+    }
+
+    private void insertScanLog(Long orderId, Long scannerUserId, boolean isValid) {
+        try {
+            jdbcTemplate.update(
+                "INSERT INTO scan_log (order_id, scanner_user_id, is_valid, scanned_at) VALUES (?, ?, ?, NOW())",
+                orderId, scannerUserId, isValid
+            );
+        } catch (Exception e) {
+            System.err.println("Failed to insert scan_log: " + e.getMessage());
+        }
+    }
+
     @PostMapping("/ticket")
     public Map<String, Object> createTicketOrder(@RequestBody Map<String, Object> payload) {
         int totalPrice = (Integer) payload.get("totalPrice");
         List<String> seats = (List<String>) payload.get("seats");
         String seatIdsStr = String.join(", ", seats);
         
-        KeyHolder keyHolder = new GeneratedKeyHolder();
-        jdbcTemplate.update(connection -> {
-            PreparedStatement ps = connection.prepareStatement(
-                "INSERT INTO orders (user_id, festival_id, total_price, payment_status, created_at, seat_ids) VALUES (1, 1, ?, 'PAID', NOW(), ?)", 
-                new String[] {"id"});
-            ps.setInt(1, totalPrice);
-            ps.setString(2, seatIdsStr);
-            return ps;
-        }, keyHolder);
+        // QR 텍스트 데이터 및 고유 난수 생성
+        String ticketNum = generateRandomTicketNumber();
         
-        Number key = keyHolder.getKey();
-        Long orderId = key != null ? key.longValue() : 1L;
+        // PostgreSQL의 RETURNING id 기능을 사용하여 확실하게 INSERT 후 ID 조회 및 기본값 셋팅
+        String insertSql = "INSERT INTO orders (user_id, festival_id, total_price, payment_status, created_at, seat_ids, is_entered, ticket_type, ticket_number) " +
+                           "VALUES (NULL, 1, ?, 'PAID', NOW(), ?, false, 'ONSITE', ?) RETURNING id";
+        
+        Long orderId = jdbcTemplate.queryForObject(insertSql, Long.class, totalPrice, seatIdsStr, ticketNum);
+        
+        // 보안 요구사항: TOTP 전용 비밀키 생성 후 DB에 저장
+        String secret = generateHexSecret();
+        String qrPayload = "SECRET:" + secret;
+        
+        // 정확한 orderId를 기반으로 무작위 생성된 qr_code를 즉시 업데이트
+        jdbcTemplate.update("UPDATE orders SET qr_code = ? WHERE id = ?", qrPayload, orderId);
         
         for (String seat : seats) {
             String zone = seat.split("-")[0];
@@ -213,16 +279,6 @@ public class OrderController {
             }
         }
         
-        // 메모리에 QR 텍스트 데이터 및 고유 난수 등록
-        String ticketNum = generateRandomTicketNumber();
-        String qrPayload = "FESTIO:TICKET:" + ticketNum + ":ORD" + orderId;
-        
-        Map<String, String> qrData = new HashMap<>();
-        qrData.put("ticketNumber", ticketNum);
-        qrData.put("qrPayload", qrPayload);
-        qrData.put("seats", seatIdsStr);
-        qrMemoryStore.put(orderId, qrData);
-        
         Map<String, Object> res = new HashMap<>();
         res.put("status", "success");
         res.put("orderId", orderId);
@@ -233,50 +289,104 @@ public class OrderController {
 
     @GetMapping("/tickets/qr")
     public List<Map<String, Object>> getQrTickets() {
+        String sql = "SELECT id as order_id, qr_code, is_entered, seat_ids, ticket_number " +
+                     "FROM orders " +
+                     "WHERE qr_code IS NOT NULL " +
+                     "ORDER BY id DESC";
+        List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql);
         List<Map<String, Object>> result = new ArrayList<>();
-        for (Map.Entry<Long, Map<String, String>> entry : qrMemoryStore.entrySet()) {
+        
+        for (Map<String, Object> row : rows) {
             Map<String, Object> map = new HashMap<>();
-            map.put("orderId", entry.getKey());
-            map.putAll(entry.getValue());
+            map.put("orderId", row.get("order_id"));
+            
+            String qrCode = (String) row.get("qr_code");
+            if (qrCode != null && qrCode.startsWith("SECRET:")) {
+                map.put("secret", qrCode.substring(7));
+            } else {
+                map.put("secret", qrCode);
+            }
+            
+            map.put("ticketNumber", row.get("ticket_number"));
+            map.put("seats", row.get("seat_ids"));
+            Boolean isEntered = (Boolean) row.get("is_entered");
+            if (isEntered != null && isEntered) {
+                map.put("used", "true");
+            }
             result.add(map);
         }
-        // 최신 순 정렬
-        result.sort((a, b) -> ((Long) b.get("orderId")).compareTo((Long) a.get("orderId")));
         return result;
     }
+
     @PostMapping("/tickets/scan")
     public Map<String, Object> scanQrTicket(@RequestBody Map<String, String> payload) {
-        String qrText = payload.get("qrText");
+        String qrText = payload.get("qrText"); // format: TOTP:15:123456
         Map<String, Object> res = new HashMap<>();
         
-        Long foundOrderId = null;
-        Map<String, String> foundData = null;
-        
-        for (Map.Entry<Long, Map<String, String>> entry : qrMemoryStore.entrySet()) {
-            if (qrText.equals(entry.getValue().get("qrPayload"))) {
-                foundOrderId = entry.getKey();
-                foundData = entry.getValue();
-                break;
-            }
-        }
-        
-        if (foundOrderId == null) {
+        if (qrText == null || !qrText.startsWith("TOTP:")) {
             res.put("status", "INVALID");
-            res.put("message", "존재하지 않거나 올바르지 않은 QR 티켓입니다.");
+            res.put("message", "올바른 동적(TOTP) 모바일 티켓 형식이 아닙니다.");
             return res;
         }
         
-        if ("true".equals(foundData.get("used"))) {
+        String[] parts = qrText.split(":");
+        if (parts.length != 3) {
+            res.put("status", "INVALID");
+            res.put("message", "티켓 데이터가 손상되었습니다.");
+            return res;
+        }
+        
+        Long orderId;
+        String totpCode = parts[2];
+        try {
+            orderId = Long.parseLong(parts[1]);
+        } catch (Exception e) {
+            res.put("status", "INVALID");
+            res.put("message", "주문 번호를 인식할 수 없습니다.");
+            return res;
+        }
+        
+        List<Map<String, Object>> orders = jdbcTemplate.queryForList(
+            "SELECT id, seat_ids, is_entered, qr_code FROM orders WHERE id = ?", orderId
+        );
+        
+        if (orders.isEmpty()) {
+            res.put("status", "INVALID");
+            res.put("message", "존재하지 않는 주문이거나 올바르지 않은 티켓입니다.");
+            return res;
+        }
+        
+        Map<String, Object> order = orders.get(0);
+        String savedSecret = (String) order.get("qr_code");
+        if (savedSecret == null || !savedSecret.startsWith("SECRET:")) {
+            res.put("status", "INVALID");
+            res.put("message", "구형 티켓입니다. 최신 TOTP 티켓을 발급받아주세요.");
+            return res;
+        }
+        
+        String hexSecret = savedSecret.substring(7);
+        if (!verifyTotp(hexSecret, totpCode)) {
+            res.put("status", "INVALID");
+            res.put("message", "시간이 초과되었거나 복사된 위조 티켓입니다. 앱을 열어 새로고침된 QR을 스캔해주세요.");
+            return res;
+        }
+        Boolean isEntered = (Boolean) order.get("is_entered");
+        String seats = (String) order.get("seat_ids");
+        
+        if (isEntered != null && isEntered) {
+            insertScanLog(orderId, 1L, false); // 중복 스캔 (실패 로그)
             res.put("status", "ALREADY_ENTERED");
             res.put("message", "이미 입장 처리된 티켓입니다! (중복 입장 불가)");
-            res.put("seats", foundData.get("seats"));
+            res.put("seats", seats);
             return res;
         }
         
-        foundData.put("used", "true");
+        jdbcTemplate.update("UPDATE orders SET is_entered = true WHERE id = ?", orderId);
+        insertScanLog(orderId, 1L, true); // 정상 스캔 (성공 로그)
+        
         res.put("status", "VALID");
-        res.put("message", "유효성 검증 성공! 입장 처리되었습니다. (좌석: " + foundData.get("seats") + ")");
-        res.put("seats", foundData.get("seats"));
+        res.put("message", "유효성 검증 성공! 입장 처리되었습니다. (좌석: " + seats + ")");
+        res.put("seats", seats);
         
         return res;
     }
@@ -297,9 +407,9 @@ public class OrderController {
         jdbcTemplate.update("UPDATE orders SET payment_status = ? WHERE id = ?", nextStatus, id);
         
         if ("REFUNDED".equals(nextStatus)) {
-            // 메모리에서 해당 티켓 데이터 삭제 (환불됨)
-            qrMemoryStore.remove(id);
+            // 환불 시 QR 데이터 초기화 및 좌석 반환
             try {
+                jdbcTemplate.update("UPDATE orders SET qr_code = NULL WHERE id = ?", id);
                 String seatIdsStr = jdbcTemplate.queryForObject(
                     "SELECT seat_ids FROM orders WHERE id = ?", String.class, id);
                 if (seatIdsStr != null && !seatIdsStr.isEmpty()) {

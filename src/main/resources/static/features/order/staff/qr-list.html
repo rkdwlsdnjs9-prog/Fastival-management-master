@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>(임시) QR 목록 | FESTIO</title>
+  <title>현장 발권 내역 (QR) | FESTIO</title>
   <link rel="stylesheet" href="/assets/css/custom.css">
 </head>
 <body>
@@ -20,7 +20,7 @@
     <main id="main-container">
       <header id="header">
         <button id="toggle-sidebar-btn" class="header-menu-btn">≡</button>
-        <div id="header-checkpoint">임시 메뉴</div>
+        <div id="header-checkpoint">티켓 관리</div>
         <div class="header-actions">
           <span id="header-user">인증 대기 중</span>
           <button id="logout-btn">로그아웃</button>
@@ -30,9 +30,9 @@
       <div id="main-content">
         <section class="content-view active">
           <div class="panel-rigid">
-            <div class="panel-header-rigid">(임시) 서버 메모리 QR 티켓 목록 조회</div>
+            <div class="panel-header-rigid">현장 발권 및 QR 티켓 목록 (DB 연동)</div>
             <div class="panel-body-rigid">
-              <p>현재 서버 메모리에 생성된 발급 완료 QR 코드 및 티켓 번호를 조회하는 임시 화면입니다.</p>
+              <p>Supabase 데이터베이스에 실시간으로 저장된 발급 완료 QR 코드 및 티켓 내역을 조회합니다.</p>
               <button id="btn-load-qr" class="btn btn-rigid btn-small btn-blue">새로고침</button>
               <div id="qr-list-container" style="margin-top: 20px;">
                 <!-- QR lists will be displayed here dynamically -->
@@ -46,6 +46,8 @@
 
   <script type="module">
     import { initPage } from '/assets/js/ui.js';
+    
+
     document.addEventListener("DOMContentLoaded", () => { 
         initPage('qr-list'); 
         
@@ -57,30 +59,54 @@
                 const data = await res.json();
                 
                 if (!data || data.length === 0) {
-                    container.innerHTML = "<div style='color:#ef4444; padding:20px; border:1px solid #ef4444; border-radius:8px;'>현재 메모리에 발급된 티켓(QR)이 없습니다.<br>현장 예매를 진행하면 여기에 티켓이 나타납니다. (서버 재시작 시 초기화됨)</div>";
+                    container.innerHTML = "<div style='color:#ef4444; padding:20px; border:1px solid #ef4444; border-radius:8px;'>현재 발급된 티켓(QR)이 없습니다.<br>현장 예매를 진행하면 여기에 티켓이 나타납니다.</div>";
                     return;
                 }
                 
-                let html = '<div style="display: flex; gap: 20px; flex-wrap: wrap;">';
+                let html = '<div style="display: flex; gap: 25px; flex-wrap: wrap; background: #0d1117; padding: 20px; border-radius: 12px;">';
                 data.forEach(item => {
-                    // Use a free public API to generate a QR image from the text payload instantly
-                    const qrImgUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(item.qrPayload)}`;
+                    const ticketUrl = window.location.origin + '/features/user/ticket/view.html?orderId=' + item.orderId + '&secret=' + item.secret;
+                    const qrImgUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(ticketUrl)}`;
+                    const isUsed = item.used === "true";
+                    const opacityStyle = isUsed ? "opacity: 0.5; pointer-events: none;" : "";
+                    const stampHtml = isUsed ? `<div style="position:absolute; top:40%; left:50%; transform:translate(-50%, -50%) rotate(-15deg); border:4px solid #ef4444; color:#ef4444; font-size:28px; font-weight:900; padding:10px 20px; border-radius:10px; z-index:10; background:rgba(255,255,255,0.8); text-shadow:1px 1px 0px white;">입장 완료</div>` : "";
                     
                     html += `
-                        <div style="border: 2px solid #30363d; border-radius: 12px; padding: 20px; width: 280px; text-align: center; background-color: #161b22; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
-                            <h3 style="margin-top: 0; color: #10b981; font-weight: 900;">🎟️ ORD-${item.orderId}</h3>
-                            <div style="font-family: var(--font-mono); color: #38bdf8; font-size: 1.2rem; font-weight: bold; margin-bottom: 10px; background: rgba(56, 189, 248, 0.1); padding: 5px; border-radius: 4px;">
-                                ${item.ticketNumber}
-                            </div>
-                            <p style="color: #a0aec0; margin-bottom: 15px;">좌석: <strong style="color:white;">${item.seats}</strong></p>
+                        <div style="background-color: white; color: black; font-family: 'Malgun Gothic', 'Courier New', monospace; padding: 20px; width: 280px; box-shadow: 2px 5px 15px rgba(0,0,0,0.5); position: relative; ${opacityStyle}">
+                            ${stampHtml}
+                            <!-- 영수증 지그재그 상단 효과 -->
+                            <div style="position: absolute; top: -10px; left: 0; width: 100%; height: 10px; background: linear-gradient(-45deg, transparent 33.33%, white 33.33%, white 66.66%, transparent 66.66%), linear-gradient(45deg, transparent 33.33%, white 33.33%, white 66.66%, transparent 66.66%); background-size: 10px 20px;"></div>
                             
-                            <div style="background: white; padding: 10px; border-radius: 8px; display: inline-block;">
-                                <img src="${qrImgUrl}" alt="QR Code" style="width: 150px; height: 150px;">
+                            <div style="text-align: center; border-bottom: 2px dashed #333; padding-bottom: 15px; margin-bottom: 15px;">
+                                <h3 style="margin: 0; font-size: 22px; font-weight: bold; color: black;">FESTIO 영수증 티켓</h3>
+                                <p style="margin: 5px 0 0 0; font-size: 14px; font-weight: bold; color: ${isUsed ? '#ef4444' : 'black'};">[ ${isUsed ? '사용된 티켓' : '현장결제 완료'} ]</p>
                             </div>
                             
-                            <p style="margin-top: 15px; font-size: 0.8rem; color: #8b949e; word-break: break-all;">
-                                Payload:<br>${item.qrPayload}
-                            </p>
+                            <div style="font-size: 14px; line-height: 1.6; margin-bottom: 15px; text-align: left;">
+                                <strong>주문번호:</strong> ORD-${item.orderId}<br>
+                                <strong>좌석정보:</strong> ${item.seats}<br>
+                                <strong>티켓번호:</strong> ${item.ticketNumber}
+                            </div>
+                            
+                            <div style="border-top: 2px dashed #333; padding-top: 15px; text-align: center;">
+                                <p style="font-size: 15px; font-weight: bold; margin-bottom: 10px;">스마트폰으로 스캔하세요!</p>
+                                <img src="${qrImgUrl}" alt="QR Code" style="width: 160px; height: 160px;">
+                                <p style="font-size: 12px; margin-top: 10px; line-height: 1.4; color: #333;">
+                                    카메라 앱으로 위 QR코드를 스캔하시면<br>
+                                    입장용 움직이는 모바일 티켓이 열립니다.<br><br>
+                                    입장 게이트 스태프에게<br>
+                                    폰 화면을 보여주세요.
+                                </p>
+                            </div>
+                            
+                            <div style="border-top: 2px dashed #333; margin-top: 15px; padding-top: 15px; text-align: center;">
+                                <a href="${ticketUrl}" target="_blank" style="display: inline-block; padding: 10px 20px; background: #000; color: #fff; text-decoration: none; font-size: 13px; font-weight: bold; border-radius: 4px; font-family: sans-serif;">
+                                    모바일 티켓 직접 열기
+                                </a>
+                            </div>
+                            
+                            <!-- 영수증 지그재그 하단 효과 -->
+                            <div style="position: absolute; bottom: -10px; left: 0; width: 100%; height: 10px; background: linear-gradient(-45deg, white 33.33%, transparent 33.33%, transparent 66.66%, white 66.66%), linear-gradient(45deg, white 33.33%, transparent 33.33%, transparent 66.66%, white 66.66%); background-size: 10px 20px;"></div>
                         </div>
                     `;
                 });
