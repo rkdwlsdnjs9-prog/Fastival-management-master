@@ -77,12 +77,20 @@
       </div>
     </div>
 
-    <div class="detail-layout">
+    
+        <div class="detail-layout">
 
 
 
       <!-- ── 중앙: 행사 정보 + 구역 선택 + 통계 ── -->
       <div class="detail-center">
+        <div class="detail-page-header" style="padding: 1rem 0; margin-bottom: 0.5rem; display: flex; align-items: center;">
+      <button onclick="history.back()" style="background: transparent; border: none; display: flex; align-items: center; cursor: pointer; font-size: 1.125rem; font-weight: 700; color: var(--text-main);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 24px; height: 24px; margin-right: 8px;"><polyline points="15 18 9 12 15 6"/></svg>
+        행사 상세
+      </button>
+    </div>
+
         <!-- 행사 정보 -->
         <div class="event-title-area">
           <div class="event-cat-row" id="eventCatRow"></div>
@@ -233,20 +241,34 @@
           </div>
           <div class="stats-grid">
             <div class="stats-chart-card">
-              <p class="stats-chart-title">성별 비율</p>
-              <div class="stats-chart-wrap">
+              <p class="stats-chart-title" style="margin-bottom: 0.5rem; text-align: center;">성별 비율</p>
+              <div class="stats-chart-wrap" style="position: relative;">
                 <canvas id="chart-gender"></canvas>
-                <div class="gender-icons" id="genderIconsWrap">
-                  <svg class="gender-icon male" id="iconMale" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              </div>
+              <div class="custom-chart-legend"
+                style="display: flex; justify-content: center; gap: 1.5rem; margin-top: 0.5rem;">
+                <div id="legend-male"
+                  style="display: flex; align-items: center; justify-content: center; gap: 0.3rem; cursor: pointer;"
+                  onclick="toggleChartDataset(0)">
+                  <svg class="gender-icon male" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round" style="width: 20px; height: 20px; color: #8B5CF6;">
                     <circle cx="12" cy="7" r="4" />
                     <path d="M5.5 21v-2a4 4 0 0 1 4-4h5a4 4 0 0 1 4 4v2" />
                   </svg>
-                  <svg class="gender-icon female" id="iconFemale" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <span style="font-size: 0.85rem; font-weight: 500; color: var(--text-secondary);">남성</span>
+                </div>
+                <div id="legend-female"
+                  style="display: flex; align-items: center; justify-content: center; gap: 0.3rem; cursor: pointer;"
+                  onclick="toggleChartDataset(1)">
+                  <svg class="gender-icon female" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+                    style="width: 20px; height: 20px; color: #F43F5E;">
                     <path d="M12 14c-3.87 0-7 3.13-7 7h14c0-3.87-3.13-7-7-7z" />
                     <circle cx="12" cy="7" r="4" />
+                    <line x1="12" y1="21" x2="12" y2="24" />
+                    <line x1="9" y1="24" x2="15" y2="24" />
                   </svg>
+                  <span style="font-size: 0.85rem; font-weight: 500; color: var(--text-secondary);">여성</span>
                 </div>
               </div>
             </div>
@@ -271,43 +293,67 @@
           </div>
         </div>
         <div class="booking-cta" id="bookingCta">
-          <div class="booking-cta-top">
-            <p class="booking-zone-text">선택: <strong id="ctaZoneName">-</strong></p>
-            <div class="qty-selector-wrap" style="display: flex; align-items: center; gap: 0.5rem;">
-              <div class="custom-ticket-dropdown" id="ticketTypeDropdown">
-                <div class="custom-dropdown-selected" tabindex="0" id="ticketTypeSelected">
-                  <span id="ticketTypeText">성인</span>
-                  <svg class="custom-dropdown-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="6 9 12 15 18 9"></polyline>
-                  </svg>
+          <div class="booking-cta-top" style="align-items: flex-start;">
+            <p class="booking-zone-text" style="margin-top: 12px; margin-right: 1.5rem; white-space: nowrap;">선택:
+              <strong id="ctaZoneName"></strong>
+            </p>
+            <div style="display: flex; flex-direction: column; gap: 0.5rem; align-items: flex-end; flex: 1;">
+              <div id="ticketSelectionList" style="display: flex; flex-direction: column; gap: 0.5rem; width: 100%;">
+                <div class="qty-selector-wrap" data-index="0"
+                  style="display: flex; align-items: center; gap: 0.5rem; position: relative;">
+                  <div class="custom-ticket-dropdown" style="flex: 1;">
+                    <div class="custom-dropdown-selected" tabindex="0"
+                      onclick="this.parentElement.classList.toggle('open')">
+                      <span class="ticketTypeText" style="white-space: nowrap;">성인</span>
+                      <svg class="custom-dropdown-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                      </svg>
+                    </div>
+                    <div class="custom-dropdown-options">
+                      <div class="custom-dropdown-option active" data-value="adult">성인</div>
+                      <div class="custom-dropdown-option" data-value="teen">청소년</div>
+                      <div class="custom-dropdown-option" data-value="child">어린이/아동</div>
+                    </div>
+                  </div>
+                  <div class="qty-selector" role="group" aria-label="수량">
+                    <button class="qty-btn qty-btn-minus" aria-label="감소">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" class="icon-sm">
+                        <line x1="5" y1="12" x2="19" y2="12" />
+                      </svg>
+                    </button>
+                    <span class="qty-value" aria-live="polite">1</span>
+                    <button class="qty-btn qty-btn-plus" aria-label="증가">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" class="icon-sm">
+                        <line x1="12" y1="5" x2="12" y2="19" />
+                        <line x1="5" y1="12" x2="19" y2="12" />
+                      </svg>
+                    </button>
+                  </div>
+                  <!-- Delete Button -->
+                  <button class="btn-delete-ticket"
+                    style="background: none; border: none; cursor: pointer; color: var(--text-muted); margin-left: 2px; visibility: hidden;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                      style="width: 18px; height: 18px;">
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                  </button>
                 </div>
-                <div class="custom-dropdown-options" id="ticketTypeOptions">
-                  <div class="custom-dropdown-option active" data-value="adult">성인</div>
-                  <div class="custom-dropdown-option" data-value="teen">청소년</div>
-                  <div class="custom-dropdown-option" data-value="child">어린이/아동</div>
-                </div>
-                <select class="ticket-type-select" id="ticketTypeSelect" aria-label="권종 선택" style="display:none;">
-                  <option value="adult" selected>성인</option>
-                  <option value="teen">청소년</option>
-                  <option value="child">어린이/아동</option>
-                </select>
               </div>
-              <div class="qty-selector" role="group" aria-label="수량">
-                <button class="qty-btn qty-btn-minus" aria-label="감소">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
-                    class="icon-sm">
-                    <line x1="5" y1="12" x2="19" y2="12" />
+              <div style="display: flex; align-items: center; width: 100%; gap: 0.5rem;">
+                <button class="btn btn-outline btn-sm btn-add-ticket" id="btnAddTicketType"
+                  style="flex: 1; border-style: dashed; justify-content: center; color: var(--text-main); border-color: var(--border-default);">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    style="width:16px;height:16px;margin-right:4px;">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
                   </svg>
+                  추가하기
                 </button>
-                <span class="qty-value" aria-live="polite">1</span>
-                <button class="qty-btn qty-btn-plus" aria-label="증가">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
-                    class="icon-sm">
-                    <line x1="12" y1="5" x2="12" y2="19" />
-                    <line x1="5" y1="12" x2="19" y2="12" />
-                  </svg>
-                </button>
+                <div style="width: 18px; margin-left: 2px; visibility: hidden;"></div>
               </div>
             </div>
           </div>
@@ -332,42 +378,56 @@
 
     <!-- ── 상세 탭 영역 ── -->
     <div class="detail-tabs-section view-mode" id="detailTabsSection">
-      <div class="detail-tabs-header">
-        <button class="detail-tab-btn active" data-tab="notice">공지사항</button>
-        <button class="detail-tab-btn" data-tab="desc">상품설명</button>
-        <button class="detail-tab-btn" data-tab="price">가격</button>
-        <button class="detail-tab-btn" data-tab="refund">취소/환불 규정</button>
-        <button class="detail-tab-btn" data-tab="venue">장소</button>
-        <button class="detail-tab-btn" data-tab="review">리뷰</button>
+      <div class="tabs-header-wrapper" style="position:relative; display:flex; align-items:center;">
+        <button id="btnTabScrollLeft" class="tab-scroll-btn left"
+          style="display:none; align-items:center; justify-content:center; position:absolute; left:0; z-index:10; background:linear-gradient(to right, var(--bg-main) 70%, transparent); border:none; height:100%; padding:0 15px 0 5px; cursor:pointer; color:var(--text-muted); font-size:1.2rem;">&lt;</button>
+        <div class="detail-tabs-header" id="detailTabsHeader"
+          style="flex:1; overflow-x:auto; scrollbar-width:none; scroll-behavior:smooth; position:relative;">
+          <button class="detail-tab-btn active" data-tab="notice">공지사항</button>
+          <button class="detail-tab-btn" data-tab="desc">상품설명</button>
+          <button class="detail-tab-btn" data-tab="price">가격</button>
+          <button class="detail-tab-btn" data-tab="refund">취소/환불 규정</button>
+          <button class="detail-tab-btn" data-tab="venue">장소</button>
+          <button class="detail-tab-btn" data-tab="fnb">F&B</button>
+          <button class="detail-tab-btn" data-tab="goods">굿즈</button>
+          <button class="detail-tab-btn" data-tab="review">리뷰</button>
+        </div>
+        <button id="btnTabScrollRight" class="tab-scroll-btn right"
+          style="display:none; align-items:center; justify-content:center; position:absolute; right:0; z-index:10; background:linear-gradient(to left, var(--bg-main) 70%, transparent); border:none; height:100%; padding:0 5px 0 15px; cursor:pointer; color:var(--text-muted); font-size:1.2rem;">&gt;</button>
       </div>
 
       <div class="detail-tab-content active" id="tab-notice">
+        <h2 class="tab-title">공지사항</h2>
         <div class="tab-content-inner">
           <p class="tab-empty-text">등록된 공지사항이 없습니다.</p>
         </div>
       </div>
       <div class="detail-tab-content" id="tab-desc">
+        <h2 class="tab-title">상품설명</h2>
         <div class="tab-content-inner">
           <div class="tab-desc-placeholder">상세 설명 이미지가 제공되지 않았습니다.</div>
         </div>
       </div>
       <div class="detail-tab-content" id="tab-price">
+        <h2 class="tab-title">가격</h2>
         <div class="tab-content-inner">
           <p class="tab-empty-text">구역별 가격 정보 안내입니다.</p>
         </div>
       </div>
       <div class="detail-tab-content" id="tab-refund">
+        <h2 class="tab-title">취소/환불 규정</h2>
         <div class="tab-content-inner">
           <p class="tab-empty-text">취소 및 환불 규정 안내입니다.</p>
         </div>
       </div>
       <div class="detail-tab-content" id="tab-venue">
+        <h2 class="tab-title">장소</h2>
         <div class="tab-content-inner">
           <p class="venue-address-text" id="venueAddressText">장소 정보가 없습니다.</p>
           <div class="venue-map-wrap"
-            style="width:100%; height:400px; background:#e9ecef; border-radius:8px; overflow:hidden; margin-bottom:1rem;">
-            <iframe id="googleMap" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy"
-              referrerpolicy="no-referrer-when-downgrade"></iframe>
+            style="width:100%; height:400px; background:#e9ecef; border-radius:8px; overflow:hidden;">
+            <iframe id="googleMap" width="100%" height="100%" style="border:0; display:block;" allowfullscreen=""
+              loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
           </div>
           <div class="venue-transit-info" id="transitInfoArea"
             style="padding:1.5rem; background:var(--bg-surface1); border-radius:8px;">
@@ -376,7 +436,20 @@
           </div>
         </div>
       </div>
+      <div class="detail-tab-content" id="tab-fnb">
+        <h2 class="tab-title">F&B</h2>
+        <div class="tab-content-inner">
+          <p class="tab-empty-text">등록된 F&B 정보가 없습니다.</p>
+        </div>
+      </div>
+      <div class="detail-tab-content" id="tab-goods">
+        <h2 class="tab-title">굿즈</h2>
+        <div class="tab-content-inner">
+          <p class="tab-empty-text">등록된 굿즈 상품이 없습니다.</p>
+        </div>
+      </div>
       <div class="detail-tab-content" id="tab-review">
+        <h2 class="tab-title">리뷰</h2>
         <div class="tab-content-inner">
           <p class="tab-empty-text">아직 등록된 리뷰가 없습니다.</p>
         </div>
@@ -571,8 +644,33 @@
   <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
   <script src="js/api.js"></script>
   <script src="js/common.js"></script>
-  <script src="js/detail.js"></script>
+  <script src="js/detail.js?v=2"></script>
   <script src="js/recent_carousel.js"></script>
+
+  <!-- Delete Confirm Modal -->
+  <div id="deleteConfirmModal"
+    style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.4); z-index:9999; align-items:center; justify-content:center; backdrop-filter:blur(3px);">
+    <div
+      style="background:#ffffff; border-radius:16px; padding:2rem; width:360px; box-shadow:0 10px 30px rgba(0,0,0,0.1); display:flex; flex-direction:column; gap:1.5rem; position:relative; text-align:center;">
+      <div style="display:flex; flex-direction:column; align-items:center; gap:1rem;">
+        <div
+          style="width:50px; height:50px; border-radius:50%; background:#f3f4f6; display:flex; align-items:center; justify-content:center;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2">
+            <path d="M3 6h18" />
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+          </svg>
+        </div>
+        <h3 style="margin:0; font-size:1.2rem; font-weight:700; color:#1f2937;">섹션 삭제</h3>
+        <p style="margin:0; font-size:1rem; color:#4b5563;">이 섹션을 정말로 삭제하시겠습니까?<br>삭제된 내용은 복구할 수 없습니다.</p>
+      </div>
+      <div style="display:flex; justify-content:center; gap:0.8rem; margin-top:0.5rem;">
+        <button id="btnDeleteCancel"
+          style="background:#f3f4f6; color:#4b5563; border:none; border-radius:8px; padding:0.8rem 1.5rem; font-size:1rem; font-weight:600; cursor:pointer; flex:1; transition:background 0.2s;">취소</button>
+        <button id="btnDeleteConfirm"
+          style="background:#1f2937; color:#ffffff; border:none; border-radius:8px; padding:0.8rem 1.5rem; font-size:1rem; font-weight:600; cursor:pointer; flex:1; transition:background 0.2s;">삭제하기</button>
+      </div>
+    </div>
+  </div>
 </body>
 
 </html>

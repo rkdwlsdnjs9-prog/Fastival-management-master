@@ -148,9 +148,7 @@
     <button class="header-icon-btn mobile-only" aria-label="공유">${shareSvg}</button>
   ` : '';
 
-  const detailBackBtn = isDetail ? `
-    <button class="header-back-btn mobile-only" aria-label="뒤로가기">${backSvg}<span class="header-title">행사 상세</span></button>
-  ` : '';
+  const detailBackBtn = '';
 
   headerHtml = `
     <header class="${headerClass}" role="banner" id="appHeader">

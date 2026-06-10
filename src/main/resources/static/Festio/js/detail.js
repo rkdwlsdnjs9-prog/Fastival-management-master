@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Festival O2O Platform — detail.js
  * ─────────────────────────────────────────────────────────────
  * 상세/예매 화면:
@@ -206,29 +206,110 @@ function updateCtaBar(zone) {
    수량 선택
 ═══════════════════════════════════════════════════════════ */
 function initQtySelector() {
-  on($('.qty-btn-minus'), 'click', () => changeQty(-1));
-  on($('.qty-btn-plus'), 'click', () => changeQty(+1));
+  const container = document.getElementById('ticketSelectionList');
+  const btnAdd = document.getElementById('btnAddTicketType');
+
+  if (btnAdd && container) {
+    btnAdd.addEventListener('click', () => {
+      if (container.children.length >= 4) {
+        alert('권종은 최대 4개까지 추가할 수 있습니다.');
+        return;
+      }
+      const clone = container.children[0].cloneNode(true);
+
+      const delBtn = clone.querySelector('.btn-delete-ticket');
+      if (delBtn) delBtn.style.visibility = 'visible';
+
+      const valEl = clone.querySelector('.qty-value');
+      if (valEl) valEl.textContent = '1';
+
+      container.appendChild(clone);
+      bindTicketRowEvents(clone);
+      updateTotalQtyFromRows();
+    });
+  }
+
+  if (container && container.children.length > 0) {
+    bindTicketRowEvents(container.children[0]);
+  }
 }
 
-function changeQty(delta) {
+function bindTicketRowEvents(row) {
+  const minus = row.querySelector('.qty-btn-minus');
+  const plus = row.querySelector('.qty-btn-plus');
+  const valEl = row.querySelector('.qty-value');
+  const delBtn = row.querySelector('.btn-delete-ticket');
+
+  const dropdownOpts = row.querySelectorAll('.custom-dropdown-option');
+  const textSpan = row.querySelector('.ticketTypeText');
+  const dropdownSelected = row.querySelector('.custom-dropdown-selected');
+  const dropdownParent = dropdownSelected?.parentElement;
+
+  if (dropdownOpts && textSpan && dropdownParent) {
+    dropdownOpts.forEach(opt => {
+      opt.addEventListener('click', (e) => {
+        e.stopPropagation();
+        dropdownOpts.forEach(o => o.classList.remove('active'));
+        opt.classList.add('active');
+        textSpan.textContent = opt.textContent;
+        dropdownParent.classList.remove('open');
+      });
+    });
+  }
+
+  if (minus) {
+    minus.addEventListener('click', () => {
+      let q = parseInt(valEl.textContent) || 1;
+      if (q > 1) {
+        valEl.textContent = q - 1;
+        updateTotalQtyFromRows();
+      }
+    });
+  }
+  if (plus) {
+    plus.addEventListener('click', () => {
+      let q = parseInt(valEl.textContent) || 1;
+      const zone = _eventDetail?.zones.find(z => z.zoneNo === _selectedZoneNo);
+      const max = zone ? Math.min(4, zone.remainingCapacity) : 4;
+      if (q < max) {
+        valEl.textContent = q + 1;
+        updateTotalQtyFromRows();
+      }
+    });
+  }
+  if (delBtn) {
+    delBtn.addEventListener('click', () => {
+      const container = document.getElementById('ticketSelectionList');
+      if (container && container.children.length > 1) {
+        row.remove();
+        updateTotalQtyFromRows();
+      }
+    });
+  }
+}
+
+function updateTotalQtyFromRows() {
+  const container = document.getElementById('ticketSelectionList');
+  if (!container) return;
+  let total = 0;
+  container.querySelectorAll('.qty-value').forEach(el => {
+    total += parseInt(el.textContent) || 1;
+  });
+  _quantity = total;
+
+  // Update disabled states
   const zone = _eventDetail?.zones.find(z => z.zoneNo === _selectedZoneNo);
   const max = zone ? Math.min(4, zone.remainingCapacity) : 4;
-  _quantity = Math.max(1, Math.min(max, _quantity + delta));
-  updateQtyDisplay();
+
+  container.querySelectorAll('.qty-selector-wrap').forEach(row => {
+    const q = parseInt(row.querySelector('.qty-value').textContent) || 1;
+    const m = row.querySelector('.qty-btn-minus');
+    const p = row.querySelector('.qty-btn-plus');
+    if (m) m.disabled = (q <= 1);
+    if (p) p.disabled = (q >= max);
+  });
+
   if (zone) updateCtaBar(zone);
-}
-
-function updateQtyDisplay() {
-  const el = $('.qty-value');
-  if (el) el.textContent = _quantity;
-
-  const minus = $('.qty-btn-minus');
-  const plus = $('.qty-btn-plus');
-  const zone = _eventDetail?.zones.find(z => z.zoneNo === _selectedZoneNo);
-  const max = zone ? Math.min(4, zone.remainingCapacity) : 4;
-
-  if (minus) minus.disabled = _quantity <= 1;
-  if (plus) plus.disabled = _quantity >= max;
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -245,15 +326,16 @@ function initStatsCharts(stats) {
   // 성별 도넛 차트
   const genderCtx = document.getElementById('chart-gender');
   if (genderCtx) {
-    new Chart(genderCtx, {
+    window.genderChart = new Chart(genderCtx, {
       type: 'doughnut',
       data: {
         labels: ['남성', '여성'],
         datasets: [{
-          data: [stats.genderMale, stats.genderFemale],
-          backgroundColor: ['rgba(106,77,255,0.8)', 'rgba(255,59,110,0.8)'],
-          borderColor: ['#6A4DFF', '#FF3B6E'],
-          borderWidth: 2,
+          data: [stats.gender?.male || 0, stats.gender?.female || 0],
+          backgroundColor: ['#8B5CF6', '#F43F5E'],
+          borderColor: '#ffffff',
+          borderWidth: 4,
+          hoverBorderWidth: 4,
           hoverOffset: 4,
         }],
       },
@@ -261,7 +343,7 @@ function initStatsCharts(stats) {
         ...chartDefaults,
         cutout: '65%',
         plugins: {
-          legend: { display: true, position: 'bottom', labels: { color: '#9090B8', font: { size: 11, family: 'Pretendard Variable' }, padding: 10, boxWidth: 10, boxHeight: 10 } },
+          legend: { display: false },
           tooltip: {
             callbacks: {
               label: ctx => ` ${ctx.label}: ${ctx.parsed}%`,
@@ -281,7 +363,7 @@ function initStatsCharts(stats) {
         labels: ['10대', '20대', '30대', '40대', '50대+'],
         datasets: [{
           label: '예매 비율',
-          data: [stats.age10s, stats.age20s, stats.age30s, stats.age40s, stats.age50s],
+          data: [stats.age?.['10대'] || 0, stats.age?.['20대'] || 0, stats.age?.['30대'] || 0, stats.age?.['40대'] || 0, stats.age?.['50대이상'] || 0],
           backgroundColor: [
             'rgba(0,229,204,0.7)', 'rgba(106,77,255,0.7)', 'rgba(255,59,110,0.7)',
             'rgba(255,184,0,0.7)', 'rgba(59,130,246,0.7)',
@@ -296,7 +378,7 @@ function initStatsCharts(stats) {
         indexAxis: 'x',
         scales: {
           x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#9090B8', font: { size: 10, family: 'Pretendard Variable' } } },
-          y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#9090B8', font: { size: 10, family: 'Pretendard Variable' }, callback: v => `${v}%` } },
+          y: { min: 0, max: 100, beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#9090B8', font: { size: 10, family: 'Pretendard Variable' }, callback: v => `${v}%` } },
         },
         plugins: {
           ...chartDefaults.plugins,
@@ -700,7 +782,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (targetContent) {
         targetContent.classList.add('active');
         if (!isEditMode) {
-          const offsetTop = targetContent.getBoundingClientRect().top + window.scrollY - 140;
+          const header = document.querySelector('.detail-tabs-header');
+          const headerHeight = header ? header.offsetHeight : 0;
+          const globalHeaderH = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--header-h')) || 80;
+          const offsetTop = targetContent.getBoundingClientRect().top + window.scrollY - headerHeight - globalHeaderH - 20;
           window.scrollTo({ top: offsetTop, behavior: 'smooth' });
         }
       }
@@ -757,7 +842,7 @@ function toggleEditMode(enable) {
       wrapper.insertBefore(builderSidebar, detailTabsSection);
 
       initBuilderSidebar(builderSidebar, detailTabsSection);
-      initMainAreaEditors(detailTabsSection);
+      // initMainAreaEditors moved to sidebar
     } else {
       document.querySelector('.builder-tabs-wrapper').classList.add('edit-builder-layout');
     }
@@ -770,9 +855,10 @@ function toggleEditMode(enable) {
       wrapper.classList.remove('edit-builder-layout');
     }
     // 에디터 비활성화 및 내용 반영
-    destroyMainAreaEditors(detailTabsSection);
+    // Editors are now in sidebar, right area already has live preview HTML
   }
 }
+
 
 function destroyMainAreaEditors(tabsSection) {
   const tabs = tabsSection.querySelectorAll('.detail-tab-content');
@@ -781,29 +867,39 @@ function destroyMainAreaEditors(tabsSection) {
     if (!inner) return;
 
     if (tab.id === 'tab-venue') {
-      inner.contentEditable = false;
-      inner.style.border = 'none';
-      inner.style.padding = '0';
+      const editorWrap = inner.querySelector('.venue-editor-wrap');
+      if (editorWrap) {
+        editorWrap.remove();
+      }
       return;
     }
 
-    // Quill 에디터 정리
-    const quillWrap = inner.querySelector('.quill-main-editor');
-    if (quillWrap) {
-      const html = quillWrap.querySelector('.ql-editor') ? quillWrap.querySelector('.ql-editor').innerHTML : quillWrap.innerHTML;
-      inner.innerHTML = html;
-      delete quillEditors[tab.id];
-    }
+    const wrap = inner.querySelector('.block-editor-wrap');
+    if (wrap) {
+      const blocksContainer = wrap.querySelector('.blocks-container');
+      const blocks = blocksContainer.querySelectorAll('.editor-block');
+      let combinedHtml = '';
+      blocks.forEach(block => {
+        if (block.classList.contains('text-block')) {
+          const quillWrap = block.querySelector('.quill-main-editor');
+          const editorContent = quillWrap.querySelector('.ql-editor') ? quillWrap.querySelector('.ql-editor').innerHTML : quillWrap.innerHTML;
+          combinedHtml += `<div class="view-text-block" style="margin-bottom:1rem;">${editorContent}</div>`;
+        } else if (block.classList.contains('gallery-block')) {
+          const previewHtml = block.querySelector('.gallery-preview-container').innerHTML;
+          combinedHtml += `<div class="view-gallery-block" style="margin-bottom:1rem;">${previewHtml}</div>`;
+        }
+      });
+      inner.innerHTML = combinedHtml;
 
-    // 갤러리 에디터 정리 (업로드된 이미지만 남기고 UI 제거)
-    const galleryWrap = inner.querySelector('.gallery-main-editor');
-    if (galleryWrap) {
-      const previewArea = galleryWrap.querySelector('.gallery-preview');
-      const images = previewArea ? Array.from(previewArea.querySelectorAll('img')).map(img => img.src) : [];
-      inner.innerHTML = '';
-      if (images.length > 0) {
-        const sliderHtml = images.map(src => `<div style="margin-bottom:10px;"><img src="${src}" style="width:100%; border-radius:8px;"></div>`).join('');
-        inner.innerHTML = `<div class="gallery-view-mode">${sliderHtml}</div>`;
+      Object.keys(quillEditors).forEach(k => {
+        if (k.startsWith(tab.id + '_')) delete quillEditors[k];
+      });
+    } else {
+      const quillWrap = inner.querySelector('.quill-main-editor');
+      if (quillWrap) {
+        const html = quillWrap.querySelector('.ql-editor') ? quillWrap.querySelector('.ql-editor').innerHTML : quillWrap.innerHTML;
+        inner.innerHTML = html;
+        delete quillEditors[tab.id];
       }
     }
   });
@@ -817,17 +913,38 @@ function initBuilderSidebar(sidebar, tabsSection) {
         <p style="font-size:0.75rem; color:var(--text-muted); margin:0.5rem 0 0 0;">드래그하여 순서를 변경하거나 섹션을 관리하세요.</p>
       </div>
       <div style="display:flex; gap:0.5rem; align-items:center;">
-        <button class="btn btn-outline btn-sm" id="btnResetLayout" style="border-radius:20px; padding: 0.3rem 0.8rem; font-size:0.8rem;">
+        <button class="btn btn-sm" id="btnResetLayout" style="padding: 0.3rem 0.5rem; font-size:0.8rem; color:#6b7280; background:transparent; border:none; box-shadow:none;">
           <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;margin-right:2px;"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg> 초기화
         </button>
-        <button class="btn btn-primary btn-sm" id="btnAddSectionTop" style="border-radius:50%; width:28px; height:28px; padding:0; display:flex; align-items:center; justify-content:center;">+</button>
+        <button class="btn btn-primary btn-sm" id="btnAddSectionTop" style="border-radius:50%; width:36px; height:36px; padding:0; display:flex; align-items:center; justify-content:center; background:#3B82F6; border:none; box-shadow:0 4px 12px rgba(59,130,246,0.4); font-size:1.6rem; font-weight:600;">+</button>
       </div>
     </div>
     <div class="builder-accordion-list" id="builderAccordionList"></div>
-    <div class="builder-sidebar-footer">
-      <button class="btn btn-outline btn-full" id="btnAddSection" style="border-style:dashed;">+ 새 섹션 추가</button>
-    </div>
   `;
+
+
+  const btnReset = sidebar.querySelector('#btnResetLayout');
+  if (btnReset) {
+    btnReset.addEventListener('click', () => {
+      if (confirm('모든 섹션을 삭제하고 초기화하시겠습니까? (이 작업은 되돌릴 수 없습니다)')) {
+        const listWrap = sidebar.querySelector('#builderAccordionList');
+        if (listWrap) listWrap.innerHTML = '';
+
+        const tabsSection = document.getElementById('detailTabsSection');
+        if (tabsSection) {
+          const contents = tabsSection.querySelectorAll('.detail-tab-content');
+          contents.forEach(c => c.remove());
+        }
+
+        const tabsHeader = document.querySelector('.detail-tabs-header');
+        if (tabsHeader) {
+          const btns = tabsHeader.querySelectorAll('.detail-tab-btn');
+          btns.forEach(b => b.remove());
+        }
+        Toast.success('모든 섹션이 초기화되었습니다. 새 섹션을 추가해 주세요.');
+      }
+    });
+  }
 
   const listWrap = sidebar.querySelector('#builderAccordionList');
   const tabs = tabsSection.querySelectorAll('.detail-tab-content');
@@ -838,7 +955,7 @@ function initBuilderSidebar(sidebar, tabsSection) {
     const tabId = targetId.replace('tab-', '');
     const btn = Array.from(tabBtns).find(b => b.dataset.tab === tabId || b.dataset.target === targetId);
     const title = btn ? btn.textContent.trim() : '새 섹션';
-    addAccordionItem(listWrap, title, targetId, index);
+    addAccordionItem(listWrap, title, targetId, index, tab);
   });
 
   if (typeof Sortable !== 'undefined') {
@@ -851,39 +968,27 @@ function initBuilderSidebar(sidebar, tabsSection) {
     });
   }
 
-  sidebar.querySelector('#btnAddSection').addEventListener('click', handleAddSection);
-  sidebar.querySelector('#btnAddSectionTop').addEventListener('click', handleAddSection);
+  sidebar.querySelector('#btnAddSectionTop').addEventListener('click', () => handleAddSection());
 }
 
-function addAccordionItem(listWrap, title, id, index) {
+function addAccordionItem(listWrap, title, id, index, tabElement) {
   const bodyHtml = `
-    <div class="section-editor-notice" style="margin-bottom: 1rem;">
-      <p style="font-size:0.85rem; color:var(--text-muted);">기본 텍스트 에디터 섹션입니다. 우측 메인 화면에서 내용을 편집하세요.</p>
-    </div>
-    <div class="gallery-settings-wrap" style="padding-top: 1rem; border-top: 1px solid var(--border-default);">
-      <div style="margin-bottom: 1.2rem;">
-        <p style="font-size:0.85rem; font-weight:600; margin-bottom:0.6rem; color:var(--text-main);">갤러리 타입</p>
-        <div style="position: relative;">
-          <select class="form-select gallery-layout-select" style="width:100%; font-size:0.9rem; padding:0.6rem; border:1px solid var(--border-default); border-radius:8px; appearance:none; background:#fff; outline:none;">
-            <option value="slider">Slider (슬라이더)</option>
-            <option value="grid">Grid (바둑판)</option>
-            <option value="polaroid">Polaroid (폴라로이드)</option>
-            <option value="carousel">Carousel (캐러셀)</option>
-          </select>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); width:16px; height:16px; pointer-events:none; color:var(--text-muted);"><polyline points="6 9 12 15 18 9"></polyline></svg>
-        </div>
-      </div>
-      <div>
-        <p style="font-size:0.85rem; font-weight:600; margin-bottom:0.6rem; color:var(--text-main);">이미지</p>
-        <input type="file" class="gallery-upload-input" accept="image/*" multiple style="display:none;" id="file-upload-${id}">
-        <label for="file-upload-${id}" class="image-upload-box" style="display:block; border:1px dashed var(--border-default); border-radius:12px; padding:2.5rem 1rem; text-align:center; background:#fbfbfb; cursor:pointer; margin-bottom:1rem; transition:background 0.2s;">
-          <div style="width:44px; height:44px; border-radius:50%; border:1px solid var(--border-default); display:flex; align-items:center; justify-content:center; margin:0 auto 0.8rem; background:#fff; box-shadow:0 2px 6px rgba(0,0,0,0.03);">
-            <svg viewBox="0 0 24 24" width="20" height="20" stroke="var(--text-muted)" stroke-width="2" stroke-linecap="round" fill="none"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+    <div style="margin-bottom: 1rem;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+        <span style="font-size:0.85rem; font-weight:700; color:var(--text-main);">섹션 타이틀</span>
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+          <span style="font-size:0.75rem; color:var(--text-muted);">텍스트 정렬</span>
+          <div class="align-toggle-group" style="display:flex; background:var(--bg-surface2); border-radius:6px; overflow:hidden; border:1px solid var(--border-default);">
+            <button class="btn-align active" data-align="left" style="padding:4px 10px; border:none; background:transparent; cursor:pointer;" onclick="changeSectionAlign('${id}', 'left', this)">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 6H3"/><path d="M15 12H3"/><path d="M17 18H3"/></svg>
+            </button>
+            <button class="btn-align" data-align="center" style="padding:4px 10px; border:none; background:transparent; cursor:pointer;" onclick="changeSectionAlign('${id}', 'center', this)">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 6H3"/><path d="M19 12H5"/><path d="M21 18H3"/></svg>
+            </button>
+            <button class="btn-align" data-align="right" style="padding:4px 10px; border:none; background:transparent; cursor:pointer;" onclick="changeSectionAlign('${id}', 'right', this)">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="21" y1="6" x2="3" y2="6"></line><line x1="21" y1="12" x2="9" y2="12"></line><line x1="21" y1="18" x2="7" y2="18"></line></svg>
+            </button>
           </div>
-          <p style="font-size:0.85rem; color:var(--text-muted); font-weight:600;">이미지 선택</p>
-        </label>
-        <div class="uploaded-image-grid" style="display:flex; overflow-x:auto; gap:0.6rem; padding-bottom: 0.5rem; flex-wrap:nowrap;">
-          <!-- 첨부된 썸네일 이미지가 여기에 동적으로 추가됩니다 -->
         </div>
       </div>
     </div>
@@ -895,13 +1000,19 @@ function addAccordionItem(listWrap, title, id, index) {
   item.innerHTML = `
     <div class="builder-accordion-header">
       <div class="builder-accordion-title">
-        <span class="drag-handle" title="드래그하여 순서 변경">☰</span>
-        <span class="accordion-index">${index}</span>
-        <span class="accordion-name" contenteditable="true">${title}</span>
+        <span class="drag-handle" title="드래그하여 순서 변경">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:#a1a1aa;"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </span>
+        <span class="accordion-index" style="color:#3B82F6; font-weight:800; font-size:13px; margin-right:4px;">${index}</span>
+        <span class="accordion-name" contenteditable="true" style="font-size:14px; color:#1f2937;">${title}</span>
       </div>
-      <div style="display:flex; gap:0.5rem;">
-        <button class="btn-delete-section" title="삭제"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
-        <span class="accordion-toggle">▼</span>
+      <div style="display:flex; gap:0.2rem; align-items:center;">
+        <button class="btn-delete-section" title="삭제" style="padding:6px; border-radius:6px; transition:background 0.2s;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+        </button>
+        <span class="accordion-toggle" style="padding:4px; color:#9ca3af; transition:transform 0.2s;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+        </span>
       </div>
     </div>
     <div class="builder-accordion-body">
@@ -915,10 +1026,16 @@ function addAccordionItem(listWrap, title, id, index) {
     if (e.target.closest('.drag-handle') || e.target.closest('.btn-delete-section') || e.target.hasAttribute('contenteditable')) return;
 
     const isActive = item.classList.contains('active');
-    listWrap.querySelectorAll('.builder-accordion-item').forEach(i => i.classList.remove('active'));
+    listWrap.querySelectorAll('.builder-accordion-item').forEach(i => {
+      i.classList.remove('active');
+      const toggle = i.querySelector('.accordion-toggle svg');
+      if (toggle) toggle.style.transform = 'rotate(0deg)';
+    });
 
     if (!isActive) {
       item.classList.add('active');
+      const toggle = item.querySelector('.accordion-toggle svg');
+      if (toggle) toggle.style.transform = 'rotate(180deg)';
       const targetId = item.dataset.targetId;
       const targetTab = document.getElementById(targetId);
       if (targetTab) {
@@ -928,7 +1045,10 @@ function addAccordionItem(listWrap, title, id, index) {
       const tabId = targetId.replace('tab-', '');
       document.querySelectorAll('.detail-tab-btn').forEach(b => b.classList.remove('active'));
       const tabBtn = document.querySelector(`.detail-tab-btn[data-tab="${tabId}"], .detail-tab-btn[data-target="${targetId}"]`);
-      if (tabBtn) tabBtn.classList.add('active');
+      if (tabBtn) {
+        tabBtn.classList.add('active');
+        tabBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      }
     }
   });
 
@@ -945,8 +1065,24 @@ function addAccordionItem(listWrap, title, id, index) {
     if (tabBtn) tabBtn.textContent = nameEl.textContent;
   });
 
-  item.querySelector('.btn-delete-section').addEventListener('click', () => {
-    if (confirm('이 섹션을 삭제하시겠습니까?')) {
+  const bodyWrap = item.querySelector('.builder-accordion-body');
+  if (tabElement) {
+    if (id === 'tab-venue') {
+      if (typeof makeVenueEditor === 'function') makeVenueEditor(tabElement, bodyWrap);
+    } else {
+      makeBlockEditor(tabElement, bodyWrap);
+    }
+  }
+
+  item.querySelector('.btn-delete-section').addEventListener('click', (e) => {
+    e.stopPropagation();
+    const modal = document.getElementById('deleteConfirmModal');
+    const btnConfirm = document.getElementById('btnDeleteConfirm');
+    const btnCancel = document.getElementById('btnDeleteCancel');
+
+    modal.querySelector('p').textContent = '이 섹션을 삭제하시겠습니까?';
+
+    const handleConfirm = () => {
       const targetId = item.dataset.targetId;
       const targetTab = document.getElementById(targetId);
       if (targetTab) targetTab.remove();
@@ -957,10 +1093,20 @@ function addAccordionItem(listWrap, title, id, index) {
 
       item.remove();
       syncTabsOrder(listWrap, document.getElementById('detailTabsSection'));
-    }
+      closeModal();
+    };
+
+    const closeModal = () => {
+      modal.style.display = 'none';
+      btnConfirm.removeEventListener('click', handleConfirm);
+      btnCancel.removeEventListener('click', closeModal);
+    };
+
+    btnConfirm.addEventListener('click', handleConfirm);
+    btnCancel.addEventListener('click', closeModal);
+    modal.style.display = 'flex';
   });
 
-  // 파일 업로드 처리
   const fileInput = item.querySelector('.gallery-upload-input');
   const previewGrid = item.querySelector('.uploaded-image-grid');
   if (fileInput && previewGrid) {
@@ -968,22 +1114,29 @@ function addAccordionItem(listWrap, title, id, index) {
       const files = Array.from(e.target.files);
       if (files.length === 0) return;
 
+      const currentImgCount = previewGrid.querySelectorAll('.uploaded-image-item').length;
+      if (currentImgCount + files.length > 20) {
+        Toast.warning(`최대 20장까지만 업로드할 수 있습니다. (현재 ${currentImgCount}장)`);
+        fileInput.value = '';
+        return;
+      }
+
       files.forEach(file => {
         const reader = new FileReader();
         reader.onload = (ev) => {
           const imgItem = document.createElement('div');
           imgItem.className = 'uploaded-image-item';
-          imgItem.style.cssText = 'position:relative; flex-shrink:0; width:100px; height:100px; border-radius:10px; overflow:hidden; box-shadow:0 2px 6px rgba(0,0,0,0.06);';
+          imgItem.style.cssText = 'position:relative; flex-shrink:0; width:80px; height:80px; border-radius:10px; overflow:hidden; box-shadow:0 2px 6px rgba(0,0,0,0.06); border:1px solid #e5e7eb;';
           imgItem.innerHTML = `
             <img src="${ev.target.result}" style="width:100%; height:100%; object-fit:cover;">
-            <button class="btn-delete-image" style="position:absolute; top:6px; right:6px; width:24px; height:24px; background:transparent; color:#fff; border-radius:4px; border:none; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 2px 4px rgba(0,0,0,0.3); text-shadow:0 1px 2px rgba(0,0,0,0.5);">
-              <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            <button class="btn-delete-image" style="position:absolute; top:4px; right:4px; width:20px; height:20px; background:rgba(0,0,0,0.5); color:#fff; border-radius:50%; border:none; display:flex; align-items:center; justify-content:center; cursor:pointer; backdrop-filter:blur(4px);">
+              <svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
             </button>
           `;
 
           imgItem.querySelector('.btn-delete-image').addEventListener('click', () => {
             imgItem.remove();
-            updateGalleryPreview(id); // 이미지 삭제 시 메인 화면 즉시 업데이트
+            updateGalleryPreview(id);
           });
 
           previewGrid.appendChild(imgItem);
@@ -991,19 +1144,31 @@ function addAccordionItem(listWrap, title, id, index) {
         reader.readAsDataURL(file);
       });
 
-      // 파일 읽기가 비동기이므로, 약간의 지연 후 메인 화면 업데이트
       setTimeout(() => updateGalleryPreview(id), 100);
-      fileInput.value = ''; // 같은 파일 다시 선택 가능하도록 초기화
+      fileInput.value = '';
     });
   }
 
-  // 갤러리 타입 변경 시 업데이트
-  const layoutSelect = item.querySelector('.gallery-layout-select');
-  if (layoutSelect) {
-    layoutSelect.addEventListener('change', () => {
-      updateGalleryPreview(id);
-    });
-  }
+  window.changeGalleryLayout = function (id, value, text, optionEl) {
+    const dropdown = optionEl.closest('.gallery-layout-dropdown');
+    dropdown.querySelector('.galleryLayoutText').textContent = text;
+    dropdown.querySelector('.gallery-layout-select').value = value;
+    dropdown.querySelectorAll('.custom-dropdown-option').forEach(el => el.classList.remove('active'));
+    optionEl.classList.add('active');
+    dropdown.classList.remove('open');
+    updateGalleryPreview(id);
+  };
+
+  window.changeSectionAlign = function (id, align, btn) {
+    const parent = btn.closest('.align-toggle-group');
+    parent.querySelectorAll('.btn-align').forEach(el => el.classList.remove('active'));
+    btn.classList.add('active');
+    const targetTab = document.getElementById(id);
+    if (targetTab) {
+      const titleEl = targetTab.querySelector('.tab-title');
+      if (titleEl) titleEl.style.textAlign = align;
+    }
+  };
 }
 
 function syncTabsOrder(listWrap, tabsSection) {
@@ -1087,6 +1252,7 @@ const quillToolbarOptions = [
   ['clean']
 ];
 
+
 function initMainAreaEditors(tabsSection) {
   const tabs = tabsSection.querySelectorAll('.detail-tab-content');
   tabs.forEach(tab => {
@@ -1094,53 +1260,413 @@ function initMainAreaEditors(tabsSection) {
     if (!inner) return;
 
     if (tab.id === 'tab-venue') {
-      inner.contentEditable = true;
-      inner.style.border = '1px dashed var(--border-default)';
-      inner.style.padding = '10px';
+      if (inner.querySelector('.venue-editor-wrap')) return;
+
+      const currentAddress = inner.querySelector('.venue-address-text')?.textContent || '';
+      const currentTransit = inner.querySelector('#transitContent')?.innerHTML || '';
+
+      const editorHtml = `
+        <div class="venue-editor-wrap" style="background: var(--bg-surface1); padding: 1.5rem; border-radius: 12px; margin-bottom: 1.5rem; border: 1px dashed var(--border-default);">
+          <div style="margin-bottom: 1rem;">
+            <label style="display:block; font-weight: 700; margin-bottom: 0.5rem; color:var(--text-main);">행사 장소 주소</label>
+            <div style="display:flex; gap: 0.5rem;">
+              <input type="text" id="venueEditAddress" class="form-control" style="flex: 1; border-radius:8px;" placeholder="예: 서울특별시 강남구 테헤란로 123" value="${currentAddress === '장소 정보가 없습니다.' ? '' : currentAddress}">
+              <button type="button" class="btn btn-primary" id="btnUpdateVenueMap" style="border-radius:8px;">지도 반영</button>
+            </div>
+          </div>
+          <div>
+            <label style="display:block; font-weight: 700; margin-bottom: 0.5rem; color:var(--text-main);">대중교통 안내</label>
+            <textarea id="venueEditTransit" class="form-control" style="width:100%; min-height: 100px; resize: vertical; border-radius:8px;" placeholder="지하철, 버스 등 교통편 안내를 입력하세요">${currentTransit === '대중교통 정보가 없습니다.' ? '' : currentTransit}</textarea>
+          </div>
+        </div>
+      `;
+      inner.insertAdjacentHTML('afterbegin', editorHtml);
+
+      const btnUpdate = inner.querySelector('#btnUpdateVenueMap');
+      const addressInput = inner.querySelector('#venueEditAddress');
+      const transitInput = inner.querySelector('#venueEditTransit');
+
+      btnUpdate.addEventListener('click', () => {
+        const address = addressInput.value.trim();
+        const transit = transitInput.value.trim();
+
+        const addressTextEl = inner.querySelector('.venue-address-text');
+        const transitContentEl = inner.querySelector('#transitContent');
+        const googleMapFrame = inner.querySelector('#googleMap');
+
+        if (addressTextEl) addressTextEl.textContent = address || '장소 정보가 없습니다.';
+        if (transitContentEl) transitContentEl.innerHTML = transit.replace(/\n/g, '<br>') || '대중교통 정보가 없습니다.';
+
+        if (googleMapFrame && address) {
+          googleMapFrame.src = `https://maps.google.com/maps?q=${encodeURIComponent(address)}&output=embed`;
+        }
+
+        let linksWrap = inner.querySelector('#directionsLinksWrap');
+        if (!linksWrap) {
+          linksWrap = document.createElement('div');
+          linksWrap.id = 'directionsLinksWrap';
+          inner.appendChild(linksWrap);
+        }
+
+        if (address) {
+          linksWrap.innerHTML = `
+            <div style="margin-top: 1.5rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
+              <a href="https://map.kakao.com/link/search/${encodeURIComponent(address)}" target="_blank" style="display:inline-flex; align-items:center; gap:6px; padding: 10px 16px; background: #FEE500; color: #000; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 0.9rem;"><svg width="16" height="16" viewBox="0 0 24 24" fill="#000"><path d="M12 3c-5.523 0-10 3.514-10 7.85 0 2.804 1.83 5.253 4.606 6.647l-1.18 4.34c-.05.18.17.33.32.22l5.12-3.41c.37.04.74.06 1.13.06 5.523 0 10-3.514 10-7.85C22 6.514 17.523 3 12 3z"/></svg>카카오맵</a>
+              <a href="https://map.naver.com/v5/search/${encodeURIComponent(address)}" target="_blank" style="display:inline-flex; align-items:center; gap:6px; padding: 10px 16px; background: #03C75A; color: #fff; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 0.9rem;"><svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M16.084 12.637L8.03 2.127C7.625 1.597 7.026 1.334 6.386 1.334H2v21.332h5.922V11.233l8.053 10.51C16.42 22.316 17.02 22.58 17.658 22.58H22V1.248h-5.916v11.389z"/></svg>네이버지도</a>
+              <a href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(address)}&travelmode=transit" target="_blank" style="display:inline-flex; align-items:center; gap:6px; padding: 10px 16px; background: #4285F4; color: #fff; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 0.9rem;"><svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>구글맵 길찾기</a>
+            </div>
+          `;
+        } else {
+          linksWrap.innerHTML = '';
+        }
+
+        Toast.success('장소 및 지도가 반영되었습니다.');
+      });
+
       return;
     }
 
-    if (inner.querySelector('.quill-main-editor') || inner.querySelector('.gallery-main-editor')) return;
+    if (inner.querySelector('.block-editor-wrap')) return;
 
-    const title = tab.querySelector('.tab-title')?.textContent || '';
-    if (title.includes('갤러리') || tab.id.includes('gallery')) {
-      makeGalleryEditor(tab, inner);
-    } else {
-      makeTextEditor(tab, inner);
-    }
+    makeBlockEditor(tab, inner);
   });
 }
 
-function makeTextEditor(tab, inner) {
-  const html = inner.innerHTML;
-  inner.innerHTML = '';
+function syncLivePreview(tab, blocksContainer) {
+  const inner = tab.querySelector('.tab-content-inner');
+  if (!inner) return;
 
-  const editorWrap = document.createElement('div');
-  editorWrap.className = 'quill-main-editor';
-  editorWrap.style.minHeight = '300px';
-  editorWrap.style.marginTop = '1rem';
-  editorWrap.innerHTML = html;
-
-  inner.appendChild(editorWrap);
-
-  if (typeof Quill !== 'undefined') {
-    const quill = new Quill(editorWrap, {
-      theme: 'snow',
-      modules: { toolbar: quillToolbarOptions }
-    });
-    quillEditors[tab.id] = quill;
+  let combinedHtml = '';
+  const blocks = blocksContainer.querySelectorAll('.editor-block');
+  if (blocks.length === 0) {
+    inner.innerHTML = '<p class="tab-empty-text">등록된 내용이 없습니다.</p>';
+    return;
   }
+
+  blocks.forEach(block => {
+    if (block.classList.contains('text-block')) {
+      const quillWrap = block.querySelector('.quill-main-editor');
+      if (quillWrap) {
+        const editorContent = quillWrap.querySelector('.ql-editor') ? quillWrap.querySelector('.ql-editor').innerHTML : quillWrap.innerHTML;
+        combinedHtml += `<div class="view-text-block" style="margin-bottom:1rem;">${editorContent}</div>`;
+      }
+    } else if (block.classList.contains('gallery-block')) {
+      const previewContainer = block.querySelector('.gallery-preview-container');
+      if (previewContainer) {
+        combinedHtml += previewContainer.innerHTML;
+      }
+    }
+  });
+  inner.innerHTML = combinedHtml;
 }
 
-function makeGalleryEditor(tab, inner) {
-  // 메인 화면에서는 사이드바에서 설정한 갤러리 프리뷰만 렌더링합니다.
-  inner.innerHTML = '';
-  // 초기 렌더링 시점에 즉시 프리뷰 업데이트 호출
-  updateGalleryPreview(tab.id);
+function makeBlockEditor(tab, sidebarContainer) {
+  const inner = tab.querySelector('.tab-content-inner');
+  let html = '';
+  if (inner) {
+    html = inner.innerHTML;
+  }
+
+  const wrap = document.createElement('div');
+  wrap.className = 'block-editor-wrap';
+
+  const blocksContainer = document.createElement('div');
+  blocksContainer.className = 'blocks-container';
+  blocksContainer.style.display = 'flex';
+  blocksContainer.style.flexDirection = 'column';
+  blocksContainer.style.gap = '1.5rem';
+  wrap.appendChild(blocksContainer);
+
+  const addActions = document.createElement('div');
+  addActions.className = 'block-add-actions';
+  addActions.style.display = 'flex';
+  addActions.style.gap = '12px';
+  addActions.style.padding = '24px 0';
+  addActions.style.justifyContent = 'center';
+  addActions.innerHTML = `
+    <button class="btn btn-add-text-block" style="background:#fff; border:1px solid #e5e7eb; padding:10px 20px; border-radius:30px; font-weight:600; font-size:0.9rem; color:#4b5563; box-shadow:0 2px 4px rgba(0,0,0,0.02); cursor:pointer; transition:all 0.2s;">+ 텍스트 블록 추가</button>
+    <button class="btn btn-add-gallery-block" style="background:#fff; border:1px solid #e5e7eb; padding:10px 20px; border-radius:30px; font-weight:600; font-size:0.9rem; color:#4b5563; box-shadow:0 2px 4px rgba(0,0,0,0.02); cursor:pointer; transition:all 0.2s;">+ 갤러리 영역 추가</button>
+  `;
+  wrap.appendChild(addActions);
+  sidebarContainer.appendChild(wrap);
+
+  const addTextBlock = (content = '') => {
+    const block = document.createElement('div');
+    block.className = 'editor-block text-block';
+    block.style.position = 'relative';
+    block.style.border = '1px solid #e5e7eb';
+    block.style.borderRadius = '12px';
+    block.style.padding = '40px 0 0 0';
+    block.style.background = '#fff';
+    block.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.05)';
+    block.style.overflow = 'hidden';
+
+    const controls = document.createElement('div');
+    controls.style.position = 'absolute';
+    controls.style.top = '0';
+    controls.style.left = '0';
+    controls.style.right = '0';
+    controls.style.height = '40px';
+    controls.style.background = '#f9fafb';
+    controls.style.borderBottom = '1px solid #e5e7eb';
+    controls.style.display = 'flex';
+    controls.style.alignItems = 'center';
+    controls.style.justifyContent = 'space-between';
+    controls.style.padding = '0 12px';
+
+    controls.innerHTML = `
+      <div style="font-size:0.75rem; font-weight:700; color:#6b7280; display:flex; align-items:center; gap:4px;">
+         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/></svg> 텍스트 블록
+      </div>
+      <div style="display:flex; gap:4px;">
+        <button class="btn-block-up" style="cursor:pointer; background:#fff; border:1px solid #d1d5db; border-radius:4px; width:24px; height:24px; display:flex; align-items:center; justify-content:center; color:#4b5563; transition:background 0.2s;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m18 15-6-6-6 6"/></svg></button>
+        <button class="btn-block-down" style="cursor:pointer; background:#fff; border:1px solid #d1d5db; border-radius:4px; width:24px; height:24px; display:flex; align-items:center; justify-content:center; color:#4b5563; transition:background 0.2s;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg></button>
+        <button class="btn-block-del" style="cursor:pointer; background:#fef2f2; border:1px solid #fecaca; border-radius:4px; width:24px; height:24px; display:flex; align-items:center; justify-content:center; color:#ef4444; transition:background 0.2s; margin-left:4px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+      </div>
+    `;
+    block.appendChild(controls);
+
+    const quillWrap = document.createElement('div');
+    quillWrap.className = 'quill-main-editor';
+    quillWrap.style.minHeight = '150px';
+    quillWrap.innerHTML = content;
+    block.appendChild(quillWrap);
+
+    blocksContainer.appendChild(block);
+
+    if (typeof Quill !== 'undefined') {
+      const quill = new Quill(quillWrap, {
+        theme: 'snow',
+        modules: { toolbar: quillToolbarOptions }
+      });
+      quillEditors[tab.id + '_' + Date.now()] = quill;
+
+      quill.on('text-change', () => {
+        syncLivePreview(tab, blocksContainer);
+      });
+    }
+
+    bindBlockControls(block);
+    syncLivePreview(tab, blocksContainer);
+  };
+
+  const addGalleryBlock = () => {
+    const block = document.createElement('div');
+    block.className = 'editor-block gallery-block';
+    block.style.position = 'relative';
+    block.style.border = '1px solid #e5e7eb';
+    block.style.borderRadius = '12px';
+    block.style.padding = '40px 0 0 0';
+    block.style.background = '#fff';
+    block.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.05)';
+    block.style.overflow = 'hidden';
+
+    const controls = document.createElement('div');
+    controls.style.position = 'absolute';
+    controls.style.top = '0';
+    controls.style.left = '0';
+    controls.style.right = '0';
+    controls.style.height = '40px';
+    controls.style.background = '#f9fafb';
+    controls.style.borderBottom = '1px solid #e5e7eb';
+    controls.style.display = 'flex';
+    controls.style.alignItems = 'center';
+    controls.style.justifyContent = 'space-between';
+    controls.style.padding = '0 12px';
+
+    controls.innerHTML = `
+      <div style="font-size:0.75rem; font-weight:700; color:#6b7280; display:flex; align-items:center; gap:4px;">
+         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg> 갤러리 영역
+      </div>
+      <div style="display:flex; gap:4px;">
+        <button class="btn-block-up" style="cursor:pointer; background:#fff; border:1px solid #d1d5db; border-radius:4px; width:24px; height:24px; display:flex; align-items:center; justify-content:center; color:#4b5563; transition:background 0.2s;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m18 15-6-6-6 6"/></svg></button>
+        <button class="btn-block-down" style="cursor:pointer; background:#fff; border:1px solid #d1d5db; border-radius:4px; width:24px; height:24px; display:flex; align-items:center; justify-content:center; color:#4b5563; transition:background 0.2s;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg></button>
+        <button class="btn-block-del" style="cursor:pointer; background:#fef2f2; border:1px solid #fecaca; border-radius:4px; width:24px; height:24px; display:flex; align-items:center; justify-content:center; color:#ef4444; transition:background 0.2s; margin-left:4px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+      </div>
+    `;
+    block.appendChild(controls);
+
+    const uploadWrap = document.createElement('div');
+    uploadWrap.style.padding = '1.5rem';
+    uploadWrap.innerHTML = `
+      <div style="margin-bottom:1rem;">
+        <select class="form-control gallery-layout-select" style="width:100%; border-radius:8px;">
+          <option value="grid">Grid (기본 격자)</option>
+          <option value="masonry">Masonry (핀터레스트 스타일)</option>
+          <option value="mosaic">Mosaic (모자이크형)</option>
+          <option value="carousel">Carousel (캐러셀)</option>
+        </select>
+      </div>
+      <div style="margin-bottom:1rem; font-weight:700; color:var(--text-main); font-size:0.9rem;">이미지</div>
+      <label class="gallery-upload-area" style="display:block; border:1px dashed #d1d5db; border-radius:12px; padding:2rem; text-align:center; cursor:pointer; background:#f9fafb; transition:all 0.2s;">
+        <input type="file" multiple accept="image/*" class="gallery-upload-input" style="display:none;">
+        <div style="width:40px; height:40px; background:#fff; border-radius:50%; box-shadow:0 2px 4px rgba(0,0,0,0.05); display:inline-flex; align-items:center; justify-content:center; margin-bottom:0.5rem; color:#9ca3af;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+        </div>
+        <div style="color:#6b7280; font-size:0.9rem; font-weight:600;">이미지 선택</div>
+      </label>
+      <div class="uploaded-image-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(80px, 1fr)); gap:10px; margin-top:1rem;"></div>
+      <div class="gallery-preview-container" style="display:none;"></div>
+    `;
+    block.appendChild(uploadWrap);
+
+    blocksContainer.appendChild(block);
+    bindBlockControls(block);
+
+    const fileInput = block.querySelector('.gallery-upload-input');
+    const previewGrid = block.querySelector('.uploaded-image-grid');
+    const layoutSelect = block.querySelector('.gallery-layout-select');
+
+    layoutSelect.addEventListener('change', () => {
+      updateGalleryPreview(tab.id);
+    });
+
+    fileInput.addEventListener('change', (e) => {
+      const files = Array.from(e.target.files);
+      if (files.length === 0) return;
+
+      const currentImgCount = previewGrid.querySelectorAll('.uploaded-image-item').length;
+      if (currentImgCount + files.length > 20) {
+        Toast.warning(`최대 20장까지만 업로드할 수 있습니다. (현재 ${currentImgCount}장)`);
+        fileInput.value = '';
+        return;
+      }
+
+      files.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const imgWrap = document.createElement('div');
+          imgWrap.className = 'uploaded-image-item';
+          imgWrap.style.position = 'relative';
+          imgWrap.style.aspectRatio = '1';
+          imgWrap.style.borderRadius = '8px';
+          imgWrap.style.overflow = 'hidden';
+          imgWrap.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+
+          imgWrap.innerHTML = `
+            <img src="${e.target.result}" style="width:100%; height:100%; object-fit:cover;">
+            <button class="btn-remove-img" style="position:absolute; top:4px; right:4px; background:rgba(0,0,0,0.5); color:#fff; border:none; border-radius:50%; width:20px; height:20px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:12px;">✕</button>
+          `;
+
+          imgWrap.querySelector('.btn-remove-img').addEventListener('click', () => {
+            imgWrap.remove();
+            updateGalleryPreview(tab.id);
+          });
+
+          previewGrid.appendChild(imgWrap);
+          updateGalleryPreview(tab.id);
+        };
+        reader.readAsDataURL(file);
+      });
+      fileInput.value = '';
+    });
+
+    syncLivePreview(tab, blocksContainer);
+  };
+
+  function bindBlockControls(block) {
+    block.querySelector('.btn-block-up').addEventListener('click', () => {
+      const prev = block.previousElementSibling;
+      if (prev) blocksContainer.insertBefore(block, prev);
+      syncLivePreview(tab, blocksContainer);
+    });
+    block.querySelector('.btn-block-down').addEventListener('click', () => {
+      const next = block.nextElementSibling;
+      if (next) blocksContainer.insertBefore(next, block);
+      syncLivePreview(tab, blocksContainer);
+    });
+    block.querySelector('.btn-block-del').addEventListener('click', () => {
+      block.remove();
+      syncLivePreview(tab, blocksContainer);
+    });
+  }
+
+  addActions.querySelector('.btn-add-text-block').addEventListener('click', () => addTextBlock('<p><br></p>'));
+  addActions.querySelector('.btn-add-gallery-block').addEventListener('click', () => addGalleryBlock());
+
+  if (html.trim() && !html.includes('등록된 상세 설명 이미지가 제공되지 않았습니다.') && !html.includes('등록된 공지사항이 없습니다.')) {
+    if (html.includes('view-text-block') || html.includes('gallery-grid') || html.includes('gallery-carousel') || html.includes('gallery-slider')) {
+      const temp = document.createElement('div');
+      temp.innerHTML = html;
+      const children = Array.from(temp.children);
+      if (children.length > 0) {
+        children.forEach(child => {
+          if (child.classList.contains('view-text-block')) {
+            addTextBlock(child.innerHTML);
+          } else {
+            addTextBlock(child.outerHTML);
+          }
+        });
+      } else {
+        addTextBlock(html);
+      }
+    } else {
+      addTextBlock(html);
+    }
+  } else {
+    addTextBlock('<p>내용을 입력하세요.</p>');
+  }
+
+  syncLivePreview(tab, blocksContainer);
+}
+window.updateGalleryPreviewOrig = window.updateGalleryPreview;
+window.updateGalleryPreview = function (targetId) {
+  const accordionItem = document.querySelector(`.builder-accordion-item[data-target-id="${targetId}"]`);
+  const targetTab = document.getElementById(targetId);
+  if (!accordionItem || !targetTab) return;
+
+  const inner = targetTab.querySelector('.gallery-preview-container') || targetTab.querySelector('.tab-content-inner');
+  if (!inner) return;
+
+  const layout = accordionItem.querySelector('.gallery-layout-select')?.value || 'grid';
+  const imgElements = accordionItem.querySelectorAll('.uploaded-image-grid img');
+  const images = Array.from(imgElements).map(img => img.src);
+
+  if (images.length === 0) {
+    if (inner.classList.contains('gallery-preview-container')) {
+      inner.innerHTML = '<div style="padding:2rem; border:1px dashed #d1d5db; border-radius:12px; background:#f9fafb; color:#9ca3af; font-size:0.85rem;">등록된 이미지가 없습니다.</div>';
+    }
+    return;
+  }
+
+  let html = '';
+  if (layout === 'grid') {
+    html = '<div class="gallery-grid">';
+    images.forEach(src => { html += `<div class="gallery-grid-item"><img src="${src}" alt="갤러리 이미지"></div>`; });
+    html += '</div>';
+  } else if (layout === 'masonry') {
+    html = '<div class="gallery-masonry">';
+    images.forEach(src => { html += `<div class="gallery-masonry-item"><img src="${src}" alt="갤러리 이미지"></div>`; });
+    html += '</div>';
+  } else if (layout === 'mosaic') {
+    html = `<div class="gallery-mosaic layout-${Math.min(images.length, 5)}">`;
+    images.forEach((src, idx) => { html += `<div class="gallery-mosaic-item item-${idx + 1}"><img src="${src}" alt="갤러리 이미지"></div>`; });
+    html += '</div>';
+  } else if (layout === 'coverflow') {
+    html = '<div class="gallery-coverflow">';
+    images.forEach(src => { html += `<div class="gallery-coverflow-item"><img src="${src}" alt="갤러리 이미지"></div>`; });
+    html += '</div>';
+  } else if (layout === 'slider' || layout === 'carousel') {
+    html = '<div class="gallery-slider">';
+    images.forEach(src => { html += `<div class="gallery-slider-item"><img src="${src}" alt="갤러리 이미지"></div>`; });
+    html += '</div>';
+  } else if (layout === 'polaroid') {
+    html = '<div style="display:flex; flex-wrap:wrap; gap:1.5rem; justify-content:center;">';
+    images.forEach(src => {
+      html += `
+        <div style="background:#fff; padding:12px 12px 36px; box-shadow:0 10px 25px rgba(0,0,0,0.1); border-radius:4px; width:220px; transform:rotate(${Math.floor(Math.random() * 10 - 5)}deg); transition:transform 0.3s; cursor:pointer;" onmouseover="this.style.transform='scale(1.05) rotate(0deg)'" onmouseout="this.style.transform='rotate(${Math.floor(Math.random() * 10 - 5)}deg)'">
+          <img src="${src}" style="width:100%; aspect-ratio:1; object-fit:cover; border:1px solid #f3f4f6;">
+        </div>
+      `;
+    });
+    html += '</div>';
+  }
+
+  inner.innerHTML = html;
 }
 
-function handleAddSection() {
-  const title = '새 섹션';
+function handleAddSection(customTitle) {
+  const title = customTitle || '새 섹션';
   const sectionType = 'text';
 
   const newId = 'tab-custom-' + Date.now();
@@ -1161,6 +1687,12 @@ function handleAddSection() {
       const targetContent = document.getElementById(newId);
       if (targetContent) targetContent.classList.add('active');
     });
+
+    // Auto focus and scroll
+    setTimeout(() => {
+      newBtn.click();
+      tabsHeader.scrollLeft = tabsHeader.scrollWidth;
+    }, 10);
   }
 
   const newContent = document.createElement('div');
@@ -1173,8 +1705,7 @@ function handleAddSection() {
   tabsSection.appendChild(newContent);
 
   const inner = newContent.querySelector('.tab-content-inner');
-  inner.innerHTML = '<p>내용을 입력하세요.</p>';
-  makeTextEditor(newContent, inner);
+  makeBlockEditor(newContent, inner);
 
   const listWrap = document.getElementById('builderAccordionList');
   const items = listWrap.querySelectorAll('.builder-accordion-item');
@@ -1186,10 +1717,14 @@ function handleAddSection() {
 
 document.addEventListener('DOMContentLoaded', () => {
   // 관리자 권한 확인 (여기서는 데모용으로 항상 표시)
+  
+  const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true' || sessionStorage.getItem('isLoggedIn') === 'true' || !!localStorage.getItem('userToken') || !!sessionStorage.getItem('userToken');
+  const userRole = localStorage.getItem('userRole') || sessionStorage.getItem('userRole') || 'CLIENT';
   const globalEdit = document.getElementById('globalEditControls');
-  if (globalEdit) {
+  if (globalEdit && isLoggedIn && userRole === 'ADMIN') {
     globalEdit.style.display = 'flex';
   }
+
 
   const switchBtn = document.getElementById('btnToggleEditModeSwitch');
   if (switchBtn) {
@@ -1291,3 +1826,83 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
+
+window.toggleChartDataset = function (index) {
+  if (window.genderChart) {
+    const meta = window.genderChart.getDatasetMeta(0);
+    meta.data[index].hidden = !meta.data[index].hidden;
+    window.genderChart.update();
+    const legendEl = index === 0 ? document.getElementById('legend-male') : document.getElementById('legend-female');
+    if (legendEl) {
+      legendEl.style.opacity = meta.data[index].hidden ? '0.3' : '1';
+    }
+  }
+};
+
+
+
+function makeVenueEditor(tab, sidebarContainer) {
+  const inner = tab.querySelector('.tab-content-inner');
+  if (!inner) return;
+
+  const currentAddress = inner.querySelector('.venue-address-text')?.textContent || '';
+  const currentTransit = inner.querySelector('#transitContent')?.innerHTML || '';
+
+  const editorHtml = `
+    <div class="venue-editor-wrap" style="background: var(--bg-surface1); padding: 1.5rem; border-radius: 12px; margin-bottom: 1.5rem; border: 1px dashed var(--border-default);">
+      <div style="margin-bottom: 1rem;">
+        <label style="display:block; font-weight: 700; margin-bottom: 0.5rem; color:var(--text-main);">오시는 길 주소</label>
+        <div style="display:flex; gap: 0.5rem; flex-direction:column;">
+          <input type="text" id="venueEditAddress" class="form-control" style="width: 100%; border-radius:8px;" placeholder="예: 올림픽공원 체조경기장" value="${currentAddress === '등록된 주소가 없습니다.' ? '' : currentAddress}">
+          <button type="button" class="btn btn-primary" id="btnUpdateVenueMap" style="border-radius:8px; width:100%;">지도 및 안내 업데이트</button>
+        </div>
+      </div>
+      <div>
+        <label style="display:block; font-weight: 700; margin-bottom: 0.5rem; color:var(--text-main);">대중교통 안내</label>
+        <textarea id="venueEditTransit" class="form-control" style="width:100%; min-height: 100px; resize: vertical; border-radius:8px;" placeholder="지하철, 버스 등 교통 안내를 입력하세요">${currentTransit === '대중교통 정보가 등록되지 않았습니다.' ? '' : currentTransit.replace(/<br>/g, '\n')}</textarea>
+      </div>
+    </div>
+  `;
+  sidebarContainer.innerHTML = editorHtml;
+
+  const btnUpdate = sidebarContainer.querySelector('#btnUpdateVenueMap');
+  const addressInput = sidebarContainer.querySelector('#venueEditAddress');
+  const transitInput = sidebarContainer.querySelector('#venueEditTransit');
+
+  btnUpdate.addEventListener('click', () => {
+    const address = addressInput.value.trim();
+    const transit = transitInput.value.trim();
+
+    const addressTextEl = inner.querySelector('.venue-address-text');
+    const transitContentEl = inner.querySelector('#transitContent');
+    const googleMapFrame = inner.querySelector('#googleMap');
+
+    if (addressTextEl) addressTextEl.textContent = address || '등록된 주소가 없습니다.';
+    if (transitContentEl) transitContentEl.innerHTML = transit.replace(/\n/g, '<br>') || '대중교통 정보가 등록되지 않았습니다.';
+
+    if (googleMapFrame && address) {
+      googleMapFrame.src = `https://maps.google.com/maps?q=${encodeURIComponent(address)}&output=embed`;
+    }
+
+    let linksWrap = inner.querySelector('#directionsLinksWrap');
+    if (!linksWrap) {
+      linksWrap = document.createElement('div');
+      linksWrap.id = 'directionsLinksWrap';
+      inner.appendChild(linksWrap);
+    }
+
+    if (address) {
+      linksWrap.innerHTML = `
+        <div style="margin-top: 1.5rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
+          <a href="https://map.kakao.com/link/search/${encodeURIComponent(address)}" target="_blank" style="display:inline-flex; align-items:center; gap:6px; padding: 10px 16px; background: #FEE500; color: #000; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 0.9rem;"><svg width="16" height="16" viewBox="0 0 24 24" fill="#000"><path d="M12 3c-5.523 0-10 3.514-10 7.85 0 2.804 1.83 5.253 4.606 6.647l-1.18 4.34c-.05.18.17.33.32.22l5.12-3.41c.37.04.74.06 1.13.06 5.523 0 10-3.514 10-7.85C22 6.514 17.523 3 12 3z"/></svg>카카오맵</a>
+          <a href="https://map.naver.com/v5/search/${encodeURIComponent(address)}" target="_blank" style="display:inline-flex; align-items:center; gap:6px; padding: 10px 16px; background: #03C75A; color: #fff; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 0.9rem;"><svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M16.084 12.637L8.03 2.127C7.625 1.597 7.026 1.334 6.386 1.334H2v21.332h5.922V11.233l8.053 10.51C16.42 22.316 17.02 22.58 17.658 22.58H22V1.248h-5.916v11.389z"/></svg>네이버지도</a>
+          <a href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(address)}&travelmode=transit" target="_blank" style="display:inline-flex; align-items:center; gap:6px; padding: 10px 16px; background: #4285F4; color: #fff; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 0.9rem;"><svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>구글 길찾기</a>
+        </div>
+      `;
+    } else {
+      linksWrap.innerHTML = '';
+    }
+
+    Toast.success('오시는 길 정보가 라이브 화면에 업데이트되었습니다.');
+  });
+}
