@@ -1,6 +1,6 @@
 package festival.festival.service;
 
-import festival.festival.domain.FestivalVo;
+import festival.festival.domain.Festival;
 import festival.festival.repository.FestivalRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -20,7 +20,7 @@ public class FestivalService {
     /**
      * 모든 페스티벌 목록을 조회합니다. 최신 등록 순서대로 조회됩니다.
      */
-    public List<FestivalVo> getAllFestivals() {
+    public List<Festival> getAllFestivals() {
         return festivalRepository.findAllByOrderByIdDesc();
     }
 
@@ -28,7 +28,7 @@ public class FestivalService {
      * 신규 페스티벌을 등록합니다.
      */
     @Transactional
-    public FestivalVo createFestival(FestivalVo festival) {
+    public Festival createFestival(Festival festival) {
         return festivalRepository.save(festival);
     }
 
@@ -36,8 +36,8 @@ public class FestivalService {
      * 특정 페스티벌의 활성화 상태(is_active)를 토글합니다.
      */
     @Transactional
-    public FestivalVo toggleActive(Long id) {
-        FestivalVo festival = festivalRepository.findById(id)
+    public Festival toggleActive(Long id) {
+        Festival festival = festivalRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 페스티벌 ID입니다: " + id));
         festival.setIsActive(!festival.getIsActive());
         return festival;
@@ -65,8 +65,8 @@ public class FestivalService {
      * 특정 페스티벌의 심사 상태 및 운영 단계를 변경합니다.
      */
     @Transactional
-    public FestivalVo updateStatus(Long id, String reviewStatus, String operationalStatus) {
-        FestivalVo festival = festivalRepository.findById(id)
+    public Festival updateStatus(Long id, String reviewStatus, String operationalStatus) {
+        Festival festival = festivalRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 페스티벌 ID입니다: " + id));
         if (reviewStatus != null) {
             festival.setReviewStatus(reviewStatus);

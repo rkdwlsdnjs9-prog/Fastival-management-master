@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class FestivalVo {
+public class Festival {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

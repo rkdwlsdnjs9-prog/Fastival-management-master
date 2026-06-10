@@ -391,6 +391,23 @@ function normalizeUserCoupon(row) {
   };
 }
 
+function normalizeZone(row) {
+  if (!row) return null;
+  return {
+    id: row.id,
+    zoneNo: row.id || row.zone_no || row.zoneNo,
+    zoneName: row.zone_name || row.zoneName || row.zone_code || row.zoneCode,
+    zoneCode: row.zone_code || row.zoneCode,
+    totalCapacity: row.total_capacity !== undefined ? row.total_capacity : (row.capacity !== undefined ? row.capacity : (row.totalCapacity || 0)),
+    remainingCapacity: row.remaining_capacity !== undefined ? row.remaining_capacity : (row.remaining !== undefined ? row.remaining : (row.remainingCapacity || 0)),
+    price: row.price || 0,
+    colorCode: row.color_code || row.colorCode || '#6A4DFF',
+    mapBgUrl: row.map_bg_url || row.mapBgUrl || null,
+    svgPoints: row.svg_points || row.svgPoints || null,
+    festivalId: row.festival_id || row.festivalId
+  };
+}
+
 /* ═══════════════════════════════════════════════════════════
    app_user API (구: memberApi)
 ═══════════════════════════════════════════════════════════ */
@@ -615,13 +632,33 @@ const eventApi = {
   /** 구역 잔여 수량 조회 (festival_zone 테이블) */
   getZoneCapacity: async (festivalId) => {
     if (USE_MOCK) {
-      return MOCK.festival_zones.filter(z => z.festival_id === parseInt(festivalId));
+      return MOCK.festival_zones.filter(z => z.festival_id === parseInt(festivalId)).map(normalizeZone);
     }
     const sb = getSupabase();
-    const { data } = await sb.from('festival_zone')
+    const { data: zones } = await sb.from('festival_zone')
       .select('*')
       .eq('festival_id', festivalId);
-    return data || [];
+
+    if (!zones) return [];
+
+    const populatedZones = [];
+    for (const zone of zones) {
+      const { data: seats } = await sb.from('seat_map')
+        .select('*')
+        .eq('zone_id', zone.id);
+
+      const total = seats ? seats.length : 0;
+      const remaining = seats ? seats.filter(s => !s.is_reserved && s.status !== 'RESERVED' && s.status !== 'HOLD').length : 0;
+      const zonePrice = seats && seats.length > 0 ? seats[0].price : 0;
+
+      populatedZones.push(normalizeZone({
+        ...zone,
+        total_capacity: total,
+        remaining_capacity: remaining,
+        price: zonePrice
+      }));
+    }
+    return populatedZones;
   },
 
   /** 예매자 현황 통계 조회 (성별 및 연령대) */
@@ -953,9 +990,11 @@ window.memberApi = memberApi;
 window.eventApi = eventApi;
 window.wishlistApi = wishlistApi;
 window.ticketOrderApi = ticketOrderApi;
+window.orderApi = ticketOrderApi;
 window.couponApi = couponApi;
 window.reviewApi = reviewApi;
 window.inquiryApi = inquiryApi;
 window.scanApi = scanApi;
 window.broadcastApi = broadcastApi;
 window.normalizeFestival = normalizeFestival;
+

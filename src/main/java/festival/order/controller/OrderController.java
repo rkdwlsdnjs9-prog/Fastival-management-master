@@ -246,39 +246,74 @@ public class OrderController {
 
     @PostMapping("/ticket")
     public Map<String, Object> createTicketOrder(@RequestBody Map<String, Object> payload) {
-        int totalPrice = (Integer) payload.get("totalPrice");
-        List<String> seats = (List<String>) payload.get("seats");
-        String seatIdsStr = String.join(", ", seats);
-        
-        // QR 텍스트 데이터 및 고유 난수 생성
-        String ticketNum = generateRandomTicketNumber();
-        
-        // PostgreSQL의 RETURNING id 기능을 사용하여 확실하게 INSERT 후 ID 조회 및 기본값 셋팅
-        String insertSql = "INSERT INTO orders (user_id, festival_id, total_price, payment_status, created_at, seat_ids, is_entered, ticket_type, ticket_number) " +
-                           "VALUES (NULL, 1, ?, 'PAID', NOW(), ?, false, 'ONSITE', ?) RETURNING id";
-        
-        Long orderId = jdbcTemplate.queryForObject(insertSql, Long.class, totalPrice, seatIdsStr, ticketNum);
-        
-        // 보안 요구사항: TOTP 전용 비밀키 생성 후 DB에 저장
-        String secret = generateHexSecret();
-        String qrPayload = "SECRET:" + secret;
-        
-        // 정확한 orderId를 기반으로 무작위 생성된 qr_code를 즉시 업데이트
-        jdbcTemplate.update("UPDATE orders SET qr_code = ? WHERE id = ?", qrPayload, orderId);
-        
-        for (String seat : seats) {
-            String zone = seat.split("-")[0];
-            int number = Integer.parseInt(seat.split("-")[1]);
-            
-            try {
-                jdbcTemplate.update(
-                    "UPDATE seat_map SET is_reserved = true WHERE seat_row LIKE ? AND seat_number = ?", 
-                    zone + "%", number);
-            } catch (Exception e) {
-                // Ignore
+        int totalPrice = ((Number) payload.get("totalPrice")).intValue();
+        List<String> seats = (List<String>) payload.get("seats");      // 텍스트 레이블 (표시용)
+        List<Object> seatIdsRaw = (List<Object>) payload.get("seatIds"); // DB PK 배열 (예약 처리용)
+
+        // seatIds가 있으면 PK 기반으로 정확하게 처리 (구역 혼동 없음)
+        List<Long> seatIds = new ArrayList<>();
+        if (seatIdsRaw != null) {
+            for (Object idObj : seatIdsRaw) {
+                try { seatIds.add(((Number) idObj).longValue()); } catch (Exception e) { /* 무시 */ }
             }
         }
-        
+
+        // seat_ids 컬럼에는 PK 목록 저장 (조회 및 환불 처리에 활용)
+        String seatIdsStr = seatIds.isEmpty()
+            ? (seats != null ? String.join(", ", seats) : "")
+            : seatIds.stream().map(String::valueOf).collect(java.util.stream.Collectors.joining(", "));
+
+        // eventNo를 festival_id로 사용 (없으면 1 기본값)
+        int festivalId = 1;
+        if (payload.get("eventNo") != null) {
+            try { festivalId = ((Number) payload.get("eventNo")).intValue(); } catch (Exception e) { /* 무시 */ }
+        }
+
+        // QR 텍스트 데이터 및 고유 난수 생성
+        String ticketNum = generateRandomTicketNumber();
+
+        // INSERT 후 생성된 orderId 반환
+        String insertSql = "INSERT INTO orders (user_id, festival_id, total_price, payment_status, created_at, seat_ids, is_entered, ticket_type, ticket_number) " +
+                           "VALUES (NULL, ?, ?, 'PAID', NOW(), ?, false, 'ONSITE', ?) RETURNING id";
+
+        Long orderId = jdbcTemplate.queryForObject(insertSql, Long.class, festivalId, totalPrice, seatIdsStr, ticketNum);
+
+        // 보안: TOTP 전용 비밀키 생성 후 저장
+        String secret = generateHexSecret();
+        String qrPayload = "SECRET:" + secret;
+        jdbcTemplate.update("UPDATE orders SET qr_code = ? WHERE id = ?", qrPayload, orderId);
+
+        // ★ 구역별 정확한 좌석 예약 처리 ★
+        if (!seatIds.isEmpty()) {
+            // seatIds(PK)가 있으면 ID로 정확히 업데이트 → 구역 혼동 없음
+            for (Long seatId : seatIds) {
+                try {
+                    int updated = jdbcTemplate.update(
+                        "UPDATE seat_map SET is_reserved = true WHERE id = ?", seatId);
+                    if (updated == 0) {
+                        System.err.println("좌석 예약 처리: id=" + seatId + " 에 해당하는 좌석 없음");
+                    }
+                } catch (Exception e) {
+                    System.err.println("좌석 예약 실패 id=" + seatId + ": " + e.getMessage());
+                }
+            }
+        } else if (seats != null) {
+            // 하위 호환: seatIds 없을 때 기존 방식 (row+number 패턴)
+            for (String seat : seats) {
+                seat = seat.trim();
+                if (!seat.contains("-")) continue;
+                String[] parts = seat.split("-", 2);
+                try {
+                    int number = Integer.parseInt(parts[1]);
+                    jdbcTemplate.update(
+                        "UPDATE seat_map SET is_reserved = true WHERE seat_row LIKE ? AND seat_number = ?",
+                        parts[0] + "%", number);
+                } catch (Exception e) {
+                    System.err.println("좌석 예약 처리 실패: " + seat + " - " + e.getMessage());
+                }
+            }
+        }
+
         Map<String, Object> res = new HashMap<>();
         res.put("status", "success");
         res.put("orderId", orderId);

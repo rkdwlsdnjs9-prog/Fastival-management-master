@@ -460,9 +460,23 @@
 
 .booking-cta-top {
   display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-3);
+}
+
+.cta-zone-row {
+  display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: var(--sp-3);
+}
+
+.cta-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .booking-zone-text {
@@ -475,12 +489,84 @@
   font-weight: 700;
 }
 
+/* ── 선택한 좌석 패널 ─────────────────────────────────────── */
+.selected-seats-panel {
+  background: var(--bg-elevated, #1e2030);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 12px;
+  border: 1px solid var(--border-subtle, rgba(255,255,255,0.08));
+}
+
+.selected-seats-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.selected-count-badge {
+  background: var(--color-primary, #696cff);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 99px;
+}
+
+.selected-seats-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 160px;
+  overflow-y: auto;
+}
+
+.seats-placeholder {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 6px 0;
+}
+
+.seat-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 8px;
+  background: var(--bg-surface1, rgba(255,255,255,0.04));
+  border-radius: 6px;
+  border: 1px solid var(--border-subtle, rgba(255,255,255,0.06));
+  animation: fadeInSeat 0.2s ease-out;
+}
+
+@keyframes fadeInSeat {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.seat-list-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.seat-list-price {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--color-primary-light, #a3a6e4);
+}
+
 .booking-total {
   font-family: var(--font-display);
   font-size: 1.25rem;
   font-weight: 700;
   color: var(--color-primary-light);
 }
+
 
 /* ── 통계 차트 ─────────────────────────────────────────────── */
 .stats-section {
@@ -1993,4 +2079,198 @@
   content: '제목 3';
   font-size: 16px;
   font-weight: bold;
+}
+
+/* ============================================================
+   사용자 좌석 선택 모달 & 개별 좌석 그리드 레이아웃
+   ============================================================ */
+#userGridWrapper {
+  position: relative;
+  background-color: #0f0f1e;
+  border-radius: 8px;
+  overflow: auto;
+}
+
+#userGridBgOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* 상단 무대 가이드 바 */
+.stage-guide {
+  background: #202240 !important;
+  border: 1px solid rgba(105, 108, 255, 0.4) !important;
+  color: #a3a6e4 !important;
+  text-align: center;
+  font-weight: 700;
+  font-size: 10px;
+  letter-spacing: 3px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 22px;
+  box-sizing: border-box;
+  user-select: none;
+}
+
+#userGridSeatArea {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  gap: 8px;
+  margin: auto;
+  box-sizing: border-box;
+}
+
+/* 좌석 아이템 스타일 - 둥근 사각형 및 좌석 번호 노출 */
+.seat-cell {
+  aspect-ratio: 1;
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-sizing: border-box;
+  position: relative;
+}
+
+/* 좌석 내부의 좌석번호 글씨 활성화 */
+.seat-cell span {
+  display: flex !important;
+  font-size: 10px;
+  font-weight: 700;
+  color: #ffffff !important;
+  pointer-events: none;
+}
+
+/* 가격 및 기타 보조 태그는 내부 렌더링 제외 */
+.seat-cell span.seat-price-tag {
+  display: none !important;
+}
+
+/* 호버 시 확대 효과 */
+.seat-cell:hover:not(.seat-reserved):not(.seat-corridor):not(.seat-stage) {
+  transform: scale(1.4);
+  z-index: 10;
+  box-shadow: 0 0 12px currentColor;
+}
+
+/* 커스텀 툴팁 구현 (data-tooltip 속성 활용) */
+.seat-cell[data-tooltip]:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 130%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(15, 15, 30, 0.95);
+  color: #ffffff;
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: 500;
+  border-radius: 6px;
+  white-space: nowrap;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  z-index: 999;
+  pointer-events: none;
+  animation: fadeInTooltip 0.15s ease-out;
+}
+
+/* 툴팁 화살표 */
+.seat-cell[data-tooltip]:hover::before {
+  content: "";
+  position: absolute;
+  bottom: 110%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 5px;
+  border-style: solid;
+  border-color: rgba(15, 15, 30, 0.95) transparent transparent transparent;
+  z-index: 999;
+  pointer-events: none;
+}
+
+@keyframes fadeInTooltip {
+  from { opacity: 0; transform: translate(-50%, 5px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+/* 선택됨 상태 */
+.seat-cell.selected {
+  background: #FF9F43 !important;
+  border: 2px solid #ffffff !important;
+  box-shadow: 0 0 15px #FF9F43 !important;
+  transform: scale(1.2);
+}
+
+/* 예매 완료 상태 - 연한 회색으로 흐릿하게 처리하여 도면 시야 확보 */
+.seat-cell.seat-reserved {
+  background: rgba(133, 146, 163, 0.2) !important;
+  border: 1px solid rgba(133, 146, 163, 0.3) !important;
+  cursor: not-allowed !important;
+  opacity: 0.3;
+}
+
+/* 통로 및 무대 - 투명 처리하여 아래 도면이 완전 노출되게 함 */
+.seat-cell.seat-corridor,
+.seat-cell.seat-stage {
+  background: transparent !important;
+  border: none !important;
+  pointer-events: none;
+  opacity: 0;
+}
+
+/* 등급별 좌석 파스텔 색상 */
+.seat-cell.seat-vip {
+  background: #FFAB00 !important;
+  border: 1px solid rgba(255, 171, 0, 0.6) !important;
+  color: #FFAB00 !important;
+}
+.seat-cell.seat-r {
+  background: #696cff !important;
+  border: 1px solid rgba(105, 108, 255, 0.6) !important;
+  color: #696cff !important;
+}
+.seat-cell.seat-s {
+  background: #03c3ec !important;
+  border: 1px solid rgba(3, 195, 236, 0.6) !important;
+  color: #03c3ec !important;
+}
+.seat-cell.seat-available {
+  background: #8592a3 !important;
+  border: 1px solid rgba(133, 146, 163, 0.6) !important;
+  color: #8592a3 !important;
+}
+
+/* ── 구역 다각형 (Dynamic SVG Polygon) 스타일 ── */
+.zone-polygon {
+  fill: rgba(106, 77, 255, 0.15);
+  stroke: #6A4DFF;
+  stroke-width: 2.5;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.zone-polygon:hover {
+  fill: rgba(106, 77, 255, 0.35);
+  stroke-width: 3.5;
+}
+.zone-polygon.selected {
+  fill: rgba(255, 107, 53, 0.25);
+  stroke: #FF6B35;
+  stroke-width: 4;
+}
+.zone-polygon.sold-out {
+  fill: rgba(133, 146, 163, 0.15) !important;
+  stroke: #8592a3 !important;
+  cursor: not-allowed;
+  opacity: 0.4;
 }

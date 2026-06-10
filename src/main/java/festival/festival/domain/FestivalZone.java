@@ -13,7 +13,7 @@ import jakarta.persistence.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class FestivalZoneEntity {
+public class FestivalZone {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -39,4 +39,7 @@ public class FestivalZoneEntity {
 
     @Column(name = "status")
     private String status;
+
+    @Column(name = "map_bg_url")
+    private String mapBgUrl;
 }
