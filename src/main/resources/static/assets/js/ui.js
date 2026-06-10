@@ -1,5 +1,5 @@
 // UI rendering and core control panel module
-import { DB, saveDB, publish, subscribe, addNotification, toggleWebsocketSimulation } from './store.js';
+import { DB, saveDB, publish, subscribe, addNotification } from './store.js';
 import { getCurrentUser, login, logout, getStaffList, generateTemporaryAccount } from './auth.js';
 import { initializeQRScanner, stopQRScanner, validateTicketState, validateExchangeQR } from './scanner.js?v=totp-fix';
 import { getSeatStats, renderSeatMap, setupRealtimeSeatSync, manualReserveSeat, releaseSeat } from './seats.js';
@@ -39,6 +39,13 @@ export async function loadSidebarMenu(viewId) {
         menuLinks.forEach(link => link.classList.remove("active"));
         const currentLink = sidebarMenu.querySelector(`.menu-link[data-page="${viewId}"]`);
         if (currentLink) currentLink.classList.add("active");
+
+        // 모바일 사이드바 메뉴 클릭 시 자동 닫기 이벤트 추가
+        menuLinks.forEach(link => {
+          link.addEventListener("click", () => {
+            document.getElementById("sidebar").classList.add("collapsed");
+          });
+        });
       }
     } catch (e) {
       console.error("Failed to load sidebar menu:", e);
@@ -158,6 +165,7 @@ export async function initPage(viewId = 'dashboard') {
   }
 
   // Cleanup old cached data from localStorage that might contain D or E zones
+  if (!DB.seats) DB.seats = {};
   Object.keys(DB.seats).forEach(key => {
     const zone = key.split('-')[0];
     if (zone !== 'A' && zone !== 'B' && zone !== 'C') {
@@ -167,8 +175,8 @@ export async function initPage(viewId = 'dashboard') {
 
   // Show user info in header
   if (headerUser) headerUser.innerText = `스태프: ${user.name}`;
-  if (headerCheckpoint) {
-    headerCheckpoint.innerText = `[ ${DB.activeCheckpoint.event} / ${DB.activeCheckpoint.tenant} ]`;
+  if (headerCheckpoint && DB.activeCheckpoint) {
+    headerCheckpoint.innerText = `[ ${DB.activeCheckpoint.event || ''} / ${DB.activeCheckpoint.tenant || ''} ]`;
   }
 
   _setupSharedUI();
@@ -182,9 +190,38 @@ export async function initPage(viewId = 'dashboard') {
 function _setupSharedUI() {
   // Sidebar collapse toggle
   if (toggleSidebarBtn) {
-    toggleSidebarBtn.onclick = () => {
+    toggleSidebarBtn.onclick = (e) => {
+      e.stopPropagation();
       sidebar.classList.toggle("collapsed");
     };
+  }
+
+  // 모바일 사이드바 강제 닫기 버튼 동적 추가
+  const sidebarHeader = document.querySelector(".sidebar-header");
+  if (sidebarHeader && !document.getElementById("btn-close-sidebar")) {
+    const closeBtn = document.createElement("button");
+    closeBtn.id = "btn-close-sidebar";
+    closeBtn.innerHTML = "✕";
+    closeBtn.style.cssText = "background:transparent; border:none; color:#ef4444; font-size:20px; cursor:pointer; font-weight:bold; margin-left:10px;";
+    closeBtn.onclick = () => sidebar.classList.add("collapsed");
+    sidebarHeader.appendChild(closeBtn);
+  }
+
+  // 메뉴 항목 클릭 시 사이드바 무조건 닫기
+  document.querySelectorAll(".menu-link").forEach(link => {
+    link.addEventListener("click", () => {
+      sidebar.classList.add("collapsed");
+    });
+  });
+
+  // 바깥 영역 클릭 시 닫기
+  const mainContainer = document.getElementById("main-container");
+  if (mainContainer) {
+    mainContainer.addEventListener("click", () => {
+      if (window.innerWidth <= 768 && !sidebar.classList.contains("collapsed")) {
+        sidebar.classList.add("collapsed");
+      }
+    });
   }
 
   // Logout handler — always returns to index.html
@@ -282,6 +319,9 @@ function renderViewData(viewId) {
     case "scan-status":
       renderScanStatusScreen();
       break;
+    case "manual-entry":
+      renderManualEntryScreen();
+      break;
     case "seats":
       renderSeatMapScreen();
       break;
@@ -289,20 +329,11 @@ function renderViewData(viewId) {
       renderTicketingScreen();
       break;
     case "refund":
-      renderRefundScreen();
-      break;
-
     case "orders":
-      renderFnbOrdersScreen();
-      break;
     case "goods":
-      renderGoodsOrdersScreen();
-      break;
     case "inventory-goods":
-      renderGoodsInventoryScreen();
-      break;
     case "inventory-fnb":
-      renderFnbInventoryScreen();
+      // 삭제된 기능
       break;
   }
 }
@@ -466,21 +497,24 @@ async function renderDashboard() {
 
   let fnbOrders = [];
   let goodsOrders = [];
+  let scanLogsFromDB = [];
   try {
-    const [fnbRes, goodsRes, seatsRes] = await Promise.all([
+    const [fnbRes, goodsRes, seatsRes, scanLogsRes] = await Promise.all([
       fetch('/api/order/fnb'),
       fetch('/api/order/goods'),
-      fetch('/api/order/seats?zones=A,B,C')
+      fetch('/api/order/seats?zones=A,B,C'),
+      fetch('/api/order/scan-logs')
     ]);
     if (fnbRes.ok) fnbOrders = await fnbRes.json();
     if (goodsRes.ok) goodsOrders = await goodsRes.json();
+    if (scanLogsRes.ok) scanLogsFromDB = await scanLogsRes.json();
     
     if (seatsRes.ok) {
       const allSeats = await seatsRes.json();
       DB.seats = {}; // Completely rebuild seats map from DB
       allSeats.forEach(s => {
         DB.seats[s.id] = {
-          status: s.isReserved ? "RESERVED" : "AVAILABLE",
+          status: s.isEntered ? "ENTERED" : (s.isReserved ? "RESERVED" : "AVAILABLE"),
           holder: s.isReserved ? "예약됨" : null
         };
       });
@@ -502,7 +536,7 @@ async function renderDashboard() {
 
   view.innerHTML = `
     <!-- Top KPI Dashboard Cards -->
-    <div class="dashboard-metrics" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 25px;">
+    <div class="dashboard-metrics" style="grid-template-columns: repeat(2, 1fr); margin-bottom: 25px;">
       <div class="metric-card metric-green">
         <div class="metric-title" style="display: flex; justify-content: space-between; align-items: center;">
           <span>🚶 당일 실시간 입장객 현황</span>
@@ -526,78 +560,12 @@ async function renderDashboard() {
         </div>
         <div class="metric-footer">예매 완료 및 입장권 발매 전체 세그먼트</div>
       </div>
-
-      <div class="metric-card metric-amber">
-        <div class="metric-title" style="display: flex; justify-content: space-between; align-items: center;">
-          <span>🍔 식음료(F&B) 주문 관리</span>
-          <span class="badge badge-amber">${activeFnbCount}건 대기</span>
-        </div>
-        <div class="metric-value" style="font-size: 28px;">총 ${fnbOrders.length}건 <span style="font-size: 14px; color: var(--text-muted); font-weight: normal;">/ 활성: ${activeFnbCount}건</span></div>
-        <div style="width: 100%; background: #0d1117; border: 1px solid var(--border-color); height: 6px; border-radius: 3px; overflow: hidden; margin-bottom: 8px;">
-          <div style="width: ${fnbOrders.length > 0 ? Math.min(100, Math.round((activeFnbCount / fnbOrders.length) * 100)) : 0}%; background: var(--color-amber); height: 100%; box-shadow: 0 0 8px var(--color-amber); transition: width 0.5s ease;"></div>
-        </div>
-        <div class="metric-footer">식음료 매장 대기 및 완료 실시간 주문 흐름</div>
-      </div>
     </div>
 
-    <!-- Main Live Queue Section (Two Column Grid) -->
-    <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 20px; margin-bottom: 25px;">
-      <!-- Left Panel: Goods Reservation List -->
-      <div class="panel-rigid">
-        <div class="panel-header-rigid">
-          <span style="display: flex; align-items: center; gap: 8px;">
-            <span>🎁 굿즈 예약/수령 관리 목록</span>
-            <span class="badge badge-blue">${activeGoodsCount}건 대기 중</span>
-          </span>
-          <span class="telemetry-pulse" style="font-family: var(--font-mono); color: var(--color-blue);">GOODS SYSTEM</span>
-        </div>
-        <div class="panel-body-rigid" style="padding: 10px; max-height: 380px; overflow-y: auto;">
-          <table class="table-rigid" style="font-size: 12px;">
-            <thead>
-              <tr>
-                <th>주문번호</th>
-                <th>고객명</th>
-                <th>굿즈 상품 내역</th>
-                <th>상태</th>
-                <th class="text-right">스태프 액션</th>
-              </tr>
-            </thead>
-            <tbody id="dash-goods-list">
-              <!-- Dynamically rendered goods -->
-            </tbody>
-          </table>
-        </div>
-      </div>
 
-      <!-- Right Panel: F&B Cook & Pickup Queue -->
-      <div class="panel-rigid">
-        <div class="panel-header-rigid">
-          <span style="display: flex; align-items: center; gap: 8px;">
-            <span>🍔 실시간 F&B 주문 접수 대기열</span>
-            <span class="badge badge-amber">${activeFnbCount}건 조리 중</span>
-          </span>
-          <span class="telemetry-pulse" style="font-family: var(--font-mono); color: var(--color-amber);">F&B KITCHEN</span>
-        </div>
-        <div class="panel-body-rigid" style="padding: 10px; max-height: 380px; overflow-y: auto;">
-          <table class="table-rigid" style="font-size: 12px;">
-            <thead>
-              <tr>
-                <th>주문번호</th>
-                <th>고객명</th>
-                <th>주문 품목</th>
-                <th class="text-right">상태 업데이트</th>
-              </tr>
-            </thead>
-            <tbody id="dash-fnb-list">
-              <!-- Dynamically rendered active F&B -->
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
 
     <!-- Bottom Panel: Scan logs & Telemetry console -->
-    <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 20px;">
+    <div style="display: flex; flex-direction: column; gap: 20px;">
       <!-- Scan Logs Panel -->
       <div class="panel-rigid">
         <div class="panel-header-rigid" style="display: flex; justify-content: space-between; align-items: center;">
@@ -643,105 +611,35 @@ async function renderDashboard() {
     </div>
   `;
 
-  // Render Goods List
-  const goodsListBody = document.getElementById("dash-goods-list");
-  if (goodsOrders.length === 0) {
-    goodsListBody.innerHTML = `<tr><td colspan="5" class="text-center" style="color:var(--text-muted); padding: 20px 0;">등록된 굿즈 예약 내역이 없습니다.</td></tr>`;
-  } else {
-    goodsOrders.forEach(o => {
-      const itemsText = o.items.map(item => `${item.name} (${item.quantity}개)`).join(", ");
-      
-      let statusBadge = "";
-      let actionBtn = "";
 
-      if (o.status === "ORDERED") {
-        statusBadge = `<span class="badge badge-gray animate-pulse">결제완료</span>`;
-        actionBtn = `<button class="btn btn-rigid btn-small btn-blue btn-goods-action" data-id="${o.id}" data-next="READY">수령대기 처리</button>`;
-      } else if (o.status === "READY") {
-        statusBadge = `<span class="badge badge-amber animate-pulse">수령가능</span>`;
-        actionBtn = `<button class="btn btn-rigid btn-small btn-green btn-goods-action" data-id="${o.id}" data-next="PICKED_UP">수령완료 처리</button>`;
-      } else if (o.status === "PICKED_UP") {
-        statusBadge = `<span class="badge badge-blue">픽업완료</span>`;
-        actionBtn = `<span style="color:var(--text-muted); font-size:11px;">전달 완료</span>`;
-      } else if (o.status === "REFUNDED") {
-        statusBadge = `<span class="badge badge-red">환불완료</span>`;
-        actionBtn = `<span style="color:var(--color-red); font-size:11px;">취소됨</span>`;
-      }
-
-      const row = document.createElement("tr");
-      row.innerHTML = `
-        <td><strong>${o.id}</strong></td>
-        <td>${o.customer}</td>
-        <td title="${itemsText}">${itemsText.length > 25 ? itemsText.substring(0, 25) + "..." : itemsText}</td>
-        <td>${statusBadge}</td>
-        <td class="text-right">${actionBtn}</td>
-      `;
-      goodsListBody.appendChild(row);
-    });
-  }
-
-  // Render F&B List (Only show incomplete orders to save space on dashboard)
-  const activeFnbOrders = fnbOrders.filter(o => o.status !== "PICKED_UP" && o.status !== "REFUNDED");
-  const fnbListBody = document.getElementById("dash-fnb-list");
-  if (activeFnbOrders.length === 0) {
-    fnbListBody.innerHTML = `<tr><td colspan="4" class="text-center" style="color:var(--text-muted); padding: 20px 0;">대기 중인 활성 식음료 주문이 없습니다.</td></tr>`;
-  } else {
-    activeFnbOrders.forEach(o => {
-      const itemsText = o.items.map(item => `${item.name} (${item.quantity}개)`).join(", ");
-      
-      let statusBtn = "";
-      if (o.status === "RECEIVED") {
-        statusBtn = `<button class="btn btn-rigid btn-small btn-amber btn-fnb-action" data-id="${o.id}" data-next="COOKING" style="width: 90px;">조리 시작</button>`;
-      } else if (o.status === "COOKING") {
-        statusBtn = `<button class="btn btn-rigid btn-small btn-green btn-fnb-action" data-id="${o.id}" data-next="READY" style="width: 90px;">조리 완료</button>`;
-      } else if (o.status === "READY") {
-        statusBtn = `<button class="btn btn-rigid btn-small btn-blue btn-fnb-action" data-id="${o.id}" data-next="PICKED_UP" style="width: 90px;">픽업 완료</button>`;
-      }
-
-      const row = document.createElement("tr");
-      row.innerHTML = `
-        <td><strong>${o.id}</strong></td>
-        <td>${o.customer}</td>
-        <td title="${itemsText}">${itemsText.length > 20 ? itemsText.substring(0, 20) + "..." : itemsText}</td>
-        <td class="text-right">${statusBtn}</td>
-      `;
-      fnbListBody.appendChild(row);
-    });
-  }
 
   // Render Scan Logs
-  const scanLogs = DB.notifications.filter(n => n.message.includes("[QR 스캔]")).slice(0, 5);
+  const recentLogs = scanLogsFromDB.slice(0, 5);
   const scanLogsTbody = document.getElementById("dash-scan-logs-tbody");
   if (scanLogsTbody) {
-    if (scanLogs.length === 0) {
+    if (recentLogs.length === 0) {
       scanLogsTbody.innerHTML = `<tr><td colspan="5" class="text-center" style="color:var(--text-muted); padding: 15px 0;">최근 스캔 기록이 없습니다.</td></tr>`;
     } else {
-      scanLogs.forEach(log => {
-        const parts = log.message.match(/티켓\s([A-Za-z0-9\-]+):\s결과\s\[([A-Z_]+)\]/);
-        if (!parts) return;
-        const ticketId = parts[1];
-        const status = parts[2];
-
-        const ticket = DB.tickets.find(t => t.id === ticketId);
-        const seatId = ticket ? ticket.seat : "-";
-        const holder = ticket ? ticket.holder : "알 수 없는 고객";
-
+      recentLogs.forEach(log => {
+        const ticketId = log.ticket_number || "-";
+        const seatId = log.seat_ids || "-";
+        
         let badgeClass = "badge-red";
         let statusText = "검증오류";
-        if (status === "VALID") {
+        if (log.result === "SUCCESS") {
           badgeClass = "badge-green";
           statusText = "입장 승인";
-        } else if (status === "ALREADY_ENTERED") {
+        } else if (log.result === "ALREADY_ENTERED") {
           badgeClass = "badge-purple";
           statusText = "중복 입장";
         }
 
         const tr = document.createElement("tr");
         tr.innerHTML = `
-          <td>${log.timestamp}</td>
+          <td>${log.scanned_at}</td>
           <td><strong>${ticketId}</strong></td>
           <td><span class="badge badge-gray">${seatId}</span></td>
-          <td>${holder}</td>
+          <td>현장 고객</td>
           <td class="text-right"><span class="badge ${badgeClass}">${statusText}</span></td>
         `;
         scanLogsTbody.appendChild(tr);
@@ -765,43 +663,7 @@ async function renderDashboard() {
     }, 50);
   }
 
-  // Bind Goods Actions
-  document.querySelectorAll(".btn-goods-action").forEach(btn => {
-    btn.onclick = async () => {
-      const ordId = btn.getAttribute("data-id");
-      const nextStatus = btn.getAttribute("data-next");
-      
-      try {
-        await fetch(`/api/order/goods/${ordId}/status`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ status: nextStatus })
-        });
-      } catch (e) {}
 
-      addNotification("ORDER", `굿즈 주문 ${ordId} 상태 변경 -> ${nextStatus}`);
-      renderDashboard();
-    };
-  });
-
-  // Bind F&B Actions
-  document.querySelectorAll(".btn-fnb-action").forEach(btn => {
-    btn.onclick = async () => {
-      const ordId = btn.getAttribute("data-id");
-      const nextStatus = btn.getAttribute("data-next");
-      
-      try {
-        await fetch(`/api/order/fnb/${ordId}/status`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ status: nextStatus })
-        });
-      } catch (e) {}
-
-      addNotification("ORDER", `식음료 주문 ${ordId} 상태 변경 -> ${nextStatus}`);
-      renderDashboard();
-    };
-  });
 }
 
 // ==========================================
@@ -824,9 +686,9 @@ function renderScannerScreen() {
           <!-- Confirm Scan Overlay (Removed to speed up line) -->
           
           <!-- Active Validation Overlay (Floating over camera) -->
-          <div id="scan-validation-screen" style="display:none; position:absolute; bottom:10%; left:50%; transform:translateX(-50%); z-index:9999; width:90%; max-width:350px; background:rgba(15,23,42,0.95); border-radius:16px; box-shadow:0 15px 35px rgba(0,0,0,0.8); padding:20px; text-align:center; border:2px solid #38bdf8;">
+          <div id="scan-validation-screen" class="scan-validation-popup" style="display:none;">
             <div id="scan-result-card-inner" style="background:transparent; padding:0; box-shadow:none;">
-              <h2 id="scan-result-title" style="margin:0 0 5px 0; font-size:24px; font-weight:900;">VALID</h2>
+              <h2 id="scan-result-title">VALID</h2>
               <div id="scan-result-ticket-number" style="display:none;"></div>
               <p id="scan-result-msg" style="margin:0; font-size:14px; color:#cbd5e1; word-break:keep-all;"></p>
               <button id="btn-close-scan-overlay" class="btn btn-rigid btn-green" style="margin-top:15px; width:100%; font-weight:bold; padding:12px;">확인 및 계속 스캔</button>
@@ -866,42 +728,8 @@ function renderScannerScreen() {
     }
     document.body.appendChild(wrapper);
     
-    // 확실한 100% 꽉찬 화면을 위해 강제로 인라인 스타일 적용
+    // 확실한 100% 꽉찬 화면을 위해 강제로 인라인 스타일 적용했던 부분은 CSS 클래스로 이관
     wrapper.classList.add("fullscreen-mode");
-    wrapper.style.position = "fixed";
-    wrapper.style.top = "0";
-    wrapper.style.left = "0";
-    wrapper.style.width = "100vw";
-    wrapper.style.height = "100vh";
-    wrapper.style.backgroundColor = "#000";
-    wrapper.style.zIndex = "999999";
-    wrapper.style.display = "flex";
-    wrapper.style.flexDirection = "column";
-    wrapper.style.justifyContent = "center";
-    wrapper.style.alignItems = "center";
-    
-    // 강제로 빈 여백 없이 늘리기 위한 설정
-    const reader = document.getElementById("qr-camera-reader");
-    if(reader) {
-        reader.style.width = "100vw";
-        reader.style.height = "100vh";
-        reader.style.maxWidth = "none";
-        reader.style.maxHeight = "none";
-    }
-    
-    // 비디오 강제 확장을 위한 스타일 주입
-    if (!document.getElementById("fullscreen-video-style")) {
-        const style = document.createElement("style");
-        style.id = "fullscreen-video-style";
-        style.innerHTML = `
-            #qr-camera-reader__scan_region, #qr-camera-reader video {
-                width: 100vw !important;
-                height: 100vh !important;
-                object-fit: cover !important;
-            }
-        `;
-        document.head.appendChild(style);
-    }
     
     startCamBtn.style.display = "none";
     
@@ -932,6 +760,7 @@ function renderScannerScreen() {
     if (styleElem) styleElem.remove();
     
     startCamBtn.style.display = "inline-block";
+    stopCamBtn.style.display = "none"; // 빨간 버튼 숨김 처리 추가
   };
 }
 
@@ -952,33 +781,31 @@ async function triggerScanValidationUI(ticketId) {
       tNum.innerText = `🎫 ${ticketId}`;
   }
 
-  // Clear colors
+  // Clear classes
   closeBtn.className = "btn btn-rigid";
+  overlay.className = "scan-validation-popup";
 
   if (result.status === "VALID") {
-    overlay.style.borderColor = "#10b981"; // Green
+    overlay.classList.add("status-valid");
     title.innerText = "입장하셨습니다";
-    title.style.color = "#10b981";
     closeBtn.classList.add("btn-green");
   } else if (result.status === "ALREADY_ENTERED") {
-    overlay.style.borderColor = "#a855f7"; // Purple
+    overlay.classList.add("status-already");
     title.innerText = "중복 입장 불가";
-    title.style.color = "#a855f7";
     closeBtn.classList.add("btn-purple");
   } else {
-    overlay.style.borderColor = "#ef4444"; // Red
+    overlay.classList.add("status-invalid");
     title.innerText = "입장 불가";
-    title.style.color = "#ef4444";
     closeBtn.classList.add("btn-red");
   }
 
   overlay.style.display = "block";
 
-  // 2.5초 후 팝업 자동 닫기 (새로운 스캔을 방해하지 않음)
+  // 1초 후 팝업 자동 닫기 (새로운 스캔을 빠르게 처리)
   if (window.scanPopupTimeout) clearTimeout(window.scanPopupTimeout);
   window.scanPopupTimeout = setTimeout(() => {
     overlay.style.display = "none";
-  }, 2500);
+  }, 1000);
 
   closeBtn.onclick = () => {
     overlay.style.display = "none";
@@ -995,72 +822,79 @@ async function triggerScanValidationUI(ticketId) {
   return result;
 }
 
-function updateRecentScanLogsTable() {
+async function updateRecentScanLogsTable() {
   const tbody = document.getElementById("scan-logs-tbody");
   if (!tbody) return;
 
   tbody.innerHTML = "";
 
-  // Get recent scans from notifications of type TELEMETRY containing [QR 스캔]
-  const scanLogs = DB.notifications.filter(n => n.message.includes("[QR 스캔]"));
+  try {
+    const res = await fetch('/api/order/scan-logs');
+    if (!res.ok) throw new Error();
+    const scanLogs = await res.json();
 
-  if (scanLogs.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="8" class="text-center" style="color:#a0aec0;">입장 검수 이력이 존재하지 않습니다.</td></tr>`;
-    return;
-  }
-
-  scanLogs.forEach(log => {
-    // Parse ticket code and status from message
-    // Message structure: `[QR 스캔] 티켓 T-1001: 결과 [VALID]`
-    const parts = log.message.match(/티켓\s([A-Za-z0-9\-]+):\s결과\s\[([A-Z_]+)\]/);
-    if (!parts) return;
-    const ticketId = parts[1];
-    const status = parts[2];
-
-    const ticket = DB.tickets.find(t => t.id === ticketId);
-    const seatId = ticket ? ticket.seat : "-";
-    const holder = ticket ? ticket.holder : "알 수 없는 고객";
-
-    // 티켓 유형 판별 (DB orders의 TICKET 타입 주문에 메타데이터로 매핑되어 있으면 현장발권, 없으면 예매발권)
-    const isOnsite = DB.orders.some(o => o.type === "TICKET" && o.metadata && o.metadata.ticketId === ticketId);
-    const ticketType = isOnsite ? "현장발권" : "예매발권";
-    const ticketTypeBadge = isOnsite ? "badge-blue" : "badge-gray";
-
-    let colorClass = "badge-red";
-    let statusText = "올바르지 않은 티켓";
-    let rightIndicator = "border-right-red";
-
-    if (status === "VALID") {
-      colorClass = "badge-green";
-      statusText = "검증 완료 (입장 승인)";
-      rightIndicator = "border-right-green";
-    } else if (status === "ALREADY_ENTERED") {
-      colorClass = "badge-purple";
-      statusText = "입장 차단 (중복 사용)";
-      rightIndicator = "border-right-purple";
+    if (scanLogs.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="8" class="text-center" style="color:#a0aec0;">입장 검수 이력이 존재하지 않습니다.</td></tr>`;
+      return;
     }
 
-    const tr = document.createElement("tr");
-    tr.className = rightIndicator;
-    tr.innerHTML = `
-      <td>${log.timestamp}</td>
-      <td><strong>${ticketId}</strong></td>
-      <td><span class="badge badge-gray">${seatId}</span></td>
-      <td>${holder}</td>
-      <td><span class="badge ${ticketTypeBadge}">${ticketType}</span></td>
-      <td><strong>1개</strong></td>
-      <td><span class="badge ${colorClass}">${statusText}</span></td>
-      <td class="text-right">
-        <span class="indicator-bar ${status.toLowerCase()}"></span>
-      </td>
-    `;
-    tbody.appendChild(tr);
-  });
+    scanLogs.forEach(log => {
+      const ticketId = log.ticket_number || "-";
+      const seatId = log.seat_ids || "-";
+      const ticketType = log.ticket_type === 'ONSITE' ? "현장발권" : "예매발권";
+      const ticketTypeBadge = log.ticket_type === 'ONSITE' ? "badge-blue" : "badge-gray";
+      
+      let colorClass = "badge-red";
+      let statusText = "검증 실패 (오류 또는 중복)";
+      let rightIndicator = "border-right-red";
+      
+      if (log.result === "SUCCESS") {
+        colorClass = "badge-green";
+        statusText = "검증 완료 (입장 승인)";
+        rightIndicator = "border-right-green";
+      }
+
+      const tr = document.createElement("tr");
+      tr.className = rightIndicator;
+      tr.innerHTML = `
+        <td>${log.scanned_at}</td>
+        <td><strong>${ticketId}</strong></td>
+        <td><span class="badge badge-gray">${seatId}</span></td>
+        <td>현장 고객</td>
+        <td><span class="badge ${ticketTypeBadge}">${ticketType}</span></td>
+        <td><strong>1개</strong></td>
+        <td><span class="badge ${colorClass}">${statusText}</span></td>
+        <td class="text-right">
+          <span class="indicator-bar ${log.result.toLowerCase()}"></span>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  } catch(e) {
+    console.error("Failed to fetch scan logs", e);
+    tbody.innerHTML = `<tr><td colspan="8" class="text-center" style="color:#ef4444;">데이터를 불러오는 중 오류가 발생했습니다.</td></tr>`;
+  }
 }
 
-function renderScanStatusScreen() {
+async function renderScanStatusScreen() {
   const view = document.getElementById("view-scan-status");
   if (!view) return;
+
+  try {
+    const res = await fetch('/api/order/seats?zones=A,B,C');
+    if (res.ok) {
+      const allSeats = await res.json();
+      DB.seats = {};
+      allSeats.forEach(s => {
+        DB.seats[s.id] = {
+          status: s.isEntered ? "ENTERED" : (s.isReserved ? "RESERVED" : "AVAILABLE"),
+          holder: s.isReserved ? "예약됨" : null
+        };
+      });
+    }
+  } catch(e) {
+    console.error("Failed to fetch seats for stats", e);
+  }
 
   const stats = getSeatStats();
 
@@ -1088,6 +922,9 @@ function renderScanStatusScreen() {
         <span>실시간 입장객: <strong id="scan-entered-count">${stats.entered}</strong> / ${stats.total} 석</span>
       </div>
       <div class="panel-body-rigid">
+        <div style="margin-bottom: 15px;">
+          <input type="text" id="scan-log-search-input" class="input-rigid" placeholder="검색할 티켓 번호를 입력하세요..." style="width: 100%; max-width: 400px; padding: 10px;">
+        </div>
         <table class="table-rigid">
           <thead>
             <tr>
@@ -1119,6 +956,22 @@ function renderScanStatusScreen() {
       triggerScanValidationUI(id);
     };
   });
+
+  // Search logic
+  const searchInput = document.getElementById("scan-log-search-input");
+  if (searchInput) {
+    searchInput.addEventListener("keyup", (e) => {
+      const term = e.target.value.toLowerCase();
+      const rows = document.querySelectorAll("#scan-logs-tbody tr");
+      rows.forEach(row => {
+        const ticketCell = row.cells[1];
+        if (ticketCell) {
+          const text = ticketCell.textContent.toLowerCase();
+          row.style.display = text.includes(term) ? "" : "none";
+        }
+      });
+    });
+  }
 }
 
 // ==========================================
@@ -1135,7 +988,7 @@ async function renderSeatMapScreen() {
       DB.seats = {};
       allSeats.forEach(s => {
         DB.seats[s.id] = {
-          status: s.isReserved ? "RESERVED" : "AVAILABLE",
+          status: s.isEntered ? "ENTERED" : (s.isReserved ? "RESERVED" : "AVAILABLE"),
           holder: s.isReserved ? "예약됨" : null
         };
       });
@@ -1189,7 +1042,7 @@ async function renderTicketingScreen() {
       DB.seats = {};
       allSeats.forEach(s => {
         DB.seats[s.id] = {
-          status: s.isReserved ? "RESERVED" : "AVAILABLE",
+          status: s.isEntered ? "ENTERED" : (s.isReserved ? "RESERVED" : "AVAILABLE"),
           holder: s.isReserved ? "예약됨" : null
         };
       });
@@ -1205,8 +1058,8 @@ async function renderTicketingScreen() {
   const defaultRate = rates[0];
 
   view.innerHTML = `
-    <div class="ticketing-grid" style="display:flex; gap:20px; align-items: flex-start;">
-      <div class="panel-rigid" style="flex: 1.2; min-width: 450px;">
+    <div class="ticketing-grid" style="display:flex; flex-wrap: wrap; gap:20px; align-items: flex-start;">
+      <div class="panel-rigid" style="flex: 1 1 300px; width: 100%;">
         <div class="panel-header-rigid">현장 매표소 발권 및 티켓 커스텀 설정</div>
         <div class="panel-body-rigid">
           <form id="ticketing-form">
@@ -1215,8 +1068,8 @@ async function renderTicketingScreen() {
                 <span>선택된 좌석 목록 및 이용 고객 지정</span>
                 <span id="selected-seats-count-lbl" style="font-size: 12px; color: var(--text-muted); font-weight: normal;">0개 선택됨</span>
               </label>
-              <div class="selected-seats-table-container" style="max-height: 250px; overflow-y: auto; border: 1px solid var(--border-color); background: #1a202c; border-radius: 2px;">
-                <table class="table-rigid" style="margin: 0; font-size: 12px;">
+              <div class="selected-seats-table-container" style="max-height: 250px; overflow-y: auto; overflow-x: auto; border: 1px solid var(--border-color); background: #1a202c; border-radius: 2px;">
+                <table class="table-rigid" style="margin: 0; font-size: 12px; min-width: 350px;">
                   <thead>
                     <tr>
                       <th style="padding: 8px 10px;">좌석</th>
@@ -1233,22 +1086,22 @@ async function renderTicketingScreen() {
               </div>
             </div>
 
-            <div class="price-display-box-rigid" style="margin-top: 15px;">
-              <span>최종 합산 결제 금액</span>
-              <strong id="ticket-final-price-lbl">0원</strong>
+            <div class="price-display-box-rigid" style="margin-top: 15px; background: rgba(16, 185, 129, 0.1); border: 2px solid var(--color-green); padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-radius: 4px;">
+              <span style="color: #fff; font-weight: 800; font-size: 14px;">최종 합산 결제 금액</span>
+              <strong id="ticket-final-price-lbl" style="color: var(--color-green); font-size: 24px; font-family: var(--font-mono);">0원</strong>
             </div>
 
-            <button type="button" id="btn-request-ticket-pay" class="btn btn-rigid btn-green" style="width: 100%; font-weight:bold; margin-top:20px;">
+            <button type="button" id="btn-request-ticket-pay" class="btn btn-rigid btn-green" style="width: 100%; font-weight:bold; margin-top:20px; padding: 15px; font-size: 15px;">
               [결제요청] Toss Payments 일괄 결제창 호출
             </button>
           </form>
         </div>
       </div>
 
-      <div class="panel-rigid" style="flex: 1.5; min-width: 500px;">
+      <div class="panel-rigid" style="flex: 1.5 1 300px; width: 100%; overflow: hidden;">
         <div class="panel-header-rigid">실시간 좌석 배치도 및 가용 좌석 모니터 (원클릭 좌석 선택)</div>
-        <div class="panel-body-rigid" style="overflow-x: auto;">
-          <div id="ticketing-seat-map-container" style="min-width: 620px;">
+        <div class="panel-body-rigid" style="overflow-x: auto; padding-bottom: 20px;">
+          <div id="ticketing-seat-map-container" style="min-width: 600px;">
             <!-- Theater amphitheater map draws here -->
           </div>
         </div>
@@ -1556,15 +1409,18 @@ async function renderRefundScreen() {
     let actionBtnHtml = "";
     let statusLabel = "";
 
-    if (o.payment_status === "PAID") {
-      statusLabel = `<span class="badge badge-green">결제 완료</span>`;
+    if (o.is_entered) {
+      statusLabel = `<span class="badge badge-purple">입장완료</span>`;
+      actionBtnHtml = `<span style="font-size:12px; color:#a0aec0;">입장 완료됨</span>`;
+    } else if (o.payment_status === "PAID") {
+      statusLabel = `<span class="badge badge-green">결제완료</span>`;
       actionBtnHtml = `<button class="btn btn-rigid btn-small btn-red btn-request-ref" data-id="${o.id}">환불 요청</button>`;
     } else if (o.payment_status === "REFUND_REQUESTED") {
       statusLabel = `<span class="badge badge-amber animate-pulse">환불 접수</span>`;
       actionBtnHtml = `<button class="btn btn-rigid btn-small btn-purple btn-accept-ref" data-id="${o.id}">환불 수락 (Cancel API)</button>`;
     } else if (o.payment_status === "REFUNDED") {
-      statusLabel = `<span class="badge badge-red">환불 완료</span>`;
-      actionBtnHtml = `<span style="font-size:12px; color:#a0aec0;">환불 완료됨</span>`;
+      statusLabel = `<span class="badge badge-red">환불완료</span>`;
+      actionBtnHtml = `<span style="font-size:12px; color:#a0aec0;">환불 처리됨</span>`;
     }
 
     let dateStr = "";
@@ -2507,6 +2363,22 @@ function setupGlobalSubscriptions() {
     }
   });
 
+  // 4. 백엔드 실시간 동기화 (Polling) 추가
+  // 주기적으로 현재 보고 있는 화면의 데이터를 서버에서 새로 가져와 화면을 갱신합니다.
+  setInterval(() => {
+    const activeView = document.querySelector(".content-view.active");
+    if (activeView) {
+      if (activeView.id === "view-dashboard") {
+        renderDashboard();
+      } else if (activeView.id === "view-scan-status") {
+        // 스캔 현황 페이지일 경우 하단 테이블만 업데이트
+        if (typeof updateRecentScanLogsTable === 'function') {
+          updateRecentScanLogsTable();
+        }
+      }
+    }
+  }, 3000); // 3초 주기
+
   // 4. Realtime Food ingredient out listener
   subscribe("food-soldout", () => {
     const activeView = document.querySelector(".content-view.active");
@@ -2538,4 +2410,100 @@ function populatePopoverNotifications() {
     `;
     notifList.appendChild(div);
   });
+}
+
+// ==========================================
+// 13. MANUAL TICKET ENTRY SCREEN
+// ==========================================
+function renderManualEntryScreen() {
+  const view = document.getElementById("view-manual-entry");
+  if (!view) return;
+
+  view.innerHTML = `
+    <div class="panel-rigid" style="max-width: 600px; margin: 0 auto;">
+      <div class="panel-header-rigid">티켓 수동 입장 처리</div>
+      <div class="panel-body-rigid">
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">
+          QR 코드 스캔이 불가능한 고객(스마트폰 방전 등)의 티켓 번호나 주문 번호를 검색하여 수동으로 입장 처리합니다.
+        </p>
+        <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+          <input type="text" id="manual-search-input" class="input-rigid" style="flex: 1;" placeholder="주문번호 (예: ORD-123) 또는 티켓번호 (숫자) 입력">
+          <button id="btn-manual-search" class="btn btn-rigid btn-blue">검색</button>
+        </div>
+        <div id="manual-search-result" style="margin-top: 20px;">
+          <!-- Result rendered here -->
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById("btn-manual-search").onclick = async () => {
+    const input = document.getElementById("manual-search-input").value.trim();
+    const resultDiv = document.getElementById("manual-search-result");
+    if (!input) {
+      alert("검색어를 입력해주세요.");
+      return;
+    }
+    
+    resultDiv.innerHTML = "<div class='text-center'>검색 중...</div>";
+    
+    try {
+      const res = await fetch("/api/order/tickets");
+      const data = await res.json();
+      
+      const searchKey = input.toLowerCase();
+      const matched = data.find(o => 
+        ("ord-" + o.id) === searchKey || 
+        String(o.id) === searchKey || 
+        (o.ticket_number && String(o.ticket_number).toLowerCase().includes(searchKey))
+      );
+      
+      if (!matched) {
+        resultDiv.innerHTML = "<div style='color: #ef4444; padding: 15px; border: 1px solid #ef4444; border-radius: 8px;'>해당하는 주문이나 티켓을 찾을 수 없습니다.</div>";
+        return;
+      }
+      
+      const isEntered = matched.is_entered;
+      
+      let html = `
+        <div style="border: 1px solid #333; padding: 15px; border-radius: 8px; background: #1a202c;">
+          <div style="font-weight: bold; font-size: 16px; margin-bottom: 10px; color: #fff;">검색 결과</div>
+          <div style="font-size: 14px; margin-bottom: 5px;"><strong>주문 번호:</strong> ORD-${matched.id}</div>
+          <div style="font-size: 14px; margin-bottom: 5px;"><strong>티켓 번호:</strong> ${matched.ticket_number || '미발급'}</div>
+          <div style="font-size: 14px; margin-bottom: 5px;"><strong>좌석 정보:</strong> ${matched.seat_ids || '-'}</div>
+          <div style="font-size: 14px; margin-bottom: 15px;"><strong>입장 상태:</strong> ${isEntered ? '<span style="color:#ef4444; font-weight:bold;">입장 완료</span>' : '<span style="color:#10b981; font-weight:bold;">입장 대기</span>'}</div>
+      `;
+      
+      if (!isEntered) {
+        html += `<button id="btn-manual-enter-${matched.id}" class="btn btn-rigid btn-green" style="width: 100%;">이 티켓 강제 입장 처리</button>`;
+      } else {
+        html += `<button class="btn btn-rigid btn-red" style="width: 100%; opacity: 0.5; cursor: not-allowed;" disabled>이미 입장 처리됨</button>`;
+      }
+      
+      html += `</div>`;
+      resultDiv.innerHTML = html;
+      
+      if (!isEntered) {
+        document.getElementById(`btn-manual-enter-${matched.id}`).onclick = async () => {
+           if (!confirm("정말 이 티켓을 입장 처리하시겠습니까?")) return;
+           try {
+             const enterRes = await fetch(`/api/order/tickets/${matched.id}/manual-enter`, { method: "POST" });
+             const enterData = await enterRes.json();
+             
+             if (enterData.status === "VALID") {
+                 alert("입장되셨습니다!");
+                 document.getElementById("btn-manual-search").click(); // Refresh result
+             } else {
+                 alert("처리 실패: " + enterData.message);
+             }
+           } catch (err) {
+             alert("서버 에러가 발생했습니다.");
+           }
+        };
+      }
+    } catch (e) {
+      console.error(e);
+      resultDiv.innerHTML = "<span style='color:red;'>오류 발생</span>";
+    }
+  };
 }
