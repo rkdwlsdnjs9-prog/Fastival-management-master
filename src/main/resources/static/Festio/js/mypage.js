@@ -16,6 +16,7 @@
 
 /* ── 상태 관리 ───────────────────────────────────────────────── */
 let _member = null;
+let _dbTickets = [];       // 실제 DB 결제 완료 티켓 목록
 let _qrTimer = null;       // setInterval ID (3분 갱신)
 let _qrCountdown = 180;
 let _qrCountTimer = null;   // 1초 카운트다운
@@ -27,6 +28,19 @@ let _faceDetectLoop = null;
 
 /* QR SVG 원 둘레 (r=11) */
 const QR_CIRC = 2 * Math.PI * 11; // ≈ 69.1
+
+/* 실제 DB 결제 티켓 조회 API 연동 */
+async function fetchTickets() {
+  try {
+    const response = await fetch('/api/order/tickets/qr');
+    if (response.ok) {
+      _dbTickets = await response.json();
+      console.log('실제 DB 티켓 조회 완료:', _dbTickets);
+    }
+  } catch (error) {
+    console.error('DB 티켓 로드 실패:', error);
+  }
+}
 
 /* ═══════════════════════════════════════════════════════════
    1. 인증 가드 & 로컬스토리지 연동 초기화
@@ -228,7 +242,7 @@ function renderStats() {
   const statReviews = document.getElementById('statReviews');
   const statFoods = document.getElementById('statFoods');
 
-  if (statTickets) statTickets.textContent = MOCK_TICKETS.length;
+  if (statTickets) statTickets.textContent = MOCK_TICKETS.length + _dbTickets.length;
 
   // 찜 목록 - 실제 데이터 사용 (renderWishGrid에서 업데이트됨)
   if (statWishlists) statWishlists.textContent = '0';
@@ -243,7 +257,7 @@ function renderStats() {
   if (statFoods) statFoods.textContent = (typeof MOCK_FOOD_ORDERS !== 'undefined') ? MOCK_FOOD_ORDERS.length : 0;
 
   const ticketCount = document.getElementById('ticketCount');
-  if (ticketCount) ticketCount.textContent = `${MOCK_TICKETS.length + MOCK_FOOD_ORDERS.length}건`;
+  if (ticketCount) ticketCount.textContent = `${MOCK_TICKETS.length + _dbTickets.length + MOCK_FOOD_ORDERS.length}건`;
 }
 
 // 예매 내역 & 푸드트럭 픽업 내역 통합 렌더링
@@ -253,14 +267,45 @@ function renderReservationList() {
 
   let htmlContent = '';
 
+  const totalTicketCount = MOCK_TICKETS.length + _dbTickets.length;
+
   // 1. 축제 티켓 예매 섹션
   htmlContent += `
     <div class="mp-margin-b-24">
       <h3 class="mp-section-title">
-        <span class="mp-margin-r-8"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mp-icon-md"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M13 5v2"/><path d="M13 11v2"/><path d="M13 17v2"/></svg></span> 축제 티켓 예매 내역 (${MOCK_TICKETS.length}건)
+        <span class="mp-margin-r-8"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mp-icon-md"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M13 5v2"/><path d="M13 11v2"/><path d="M13 17v2"/></svg></span> 축제 티켓 예매 내역 (${totalTicketCount}건)
       </h3>
   `;
 
+  // 실제 DB 결제 티켓 렌더링
+  _dbTickets.forEach(t => {
+    const isUsed = t.used === 'true';
+    const statusText = isUsed ? '입장완료' : '예매완료';
+    const statusClass = isUsed ? 'status-입장' : 'status-완료';
+    const quantity = t.seats ? t.seats.split(',').length : 1;
+    const formattedDate = t.eventDate ? t.eventDate.replace(/-/g, '.') : '추후 공지';
+
+    htmlContent += `
+      <div class="mp-card">
+        <div class="mp-card-header">
+          <p class="mp-card-title">${t.eventName}</p>
+          <span class="mp-badge ${statusClass}">${statusText}</span>
+        </div>
+        <div class="mp-card-meta">
+          <div>예매 번호: <strong class="mp-color-primary">${t.ticketNumber || ('TKT-' + t.orderId)}</strong></div>
+          <div>관람 일시: ${formattedDate}</div>
+          <div>좌석 정보: ${t.seats || '자율석'} · 수량: ${quantity}매</div>
+          <div>결제 일시: ${t.createdAt ? t.createdAt.split(' ')[0] : ''}</div>
+        </div>
+        <div class="mp-card-footer">
+          <span class="mp-card-price">₩${(t.totalPrice || 0).toLocaleString()}</span>
+          ${!isUsed ? `<button class="btn btn-sm btn-outline mp-btn-sm" onclick="showTicketQr('${t.secret}')">입장 QR 확인</button>` : ''}
+        </div>
+      </div>
+    `;
+  });
+
+  // 기존 MOCK 티켓 렌더링
   MOCK_TICKETS.forEach(t => {
     const statusClass = t.itemStatus === '예매완료' ? 'status-완료' : 'status-입장';
     htmlContent += `
@@ -556,17 +601,29 @@ function openQrModalView(token, type = 'TICKET') {
   const qrToken = token || _currentQrToken || 'FEST-NEW-XYZ123';
   console.log('사용할 QR 토큰:', qrToken);
 
-  // 행사명 및 상점명 조합
-  let baseEventName = (window.MOCK_TICKETS && MOCK_TICKETS[0])
-    ? (MOCK_TICKETS[0].eventName || '2026 워터밤 서울')
-    : '2026 워터밤 서울';
-
-  let finalTitle = baseEventName;
+  let finalTitle = '페스티벌 예매 티켓';
+  let dateText = '2026.07.01 13:00';
 
   if (type === 'FOOD') {
+    let baseEventName = (window.MOCK_TICKETS && MOCK_TICKETS[0])
+      ? (MOCK_TICKETS[0].eventName || '2026 워터밤 서울')
+      : '2026 워터밤 서울';
     const foodOrder = MOCK_FOOD_ORDERS.find(f => f.qrToken === token);
     if (foodOrder) {
       finalTitle = `${baseEventName} - ${foodOrder.storeName}`;
+    }
+  } else {
+    // TICKET인 경우: 실제 DB 티켓 먼저 찾기
+    const dbTicket = _dbTickets.find(t => t.secret === qrToken);
+    if (dbTicket) {
+      finalTitle = dbTicket.eventName;
+      dateText = dbTicket.eventDate ? dbTicket.eventDate.replace(/-/g, '.') : '';
+    } else {
+      const mockTicket = MOCK_TICKETS.find(t => t.qrToken === qrToken);
+      if (mockTicket) {
+        finalTitle = mockTicket.eventName;
+        dateText = mockTicket.eventDate;
+      }
     }
   }
 
@@ -591,10 +648,12 @@ function openQrModalView(token, type = 'TICKET') {
         historyList.innerHTML = '<div style="padding:16px; text-align:center; color:#94a3b8; font-size:0.9rem;">사용 이력이 없습니다.</div>';
       }
     } else {
+      const dbTicket = _dbTickets.find(t => t.secret === qrToken);
+      const isEntered = dbTicket ? dbTicket.used === 'true' : false;
       historyList.innerHTML = `
         <div class="qr-history-item" style="display:flex; justify-content:space-between; padding:12px 16px;">
-          <span style="color:#64748b; font-size:0.9rem;">입장 완료</span>
-          <span style="color:#64748b; font-size:0.9rem;">2026.07.01 13:00</span>
+          <span style="color:#64748b; font-size:0.9rem;">${isEntered ? '입장 완료' : '예매 완료 (미입장)'}</span>
+          <span style="color:#64748b; font-size:0.9rem;">${dateText}</span>
         </div>
       `;
     }
@@ -858,9 +917,10 @@ function generateQrToken(prefix = 'T') {
 }
 
 function initHeroQr() {
-  // MOCK_TICKETS에 qrToken이 있으면 사용, 없으면 12자리 호환 토큰 생성
+  // DB 결제 완료 티켓의 secret이 있으면 우선 사용, 없으면 MOCK_TICKETS에 qrToken이 있으면 사용, 없으면 생성
+  const dbToken = _dbTickets && _dbTickets[0] && _dbTickets[0].secret;
   const mockToken = MOCK_TICKETS && MOCK_TICKETS[0] && MOCK_TICKETS[0].qrToken;
-  const initialToken = mockToken || generateQrToken('T');
+  const initialToken = dbToken || mockToken || generateQrToken('T');
   _currentQrToken = initialToken;
 
   console.log('QR 초기화, 토큰:', initialToken);
@@ -1910,6 +1970,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (!checkAuth()) return;
 
   await loadUserInfo();
+  await fetchTickets(); // DB 실제 티켓 로드 추가!
   renderProfile();
 
   renderStats();

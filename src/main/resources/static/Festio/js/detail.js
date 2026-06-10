@@ -280,6 +280,60 @@ function openSeatSelectionModal(zoneNo, zone) {
 
   console.log('[SeatModal] Opening modal for zone:', zoneNo, zone);
 
+  // 0. 동적 등급 데이터 및 범례 동적 구성
+  const userSeatGrades = JSON.parse(localStorage.getItem('adminSeatGrades')) || [
+    { name: '일반석', price: 50000, class: 'seat-available' },
+    { name: 'VIP석', price: 150000, class: 'seat-vip' },
+    { name: 'R석', price: 120000, class: 'seat-r' },
+    { name: 'S석', price: 90000, class: 'seat-s' }
+  ];
+
+  const colorMap = {
+    'seat-vip': { bg: 'rgba(255, 171, 0, 0.2)', border: 'rgba(255, 171, 0, 0.6)' },
+    'seat-r': { bg: 'rgba(105, 108, 255, 0.2)', border: 'rgba(105, 108, 255, 0.6)' },
+    'seat-s': { bg: 'rgba(3, 195, 236, 0.2)', border: 'rgba(3, 195, 236, 0.6)' },
+    'seat-available': { bg: 'rgba(133, 146, 163, 0.08)', border: 'rgba(133, 146, 163, 0.4)' },
+    'seat-custom-1': { bg: 'rgba(113, 221, 55, 0.2)', border: 'rgba(113, 221, 55, 0.6)' },
+    'seat-custom-2': { bg: 'rgba(255, 62, 29, 0.2)', border: 'rgba(255, 62, 29, 0.6)' },
+    'seat-custom-3': { bg: 'rgba(130, 94, 251, 0.2)', border: 'rgba(130, 94, 251, 0.6)' },
+    'seat-custom-4': { bg: 'rgba(233, 30, 99, 0.2)', border: 'rgba(233, 30, 99, 0.6)' },
+    'seat-custom-5': { bg: 'rgba(0, 150, 136, 0.2)', border: 'rgba(0, 150, 136, 0.6)' }
+  };
+
+  const legendContainer = document.getElementById('userSeatLegendContainer');
+  if (legendContainer) {
+    legendContainer.innerHTML = '';
+    
+    // 등록된 각 등급에 맞는 범례 아이템 추가
+    userSeatGrades.forEach(g => {
+      const colors = colorMap[g.class] || colorMap['seat-available'];
+      const div = document.createElement('div');
+      div.style.display = 'flex';
+      div.style.alignItems = 'center';
+      div.style.gap = '5px';
+      div.style.color = 'var(--text-secondary)';
+      div.innerHTML = `<span style="width: 12px; height: 12px; border-radius: 3px; background: ${colors.bg}; border: 1px solid ${colors.border};"></span> ${g.name}`;
+      legendContainer.appendChild(div);
+    });
+
+    // 고정 범례 추가: 선택됨 & 예매완료
+    const selectDiv = document.createElement('div');
+    selectDiv.style.display = 'flex';
+    selectDiv.style.alignItems = 'center';
+    selectDiv.style.gap = '5px';
+    selectDiv.style.color = 'var(--text-secondary)';
+    selectDiv.innerHTML = `<span style="width: 12px; height: 12px; border-radius: 3px; background: #FF9F43; border: 1px solid #FF8F13;"></span> 선택됨`;
+    legendContainer.appendChild(selectDiv);
+
+    const reservedDiv = document.createElement('div');
+    reservedDiv.style.display = 'flex';
+    reservedDiv.style.alignItems = 'center';
+    reservedDiv.style.gap = '5px';
+    reservedDiv.style.color = 'var(--text-secondary)';
+    reservedDiv.innerHTML = `<span style="width: 12px; height: 12px; border-radius: 3px; background: rgba(75, 75, 90, 0.3); border: 1px solid rgba(75, 75, 90, 0.6);"></span> 예매완료`;
+    legendContainer.appendChild(reservedDiv);
+  }
+
   // 초기 상태 리셋
   wrapper.style.display = 'none';
   loading.style.display = 'block';
@@ -389,16 +443,27 @@ function openSeatSelectionModal(zoneNo, zone) {
                 priceSpan.replaceWith(reservedSpan);
               }
             } else {
-              // 등급별 클래스
-              if (seat.status === 'VIP') cell.classList.add('seat-vip');
-              else if (seat.status === 'R') cell.classList.add('seat-r');
-              else if (seat.status === 'S') cell.classList.add('seat-s');
-              else if (seat.status === 'STAGE') cell.classList.add('seat-stage');
-              else if (seat.status === 'CORRIDOR') cell.classList.add('seat-corridor');
-              else cell.classList.add('seat-available');
+              // 1. 무대 및 통로 처리
+              if (seat.status === 'STAGE' || seat.status === '무대') {
+                cell.classList.add('seat-stage');
+              } else if (seat.status === 'CORRIDOR' || seat.status === '통로') {
+                cell.classList.add('seat-corridor');
+              } else {
+                // 2. 가격(price)에 기반한 동적 등급 매칭
+                const matchedGrade = userSeatGrades.find(g => Number(g.price) === Number(seat.price));
+                if (matchedGrade) {
+                  cell.classList.add(matchedGrade.class);
+                } else {
+                  // 3. 레거시 문자열 기반 백업 매칭
+                  if (seat.status === 'VIP' || seat.status === 'VIP석') cell.classList.add('seat-vip');
+                  else if (seat.status === 'R' || seat.status === 'R석') cell.classList.add('seat-r');
+                  else if (seat.status === 'S' || seat.status === 'S석') cell.classList.add('seat-s');
+                  else cell.classList.add('seat-available');
+                }
+              }
 
-              // 일반 좌석인 경우 클릭 리스너 바인딩
-              if (seat.status !== 'STAGE' && seat.status !== 'CORRIDOR') {
+              // 일반 좌석인 경우 클릭 리스너 바인딩 (무대, 통로 제외)
+              if (seat.status !== 'STAGE' && seat.status !== '무대' && seat.status !== 'CORRIDOR' && seat.status !== '통로') {
                 cell.addEventListener('click', () => toggleSeatSelection(cell, seat));
               }
             }

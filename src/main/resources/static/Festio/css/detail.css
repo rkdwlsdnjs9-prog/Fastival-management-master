@@ -2250,27 +2250,57 @@
   border: 1px solid rgba(133, 146, 163, 0.6) !important;
   color: #8592a3 !important;
 }
+.seat-cell.seat-custom-1 {
+  background: #71dd37 !important;
+  border: 1px solid rgba(113, 221, 55, 0.6) !important;
+  color: #71dd37 !important;
+}
+.seat-cell.seat-custom-2 {
+  background: #ff3e1d !important;
+  border: 1px solid rgba(255, 62, 29, 0.6) !important;
+  color: #ff3e1d !important;
+}
+.seat-cell.seat-custom-3 {
+  background: #825efb !important;
+  border: 1px solid rgba(130, 94, 251, 0.6) !important;
+  color: #825efb !important;
+}
+.seat-cell.seat-custom-4 {
+  background: #e91e63 !important;
+  border: 1px solid rgba(233, 30, 99, 0.6) !important;
+  color: #e91e63 !important;
+}
+.seat-cell.seat-custom-5 {
+  background: #009688 !important;
+  border: 1px solid rgba(0, 150, 136, 0.6) !important;
+  color: #009688 !important;
+}
 
-/* ── 구역 다각형 (Dynamic SVG Polygon) 스타일 ── */
+/* ── 구역 다각형 (Dynamic SVG Polygon) 프리미엄 스타일 ── */
 .zone-polygon {
-  fill: rgba(106, 77, 255, 0.15);
-  stroke: #6A4DFF;
-  stroke-width: 2.5;
+  fill: transparent;
+  stroke: transparent;
+  stroke-width: 0;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  filter: none;
 }
 .zone-polygon:hover {
-  fill: rgba(106, 77, 255, 0.35);
-  stroke-width: 3.5;
+  fill: rgba(106, 77, 255, 0.18);
+  stroke: rgba(106, 77, 255, 0.7);
+  stroke-width: 2;
+  filter: drop-shadow(0 0 6px rgba(106, 77, 255, 0.5));
 }
 .zone-polygon.selected {
-  fill: rgba(255, 107, 53, 0.25);
-  stroke: #FF6B35;
-  stroke-width: 4;
+  fill: rgba(255, 159, 67, 0.18);
+  stroke: rgba(255, 159, 67, 1);
+  stroke-width: 2.5;
+  filter: drop-shadow(0 0 10px rgba(255, 159, 67, 0.7));
 }
 .zone-polygon.sold-out {
-  fill: rgba(133, 146, 163, 0.15) !important;
-  stroke: #8592a3 !important;
+  fill: rgba(15, 15, 30, 0.45) !important;
+  stroke: transparent !important;
+  stroke-width: 0;
   cursor: not-allowed;
-  opacity: 0.4;
+  filter: none;
 }

@@ -284,7 +284,9 @@
       transition: transform 0.5s ease-in-out;
       transform-origin: center center;
       width: 100%;
-      min-height: 520px;
+      max-width: 650px;
+      aspect-ratio: 1 / 1;
+      margin: 0 auto;
       background: #f5f5f9;
       border-radius: 8px;
       border: 1px solid #d9dee3;
@@ -395,6 +397,42 @@
       display: none;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
     }
+    
+    /* 동적 추가 등급용 스타일 정의 */
+    .seat-custom-1 {
+      background: rgba(113, 221, 55, 0.08) !important;
+      border: 1px solid rgba(113, 221, 55, 0.6) !important;
+      color: #71dd37 !important;
+    }
+    .seat-custom-1:hover { background: rgba(113, 221, 55, 0.18) !important; }
+    
+    .seat-custom-2 {
+      background: rgba(255, 62, 29, 0.08) !important;
+      border: 1px solid rgba(255, 62, 29, 0.6) !important;
+      color: #ff3e1d !important;
+    }
+    .seat-custom-2:hover { background: rgba(255, 62, 29, 0.18) !important; }
+    
+    .seat-custom-3 {
+      background: rgba(130, 94, 251, 0.08) !important;
+      border: 1px solid rgba(130, 94, 251, 0.6) !important;
+      color: #825efb !important;
+    }
+    .seat-custom-3:hover { background: rgba(130, 94, 251, 0.18) !important; }
+    
+    .seat-custom-4 {
+      background: rgba(233, 30, 99, 0.08) !important;
+      border: 1px solid rgba(233, 30, 99, 0.6) !important;
+      color: #e91e63 !important;
+    }
+    .seat-custom-4:hover { background: rgba(233, 30, 99, 0.18) !important; }
+    
+    .seat-custom-5 {
+      background: rgba(0, 150, 136, 0.08) !important;
+      border: 1px solid rgba(0, 150, 136, 0.6) !important;
+      color: #009688 !important;
+    }
+    .seat-custom-5:hover { background: rgba(0, 150, 136, 0.18) !important; }
   </style>
 </head>
 
@@ -511,9 +549,13 @@
                       </div>
                     </div>
                     <div class="mb-4">
-                      <label class="form-label" for="priceInput">기본 티켓 예매 가격 (₩)</label>
-                      <input type="number" id="priceInput" class="form-control" placeholder="예: 50000" min="0"
-                        step="1000" value="50000">
+                      <label class="form-label" for="defaultGradeSelect">기본 좌석 등급</label>
+                      <select id="defaultGradeSelect" class="form-select">
+                        <option value="NORMAL" selected>일반석</option>
+                        <option value="VIP">VIP석</option>
+                        <option value="R">R석</option>
+                        <option value="S">S석</option>
+                      </select>
                     </div>
                     <button id="btnGenerate" class="btn btn-primary w-100 mt-2" disabled>
                       <i class="bx bx-plus-circle me-2"></i>좌석 판 생성
@@ -551,28 +593,13 @@
                 <div class="card mt-4">
                   <div class="card-header d-flex align-items-center justify-content-between">
                     <h5 class="card-title m-0 fw-bold"><i class="bx bx-won me-2 text-warning"></i>3-1. 등급별 티켓 단가 설정</h5>
+                    <button type="button" class="btn btn-xs btn-primary" id="btnAddGrade">
+                      <i class="bx bx-plus me-1"></i>등급 추가
+                    </button>
                   </div>
                   <div class="card-body pt-4">
-                    <div class="row g-2 mb-3">
-                      <div class="col-6">
-                        <label class="form-label text-warning fw-bold" for="priceVipInput">VIP석 가격 (₩)</label>
-                        <input type="number" id="priceVipInput" class="form-control" value="150000" step="5000" min="0">
-                      </div>
-                      <div class="col-6">
-                        <label class="form-label text-primary fw-bold" for="priceRInput">R석 가격 (₩)</label>
-                        <input type="number" id="priceRInput" class="form-control" value="120000" step="5000" min="0">
-                      </div>
-                    </div>
-                    <div class="row g-2">
-                      <div class="col-6">
-                        <label class="form-label text-info fw-bold" for="priceSInput">S석 가격 (₩)</label>
-                        <input type="number" id="priceSInput" class="form-control" value="90000" step="5000" min="0">
-                      </div>
-                      <div class="col-6">
-                        <label class="form-label text-secondary fw-bold" for="priceNormalInput">일반석 가격 (₩)</label>
-                        <input type="number" id="priceNormalInput" class="form-control" value="50000" step="5000"
-                          min="0">
-                      </div>
+                    <div id="gradeSettingsContainer" class="d-flex flex-column gap-3">
+                      <!-- JS 동적 렌더링 -->
                     </div>
                     <small class="text-muted d-block mt-3">
                       <i class="bx bx-info-circle me-1"></i>설정 가격은 좌석을 새로 지정할 때 실시간 반영됩니다.
@@ -600,8 +627,8 @@
                     style="min-height: 520px;">
 
                     <!-- Interactive SVG Area -->
-                    <div class="grid-editor-container flex-grow-1" id="gridEditorContainer"
-                      style="position: relative; overflow: hidden; min-height: 520px; border-radius: 8px; border: 1px solid #d9dee3; display: flex; align-items: center; justify-content: center;">
+                    <div class="grid-editor-container" id="gridEditorContainer"
+                      style="position: relative; overflow: hidden; width: 100%; max-width: 650px; aspect-ratio: 1 / 1; margin: 0 auto; border-radius: 8px; border: 1px solid #d9dee3; display: flex; align-items: center; justify-content: center;">
                       
                       <!-- 1층: 배경 이미지 오버레이 (전체 페스티벌 도면) -->
                       <div class="grid-bg-overlay" id="gridBgOverlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-size: contain; background-repeat: no-repeat; background-position: center center; opacity: 0.8; z-index: 1; pointer-events: none;"></div>
@@ -752,7 +779,7 @@
       const btnDeleteZone = document.getElementById('btnDeleteZone');
       const rowCountInput = document.getElementById('rowCountInput');
       const colCountInput = document.getElementById('colCountInput');
-      const priceInput = document.getElementById('priceInput');
+      const defaultGradeSelect = document.getElementById('defaultGradeSelect');
       const btnGenerate = document.getElementById('btnGenerate');
       const targetZoneLabel = document.getElementById('targetZoneLabel');
       const emptyState = document.getElementById('emptyState');
@@ -796,16 +823,34 @@
       const modalDashReservedPercent = document.getElementById('modalDashReservedPercent');
       const modalDashReservedProgressBar = document.getElementById('modalDashReservedProgressBar');
 
-      // 등급 단가 인풋 바인딩
-      const priceVipInput = document.getElementById('priceVipInput');
-      const priceRInput = document.getElementById('priceRInput');
-      const priceSInput = document.getElementById('priceSInput');
-      const priceNormalInput = document.getElementById('priceNormalInput');
+      // 등급 설정 영역 DOM 바인딩
+      const gradeSettingsContainer = document.getElementById('gradeSettingsContainer');
+      const btnAddGrade = document.getElementById('btnAddGrade');
+
+      // 등급 색상 정의 풀 (총 9개까지 지원하며 색상 톤 정의)
+      const GRADE_COLORS = [
+        { name: '기본(그레이)', class: 'seat-available', border: 'rgba(133, 146, 163, 0.4)', color: '#8592a3', bg: 'rgba(133, 146, 163, 0.08)' },
+        { name: '골드(VIP)', class: 'seat-vip', border: 'rgba(255, 171, 0, 0.6)', color: '#ffab00', bg: 'rgba(255, 171, 0, 0.08)' },
+        { name: '블루(R)', class: 'seat-r', border: 'rgba(105, 108, 255, 0.6)', color: '#696cff', bg: 'rgba(105, 108, 255, 0.08)' },
+        { name: '하늘색(S)', class: 'seat-s', border: 'rgba(3, 195, 236, 0.6)', color: '#03c3ec', bg: 'rgba(3, 195, 236, 0.08)' },
+        { name: '초록색', class: 'seat-custom-1', border: 'rgba(113, 221, 55, 0.6)', color: '#71dd37', bg: 'rgba(113, 221, 55, 0.08)' },
+        { name: '핑크색', class: 'seat-custom-2', border: 'rgba(255, 62, 29, 0.6)', color: '#ff3e1d', bg: 'rgba(255, 62, 29, 0.08)' },
+        { name: '보라색', class: 'seat-custom-3', border: 'rgba(130, 94, 251, 0.6)', color: '#825efb', bg: 'rgba(130, 94, 251, 0.08)' },
+        { name: '마젠타', class: 'seat-custom-4', border: 'rgba(233, 30, 99, 0.6)', color: '#e91e63', bg: 'rgba(233, 30, 99, 0.08)' },
+        { name: '청록색', class: 'seat-custom-5', border: 'rgba(0, 150, 136, 0.6)', color: '#009688', bg: 'rgba(0, 150, 136, 0.08)' }
+      ];
 
       // Global State
+      let seatGrades = JSON.parse(localStorage.getItem('adminSeatGrades')) || [
+        { name: '일반석', price: 50000, class: 'seat-available' },
+        { name: 'VIP석', price: 150000, class: 'seat-vip' },
+        { name: 'R석', price: 120000, class: 'seat-r' },
+        { name: 'S석', price: 90000, class: 'seat-s' }
+      ];
+
       let seatsData = [];
       let isDrawing = false;
-      let selectedMode = '일반석'; // '일반석', 'VIP석', 'R석', 'S석', '무대', '통로'
+      let selectedMode = '조회'; // '조회' (정보 조회), '일반석', 'VIP석' 등..
       let originalSeatsState = []; // 되돌리기용 복사본
       let activeCtrlSeatId = null; // 현재 오프캔버스 열람 중인 좌석 ID
       let currentZones = []; // 구역 정보 백업
@@ -828,18 +873,23 @@
       let activeAnchorIdx = -1;
       let activeEditZoneId = null;
 
-      // 대량 생성 기본 가격 변경 시 일반석 가격도 동기화
-      priceInput.addEventListener('input', (e) => {
-        priceNormalInput.value = e.target.value;
-      });
 
-      // 도면 배경 이미지 로컬 로더 바인딩 (미리보기 제거하고 저장 유도)
+
+      // 도면 배경 이미지 로컬 로더 바인딩 (실시간 로컬 미리보기 추가)
       mapBgInput.addEventListener('change', (e) => {
         const file = e.target.files[0];
         if (file) {
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            if (gridBgOverlay) {
+              gridBgOverlay.style.backgroundImage = `url('${event.target.result}')`;
+            }
+          };
+          reader.readAsDataURL(file);
+
           btnSaveBg.style.display = 'block'; // 저장 버튼 표시
           btnClearBg.style.display = 'block';
-          Swal.fire('알림', '도면 이미지를 영구 저장하려면 [도면 저장] 버튼을 눌러주세요.', 'info');
+          Swal.fire('알림', '도면 이미지가 화면에 임시 적용되었습니다. 영구 저장하려면 대상 구역을 선택한 후 [도면 저장] 버튼을 눌러주세요.', 'info');
         }
       });
 
@@ -1227,22 +1277,305 @@
 
       // 등급 판별 헬퍼 함수
       function getGradeClass(price) {
-        const vip = Number(priceVipInput.value);
-        const r = Number(priceRInput.value);
-        const s = Number(priceSInput.value);
-
-        if (price === vip) return 'seat-vip';
-        if (price === r) return 'seat-r';
-        if (price === s) return 'seat-s';
-        return 'seat-available'; // 일반석
+        const matched = seatGrades.find(g => g.price === Number(price));
+        return matched ? matched.class : 'seat-available';
       }
 
-      // Event listener for editor mode switch
-      document.querySelectorAll('input[name="editorMode"]').forEach(radio => {
-        radio.addEventListener('change', (e) => {
-          selectedMode = e.target.value;
+      // 3-1. 등급 단가 설정 UI 렌더러
+      function renderGradeSettings() {
+        if (!gradeSettingsContainer) return;
+        gradeSettingsContainer.innerHTML = '';
+
+        seatGrades.forEach((grade, idx) => {
+          const colorMeta = GRADE_COLORS.find(c => c.class === grade.class) || GRADE_COLORS[0];
+          
+          const rowDiv = document.createElement('div');
+          rowDiv.className = 'row g-2 align-items-center mb-1';
+          
+          rowDiv.innerHTML = `
+            <div class="col-5">
+              <label class="form-label fw-bold mb-1" style="color: ${colorMeta.color};">
+                <i class="bx bx-tag me-1"></i>${grade.name}
+              </label>
+              <input type="text" class="form-control form-control-sm bg-light fw-bold" value="${grade.name}" readonly style="border-color: ${colorMeta.border}; color: ${colorMeta.color};">
+            </div>
+            <div class="col-5">
+              <label class="form-label text-muted mb-1">단가 (₩)</label>
+              <input type="number" class="form-control form-control-sm grade-price-input" data-index="${idx}" value="${grade.price}" step="5000" min="0">
+            </div>
+            <div class="col-2 text-end pt-4">
+              <button type="button" class="btn btn-sm btn-icon btn-outline-danger btn-delete-grade" data-index="${idx}" ${seatGrades.length <= 1 ? 'disabled' : ''}>
+                <i class="bx bx-trash"></i>
+              </button>
+            </div>
+          `;
+          gradeSettingsContainer.appendChild(rowDiv);
         });
-      });
+
+        // 가격 실시간 변경 동기화 이벤트 바인딩
+        gradeSettingsContainer.querySelectorAll('.grade-price-input').forEach(input => {
+          input.addEventListener('input', (e) => {
+            const idx = parseInt(e.target.dataset.index);
+            seatGrades[idx].price = Number(e.target.value) || 0;
+            localStorage.setItem('adminSeatGrades', JSON.stringify(seatGrades));
+          });
+        });
+
+        // 등급 삭제 이벤트 바인딩
+        gradeSettingsContainer.querySelectorAll('.btn-delete-grade').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const idx = parseInt(e.currentTarget.dataset.index);
+            const deletedGrade = seatGrades[idx];
+            
+            Swal.fire({
+              title: '등급 삭제',
+              text: `[${deletedGrade.name}] 등급을 삭제하시겠습니까? (이 등급으로 배치된 기존 좌석의 레이아웃 단가는 일반석 기준으로 리마운트됩니다.)`,
+              icon: 'warning',
+              showCancelButton: true,
+              confirmButtonColor: '#ff3e1d',
+              cancelButtonColor: '#8592a3',
+              confirmButtonText: '삭제 실행',
+              cancelButtonText: '취소'
+            }).then(result => {
+              if (result.isConfirmed) {
+                seatGrades.splice(idx, 1);
+                localStorage.setItem('adminSeatGrades', JSON.stringify(seatGrades));
+                
+                // 전역 선택 모드 재설정 (일반석 디폴트)
+                if (selectedMode === deletedGrade.name) {
+                  selectedMode = seatGrades[0].name;
+                }
+                
+                renderGradeSettings();
+                syncDefaultGradeDropdown();
+                syncModalEditorMode();
+                
+                // 모달이 열려 있는 상태라면 좌석 배치도도 재렌더링
+                const zoneId = zoneSelect.value;
+                if (zoneId && seatsData.length > 0) {
+                  renderGrid(seatsData);
+                }
+                Swal.fire('삭제 완료', '해당 등급이 성공적으로 삭제되었습니다.', 'success');
+              }
+            });
+          });
+        });
+      }
+
+      // 대량 생성용 드롭다운 동기화
+      function syncDefaultGradeDropdown() {
+        const dropdown = document.getElementById('defaultGradeSelect');
+        if (!dropdown) return;
+        
+        const currentVal = dropdown.value;
+        dropdown.innerHTML = '';
+        
+        seatGrades.forEach((grade, idx) => {
+          const opt = document.createElement('option');
+          opt.value = grade.name;
+          opt.textContent = grade.name;
+          if (currentVal === grade.name || (!currentVal && idx === 0)) {
+            opt.selected = true;
+          }
+          dropdown.appendChild(opt);
+        });
+      }
+
+      // 모달 편집 색칠 모드 동적 동기화
+      function syncModalEditorMode() {
+        const container = document.getElementById('modalEditorModeContainer');
+        if (!container) return;
+        container.innerHTML = '';
+
+        // A. 정보 조회 모드 (기본 조회 기능 활성화)
+        const radioView = document.createElement('input');
+        radioView.type = 'radio';
+        radioView.className = 'btn-check';
+        radioView.name = 'editorMode';
+        radioView.id = 'modeSys_조회';
+        radioView.value = '조회';
+        if (selectedMode === '조회') {
+          radioView.checked = true;
+        }
+
+        const labelView = document.createElement('label');
+        labelView.className = 'btn btn-sm btn-outline-primary';
+        labelView.style.borderColor = 'rgba(105, 108, 255, 0.6)';
+        labelView.style.color = '#696cff';
+        labelView.style.background = radioView.checked ? 'rgba(105, 108, 255, 0.08)' : 'transparent';
+        labelView.style.marginRight = '8px';
+        labelView.style.marginBottom = '8px';
+        labelView.setAttribute('for', 'modeSys_조회');
+        labelView.innerHTML = `<i class="bx bx-search-alt me-1"></i>정보 조회`;
+
+        radioView.addEventListener('change', (e) => {
+          selectedMode = e.target.value;
+          syncModalEditorModeStyles();
+        });
+
+        container.appendChild(radioView);
+        container.appendChild(labelView);
+
+        // B. 등급석 라디오 렌더링
+        seatGrades.forEach((grade, idx) => {
+          const colorMeta = GRADE_COLORS.find(c => c.class === grade.class) || GRADE_COLORS[0];
+          
+          const radio = document.createElement('input');
+          radio.type = 'radio';
+          radio.className = 'btn-check';
+          radio.name = 'editorMode';
+          radio.id = `modeCustom_${idx}`;
+          radio.value = grade.name;
+          
+          if (selectedMode === grade.name) {
+            radio.checked = true;
+          }
+
+          const label = document.createElement('label');
+          label.className = `btn btn-sm btn-outline-secondary`;
+          label.style.borderColor = colorMeta.border;
+          label.style.color = colorMeta.color;
+          label.style.background = radio.checked ? colorMeta.bg : 'transparent';
+          label.style.marginRight = '8px';
+          label.style.marginBottom = '8px';
+          label.setAttribute('for', `modeCustom_${idx}`);
+          label.innerHTML = `<i class="bx bx-purchase-tag me-1"></i>${grade.name}`;
+          
+          radio.addEventListener('change', (e) => {
+            selectedMode = e.target.value;
+            syncModalEditorModeStyles();
+          });
+
+          container.appendChild(radio);
+          container.appendChild(label);
+        });
+
+        // C. 시스템 모드 (무대, 통로, 보류석) 라디오 렌더링
+        const systemModes = [
+          { value: '무대', label: '무대 설정', icon: 'bx bx-desktop', border: 'rgba(71, 85, 105, 0.6)', color: '#475569', bg: 'rgba(71, 85, 105, 0.08)' },
+          { value: '통로', label: '통로 설정', icon: 'bx bx-directions', border: 'rgba(255, 62, 29, 0.6)', color: '#ff3e1d', bg: 'rgba(255, 62, 29, 0.08)' },
+          { value: '보류석', label: '보류석 설정', icon: 'bx bx-lock-alt', border: 'rgba(255, 62, 29, 0.6)', color: '#ff3e1d', bg: 'rgba(255, 62, 29, 0.08)' }
+        ];
+
+        systemModes.forEach(mode => {
+          const radio = document.createElement('input');
+          radio.type = 'radio';
+          radio.className = 'btn-check';
+          radio.name = 'editorMode';
+          radio.id = `modeSys_${mode.value}`;
+          radio.value = mode.value;
+          if (selectedMode === mode.value) {
+            radio.checked = true;
+          }
+
+          const label = document.createElement('label');
+          label.className = `btn btn-sm btn-outline-secondary`;
+          label.style.borderColor = mode.border;
+          label.style.color = mode.color;
+          label.style.background = radio.checked ? mode.bg : 'transparent';
+          label.style.marginRight = '8px';
+          label.style.marginBottom = '8px';
+          label.setAttribute('for', `modeSys_${mode.value}`);
+          label.innerHTML = `<i class="${mode.icon} me-1"></i>${mode.label}`;
+
+          radio.addEventListener('change', (e) => {
+            selectedMode = e.target.value;
+            syncModalEditorModeStyles();
+          });
+
+          container.appendChild(radio);
+          container.appendChild(label);
+        });
+      }
+
+      function syncModalEditorModeStyles() {
+        const container = document.getElementById('modalEditorModeContainer');
+        if (!container) return;
+        
+        container.querySelectorAll('input[name="editorMode"]').forEach(radio => {
+          const label = container.querySelector(`label[for="${radio.id}"]`);
+          if (!label) return;
+          
+          const val = radio.value;
+          const isChecked = radio.checked;
+          
+          const grade = seatGrades.find(g => g.name === val);
+          if (grade) {
+            const colorMeta = GRADE_COLORS.find(c => c.class === grade.class) || GRADE_COLORS[0];
+            label.style.background = isChecked ? colorMeta.bg : 'transparent';
+          } else {
+            let bg = 'transparent';
+            if (isChecked) {
+              if (val === '조회') bg = 'rgba(105, 108, 255, 0.08)';
+              else if (val === '무대') bg = 'rgba(71, 85, 105, 0.08)';
+              else bg = 'rgba(255, 62, 29, 0.08)';
+            }
+            label.style.background = bg;
+          }
+        });
+      }
+
+      // 등급 추가 버튼 클릭 이벤트 바인딩
+      if (btnAddGrade) {
+        btnAddGrade.addEventListener('click', async () => {
+          const usedClasses = seatGrades.map(g => g.class);
+          // 안 쓴 커스텀 색상을 우선순위로 매칭
+          const availableColor = GRADE_COLORS.find(c => !usedClasses.includes(c.class)) || GRADE_COLORS[GRADE_COLORS.length - 1];
+
+          const { value: formValues } = await Swal.fire({
+            title: '새로운 티켓 등급 추가',
+            html:
+              '<div class="mb-3 text-start">' +
+              '  <label class="form-label fw-bold" style="color: #566a7f;">등급명 (Grade Name)</label>' +
+              '  <input id="swal-grade-name" class="form-control" placeholder="예: A석, B석, Standing">' +
+              '</div>' +
+              '<div class="mb-3 text-start">' +
+              '  <label class="form-label fw-bold" style="color: #566a7f;">기본 가격 (₩)</label>' +
+              '  <input type="number" id="swal-grade-price" class="form-control" value="80000" min="0" step="5000">' +
+              '</div>',
+            focusConfirm: false,
+            showCancelButton: true,
+            confirmButtonText: '등급 추가',
+            cancelButtonText: '취소',
+            confirmButtonColor: '#696cff',
+            cancelButtonColor: '#8592a3',
+            preConfirm: () => {
+              const name = document.getElementById('swal-grade-name').value.trim();
+              const price = parseInt(document.getElementById('swal-grade-price').value, 10) || 0;
+              if (!name) {
+                Swal.showValidationMessage('등급 이름을 입력해 주세요.');
+                return false;
+              }
+              if (seatGrades.some(g => g.name.toLowerCase() === name.toLowerCase())) {
+                Swal.showValidationMessage('이미 동일한 이름의 등급이 존재합니다.');
+                return false;
+              }
+              return { name, price };
+            }
+          });
+
+          if (formValues) {
+            seatGrades.push({
+              name: formValues.name,
+              price: formValues.price,
+              class: availableColor.class
+            });
+            localStorage.setItem('adminSeatGrades', JSON.stringify(seatGrades));
+            
+            renderGradeSettings();
+            syncDefaultGradeDropdown();
+            syncModalEditorMode();
+            
+            // 모달이 열려 있는 상태라면 좌석 배치도도 재렌더링
+            const zoneId = zoneSelect.value;
+            if (zoneId && seatsData.length > 0) {
+              renderGrid(seatsData);
+            }
+            
+            Swal.fire('성공', `[${formValues.name}] 등급이 추가되었습니다.`, 'success');
+          }
+        });
+      }
 
       // 1. 페이지 로드 시 백엔드 API (GET /api/admin/festivals) 호출
       async function fetchFestivals() {
@@ -1681,7 +2014,6 @@
         const zoneId = zoneSelect.value;
         const rowCount = parseInt(rowCountInput.value);
         const colCount = parseInt(colCountInput.value);
-        const price = parseInt(priceInput.value);
 
         if (!zoneId) {
           Swal.fire('알림', '구역을 먼저 선택해 주세요.', 'warning');
@@ -1692,13 +2024,14 @@
           return;
         }
         if (isNaN(colCount) || colCount <= 0 || colCount > 50) {
-          Swal.fire('all', '열 크기를 1~50 사이로 입력해 주세요.', 'warning');
+          Swal.fire('알림', '열 크기를 1~50 사이로 입력해 주세요.', 'warning');
           return;
         }
-        if (isNaN(price) || price < 0) {
-          Swal.fire('알림', '가격을 올바르게 입력해 주세요.', 'warning');
-          return;
-        }
+
+        // 선택된 기본 등급에 맞추어 단가 설정값을 가져옴
+        const gradeName = defaultGradeSelect.value;
+        const matched = seatGrades.find(g => g.name === gradeName);
+        const price = matched ? matched.price : 50000;
 
         Swal.fire({
           title: '좌석 판 생성 확인',
@@ -1788,20 +2121,27 @@
 
               // Drag & Click Events
               cell.addEventListener('mousedown', (e) => {
+                if (selectedMode === '조회') return;
                 isDrawing = true;
                 updateCellState(cell);
               });
-
+ 
               cell.addEventListener('mouseenter', () => {
+                if (selectedMode === '조회') return;
                 if (isDrawing) {
                   updateCellState(cell);
                 }
               });
-
-              // 개별 좌석 클릭 시 관제 상세 정보 바인딩
+ 
+              // 개별 좌석 클릭 시
               cell.addEventListener('click', () => {
-                if (seat.status !== '무대' && seat.status !== '통로') {
-                  showSeatReservationDetails(seat);
+                if (selectedMode === '조회') {
+                  if (seat.status !== '무대' && seat.status !== '통로') {
+                    showSeatReservationDetails(seat);
+                  }
+                } else {
+                  // 조회 모드가 아닌 경우, 단순 클릭으로도 설정된 모드로 채색 적용
+                  updateCellState(cell);
                 }
               });
             } else {
@@ -1831,21 +2171,10 @@
         if (!seat) return;
 
         // 프론트 모드에 따른 상태 및 가격 설정
-        if (selectedMode === '일반석') {
+        const matchedGrade = seatGrades.find(g => g.name === selectedMode);
+        if (matchedGrade) {
           seat.status = '빈자리';
-          seat.price = Number(priceNormalInput.value);
-          seat.isReserved = false;
-        } else if (selectedMode === 'VIP석') {
-          seat.status = '빈자리';
-          seat.price = Number(priceVipInput.value);
-          seat.isReserved = false;
-        } else if (selectedMode === 'R석') {
-          seat.status = '빈자리';
-          seat.price = Number(priceRInput.value);
-          seat.isReserved = false;
-        } else if (selectedMode === 'S석') {
-          seat.status = '빈자리';
-          seat.price = Number(priceSInput.value);
+          seat.price = matchedGrade.price;
           seat.isReserved = false;
         } else if (selectedMode === '무대') {
           seat.status = '무대';
@@ -1857,7 +2186,6 @@
           seat.isReserved = true;
         } else if (selectedMode === '보류석') {
           seat.status = '보류';
-          // 보류 지정 시 기존 등급 단가는 유지하되, isReserved 플래그를 true로 바꾸어 일반 관객 예매를 원천 차단
           seat.isReserved = true;
         }
 
@@ -1959,12 +2287,10 @@
         document.getElementById('ctrlSeatName').innerText = `${seat.seatRow} ${seat.seatNumber}번`;
 
         let gradeName = '일반석';
-        const vip = Number(priceVipInput.value);
-        const r = Number(priceRInput.value);
-        const s = Number(priceSInput.value);
-        if (seat.price === vip) gradeName = 'VIP석';
-        else if (seat.price === r) gradeName = 'R석';
-        else if (seat.price === s) gradeName = 'S석';
+        const matched = seatGrades.find(g => g.price === Number(seat.price));
+        if (matched) {
+          gradeName = matched.name;
+        }
 
         document.getElementById('ctrlSeatGrade').innerText = `${gradeName} (₩${seat.price.toLocaleString()})`;
 
@@ -2149,6 +2475,11 @@
 
       // 초기 시작 및 자동 복원
       async function initAndRestore() {
+        // 동적 등급 설정 렌더링 및 동기화
+        renderGradeSettings();
+        syncDefaultGradeDropdown();
+        syncModalEditorMode();
+
         await fetchFestivals();
         
         const savedFestivalId = sessionStorage.getItem('selectedFestivalId');
@@ -2201,41 +2532,8 @@
           <!-- 설정 모드 (드래그/클릭으로 채색) -->
           <div class="mb-4">
             <div class="form-label mb-2 fw-bold">설정 모드 (드래그/클릭으로 채색)</div>
-            <div class="d-flex flex-wrap gap-2">
-              <input type="radio" class="btn-check" name="editorMode" id="modeNormal" value="일반석" checked>
-              <label class="btn btn-sm btn-outline-secondary" for="modeNormal">
-                <i class="bx bx-purchase-tag me-1"></i>일반석 설정
-              </label>
-
-              <input type="radio" class="btn-check" name="editorMode" id="modeVIP" value="VIP석">
-              <label class="btn btn-sm btn-outline-warning" for="modeVIP">
-                <i class="bx bxs-crown me-1"></i>VIP석 설정
-              </label>
-
-              <input type="radio" class="btn-check" name="editorMode" id="modeR" value="R석">
-              <label class="btn btn-sm btn-outline-primary" for="modeR">
-                <i class="bx bx-star me-1"></i>R석 설정
-              </label>
-
-              <input type="radio" class="btn-check" name="editorMode" id="modeS" value="S석">
-              <label class="btn btn-sm btn-outline-info" for="modeS">
-                <i class="bx bx-certification me-1"></i>S석 설정
-              </label>
-
-              <input type="radio" class="btn-check" name="editorMode" id="modeStage" value="무대">
-              <label class="btn btn-sm btn-outline-dark" for="modeStage">
-                <i class="bx bx-desktop me-1"></i>무대 설정
-              </label>
-
-              <input type="radio" class="btn-check" name="editorMode" id="modeCorridor" value="통로">
-              <label class="btn btn-sm btn-outline-danger" for="modeCorridor">
-                <i class="bx bx-directions me-1"></i>통로 설정
-              </label>
-
-              <input type="radio" class="btn-check" name="editorMode" id="modeHold" value="보류석">
-              <label class="btn btn-sm btn-outline-danger" for="modeHold">
-                <i class="bx bx-lock-alt me-1"></i>보류석 설정
-              </label>
+            <div class="d-flex flex-wrap gap-2" id="modalEditorModeContainer">
+              <!-- JS 동적 렌더링 (일반석, VIP석, R석, S석 및 커스텀 등급 + 무대, 통로, 보류석) -->
             </div>
           </div>
 

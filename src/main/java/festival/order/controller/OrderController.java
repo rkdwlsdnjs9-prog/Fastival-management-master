@@ -324,10 +324,11 @@ public class OrderController {
 
     @GetMapping("/tickets/qr")
     public List<Map<String, Object>> getQrTickets() {
-        String sql = "SELECT id as order_id, qr_code, is_entered, seat_ids, ticket_number " +
-                     "FROM orders " +
-                     "WHERE qr_code IS NOT NULL " +
-                     "ORDER BY id DESC";
+        String sql = "SELECT o.id as order_id, o.qr_code, o.is_entered, o.seat_ids, o.ticket_number, o.created_at, o.total_price, e.event_name, e.event_date " +
+                     "FROM orders o " +
+                     "LEFT JOIN event e ON o.festival_id = e.event_no " +
+                     "WHERE o.qr_code IS NOT NULL " +
+                     "ORDER BY o.id DESC";
         List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql);
         List<Map<String, Object>> result = new ArrayList<>();
         
@@ -344,6 +345,11 @@ public class OrderController {
             
             map.put("ticketNumber", row.get("ticket_number"));
             map.put("seats", row.get("seat_ids"));
+            map.put("createdAt", row.get("created_at") != null ? row.get("created_at").toString() : "");
+            map.put("totalPrice", row.get("total_price") != null ? ((Number) row.get("total_price")).intValue() : 0);
+            map.put("eventName", row.get("event_name") != null ? row.get("event_name") : "페스티벌 예매 티켓");
+            map.put("eventDate", row.get("event_date") != null ? row.get("event_date").toString() : "");
+            
             Boolean isEntered = (Boolean) row.get("is_entered");
             if (isEntered != null && isEntered) {
                 map.put("used", "true");
