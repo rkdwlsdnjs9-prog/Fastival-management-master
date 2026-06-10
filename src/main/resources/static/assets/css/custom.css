@@ -1757,3 +1757,57 @@ body.not-logged-in #main-content {
 @media (max-width: 480px) {
   .btn { padding: 6px 10px; font-size: 11px; }
 }
+
+/* QR Scanner Fullscreen Mode */
+#qr-camera-reader-wrapper.fullscreen-mode {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: #000;
+    z-index: 999999;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+#qr-camera-reader-wrapper.fullscreen-mode #qr-camera-reader {
+    width: 100vw !important;
+    height: 100vh !important;
+    max-width: none !important;
+    max-height: none !important;
+}
+
+#qr-camera-reader-wrapper.fullscreen-mode #qr-camera-reader__scan_region,
+#qr-camera-reader-wrapper.fullscreen-mode #qr-camera-reader video {
+    width: 100vw !important;
+    height: 100vh !important;
+    object-fit: cover !important;
+}
+
+/* Scan Validation Popup */
+.scan-validation-popup {
+    position: absolute;
+    bottom: 10%;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+    width: 90%;
+    max-width: 350px;
+    background: rgba(15, 23, 42, 0.95);
+    border-radius: 16px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.8);
+    padding: 20px;
+    text-align: center;
+    border: 2px solid #38bdf8;
+}
+.scan-validation-popup.status-valid { border-color: #10b981; }
+.scan-validation-popup.status-already { border-color: #a855f7; }
+.scan-validation-popup.status-invalid { border-color: #ef4444; }
+
+.scan-validation-popup h2 { margin: 0 0 5px 0; font-size: 24px; font-weight: 900; }
+.scan-validation-popup.status-valid h2 { color: #10b981; }
+.scan-validation-popup.status-already h2 { color: #a855f7; }
+.scan-validation-popup.status-invalid h2 { color: #ef4444; }

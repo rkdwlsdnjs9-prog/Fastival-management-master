@@ -24,6 +24,8 @@ let _orderUid = null;
 let _queueTimer = null;
 let _queueCount = 0;
 let _selectedPayMethod = 'card';
+let _selectedSeats = [];
+let _selectedZone = null;
 
 /* ── Toss Payments 설정 ─────────────────────────────────────── */
 const TOSS_CLIENT_KEY = 'test_ck_D5GePWvyJnrK0W0k6q8gLzN97Emo';
@@ -90,16 +92,9 @@ function renderEventDetail(detail) {
   // 좌석 배치도 동기화 (구역 선택 영역)
   const mapUrl = detail.mapImageUrl || detail.map_image_url;
   if (mapUrl) {
-    const venueSvg = document.querySelector('.venue-svg');
-    if (venueSvg) {
-      const img = document.createElement('img');
-      img.src = mapUrl;
-      img.alt = '좌석 배치도';
-      img.style.width = '100%';
-      img.style.height = 'auto';
-      img.style.borderRadius = 'var(--radius-lg)';
-      img.style.marginBottom = '1.5rem';
-      venueSvg.parentNode.replaceChild(img, venueSvg);
+    const bgOverlay = document.getElementById('venueBgOverlay');
+    if (bgOverlay) {
+      bgOverlay.style.backgroundImage = `url('${mapUrl}')`;
     }
   }
 }
@@ -109,51 +104,89 @@ function renderEventDetail(detail) {
    — DCC (대전컨벤션센터) 스타일 벡터 플로어맵
 ═══════════════════════════════════════════════════════════ */
 function initVenueMap(zones) {
-  const svg = $('.venue-svg');
+  const svg = document.getElementById('venueSvgLayer');
+  const bgOverlay = document.getElementById('venueBgOverlay');
+  const legendContainer = document.getElementById('zoneLegendContainer');
+
   if (!svg || !zones || !Array.isArray(zones)) return;
 
-  // 구역 zone-no 데이터 → SVG path와 연결
-  const zoneEls = $$('.venue-zone-path', svg);
+  // 1. 도면 배경 이미지 로드 (구역 중 mapBgUrl 이 지정된 첫 번째 것을 대표로 사용)
+  const zoneWithBg = zones.find(z => z.mapBgUrl);
+  if (zoneWithBg && bgOverlay) {
+    bgOverlay.style.backgroundImage = `url('${zoneWithBg.mapBgUrl}')`;
+  }
 
-  zoneEls.forEach(el => {
-    const zoneNo = parseInt(el.dataset.zoneNo);
-    const zone = zones.find(z => z.zoneNo === zoneNo);
-    if (!zone) return;
+  // 2. SVG 구역 다각형 그리기
+  svg.innerHTML = ''; // 기존 정적 렌더링 클리어
 
-    // 잔여 수량 0이면 sold-out 처리
+  zones.forEach(zone => {
+    if (!zone.svgPoints) return;
+
+    const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+    polygon.setAttribute('points', zone.svgPoints);
+    polygon.setAttribute('class', 'zone-polygon');
+    polygon.setAttribute('data-zone-no', zone.zoneNo);
+
+    // 툴팁 텍스트 추가
+    const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+    title.textContent = `${zone.zoneName} (잔여: ${zone.remainingCapacity}석 / 총: ${zone.totalCapacity}석)`;
+    polygon.appendChild(title);
+
+    // 매진 시 비활성화 스타일 처리
     if (zone.remainingCapacity === 0) {
-      el.classList.add('sold-out');
-      el.setAttribute('aria-disabled', 'true');
-      return;
+      polygon.classList.add('sold-out');
+      polygon.setAttribute('aria-disabled', 'true');
+    } else {
+      polygon.addEventListener('click', () => selectZone(zone.zoneNo, zone, polygon));
     }
 
-    el.setAttribute('tabindex', '0');
-    el.setAttribute('role', 'button');
-    el.setAttribute('aria-label', `${zone.zoneName} - ${formatKRW(zone.price)} - 잔여 ${zone.remainingCapacity}석`);
-
-    on(el, 'click', () => selectZone(zoneNo, zone, el));
-    on(el, 'keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') selectZone(zoneNo, zone, el); });
+    svg.appendChild(polygon);
   });
 
-  // 범례 클릭 → 구역 선택
-  on(document, 'click', (e) => {
-    const legendItem = e.target.closest('.zone-legend-item[data-zone-no]');
-    if (!legendItem) return;
-    const zoneNo = parseInt(legendItem.dataset.zoneNo);
-    const zone = zones.find(z => z.zoneNo === zoneNo);
-    const svgEl = svg.querySelector(`[data-zone-no="${zoneNo}"]`);
-    if (zone && svgEl && zone.remainingCapacity > 0) {
-      selectZone(zoneNo, zone, svgEl);
-    }
-  });
+  // 3. 범례 목록 동적 생성
+  if (legendContainer) {
+    legendContainer.innerHTML = '';
+    zones.forEach(zone => {
+      const isSoldOut = zone.remainingCapacity === 0;
+      const dotClass = zone.zoneType === 'VIP' ? 'zone-vip' : zone.zoneName.includes('A') ? 'zone-a' : zone.zoneName.includes('B') ? 'zone-b' : 'standing';
+
+      const legendItem = document.createElement('div');
+      legendItem.className = `zone-legend-item ${dotClass} ${isSoldOut ? 'sold-out' : ''}`;
+      legendItem.dataset.zoneNo = zone.zoneNo;
+      legendItem.setAttribute('role', 'button');
+      legendItem.setAttribute('tabindex', '0');
+      
+      // 가격 포맷
+      const priceText = formatKRW(zone.price);
+
+      legendItem.innerHTML = `
+        <div class="zone-dot ${dotClass}"></div>
+        <div class="flex-1">
+          <p class="zone-legend-name" style="margin:0; font-weight:600; color:var(--text-main);">${zone.zoneName}</p>
+          <p class="zone-legend-rem" style="margin:2px 0 0; font-size:0.8rem; color:var(--text-muted);">${isSoldOut ? '매진' : `잔여 ${zone.remainingCapacity}석`}</p>
+        </div>
+        <span class="zone-legend-price" style="font-weight:700; color:var(--color-primary);">${priceText}</span>
+      `;
+
+      if (!isSoldOut) {
+        legendItem.addEventListener('click', () => {
+          const polyEl = svg.querySelector(`[data-zone-no="${zone.zoneNo}"]`);
+          if (polyEl) selectZone(zone.zoneNo, zone, polyEl);
+        });
+      }
+
+      legendContainer.appendChild(legendItem);
+    });
+  }
 }
 
 function selectZone(zoneNo, zone, svgEl) {
   _selectedZoneNo = zoneNo;
+  _selectedZone = zone;
 
   // SVG 선택 강조
-  $$('.venue-zone-path').forEach(el => el.classList.remove('selected'));
-  svgEl.classList.add('selected');
+  $$('.zone-polygon').forEach(el => el.classList.remove('selected'));
+  if (svgEl) svgEl.classList.add('selected');
 
   // 범례 선택 강조
   $$('.zone-legend-item').forEach(li => li.classList.remove('active'));
@@ -163,10 +196,12 @@ function selectZone(zoneNo, zone, svgEl) {
   // 구역 정보 패널 업데이트
   updateZoneInfoPanel(zone);
 
-  // 수량 초기화 & CTA 업데이트
+  // 수량 초기화 & 좌석 선택 모달 오픈
   _quantity = 1;
+  _selectedSeats = [];
   updateQtyDisplay();
   updateCtaBar(zone);
+  openSeatSelectionModal(zoneNo, zone);
 }
 
 function updateZoneInfoPanel(zone) {
@@ -192,15 +227,240 @@ function updateZoneInfoPanel(zone) {
 
 function updateCtaBar(zone) {
   if (!zone) return;
-  const zoneLabel = $('.booking-cta-zone strong');
-  const totalEl = $('.booking-cta-total');
-  if (zoneLabel) zoneLabel.textContent = zone.zoneName;
 
-  const gross = zone.price * _quantity;
+  // 구역명 업데이트
+  const zoneNameEl = document.getElementById('ctaZoneName');
+  if (zoneNameEl) zoneNameEl.textContent = zone.zoneName;
+
+  // 선택한 좌석 목록 렌더링
+  const seatsList = document.getElementById('selectedSeatsList');
+  const countBadge = document.getElementById('selectedCountBadge');
+
+  if (seatsList) {
+    if (_selectedSeats.length === 0) {
+      seatsList.innerHTML = '<li class="seats-placeholder">좌석을 선택해 주세요.</li>';
+    } else {
+      seatsList.innerHTML = _selectedSeats.map(s => {
+        const rowClean = (s.seatRow || '').replace(/열$/, '');
+        const priceText = typeof formatKRW === 'function' ? formatKRW(s.price) : `${(s.price||0).toLocaleString()}원`;
+        return `<li class="seat-list-item">
+          <span class="seat-list-label">${rowClean}열 ${s.seatNumber}번</span>
+          <span class="seat-list-price">${priceText}</span>
+        </li>`;
+      }).join('');
+    }
+  }
+
+  if (countBadge) countBadge.textContent = `${_selectedSeats.length}석`;
+
+  // 총액 계산 및 업데이트
+  const gross = _selectedSeats.length > 0
+    ? _selectedSeats.reduce((sum, s) => sum + s.price, 0)
+    : zone.price * _quantity;
   const discount = _appliedCoupon ? _appliedCoupon.discountAmount : 0;
   const net = gross - discount;
+
+  const totalEl = document.getElementById('ctaTotal');
   if (totalEl) totalEl.textContent = formatKRW(net);
 }
+
+/* ═══════════════════════════════════════════════════════════
+   사용자 좌석 선택 모달 및 인터랙션 제어
+   ═══════════════════════════════════════════════════════════ */
+function openSeatSelectionModal(zoneNo, zone) {
+  const modalTitle = document.getElementById('seat-modal-title');
+  if (modalTitle) modalTitle.textContent = `${zone.zoneName} 좌석 선택`;
+
+  const container = document.getElementById('user-seat-container');
+  const wrapper = document.getElementById('userGridWrapper');
+  const loading = document.getElementById('user-seat-loading');
+  const seatArea = document.getElementById('userGridSeatArea');
+  const bgOverlay = document.getElementById('userGridBgOverlay');
+  const confirmBtn = document.getElementById('btn-confirm-seats');
+
+  console.log('[SeatModal] Opening modal for zone:', zoneNo, zone);
+
+  // 초기 상태 리셋
+  wrapper.style.display = 'none';
+  loading.style.display = 'block';
+  seatArea.innerHTML = '';
+  bgOverlay.style.backgroundImage = 'none';
+  confirmBtn.disabled = true;
+  _selectedSeats = [];
+  updateSelectedSeatsSummary();
+
+  // 모달 열기
+  Modal.open('modal-select-seats');
+
+  // 좌석 API 호출
+  fetch(`/api/festival/seats?zoneId=${zoneNo}`)
+    .then(res => {
+      if (!res.ok) throw new Error('좌석 데이터를 불러오는데 실패했습니다.');
+      return res.json();
+    })
+    .then(seats => {
+      console.log('[SeatModal] Received seats data from API:', seats);
+      loading.style.display = 'none';
+      wrapper.style.display = 'block';
+
+      if (!seats || seats.length === 0) {
+        seatArea.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 40px;">등록된 좌석이 없습니다.</div>';
+        return;
+      }
+
+      // 배경 이미지는 띄우지 않음 (디자인 정돈)
+      bgOverlay.style.backgroundImage = 'none';
+
+      // 격자 크기 산정 및 타입 안전 방어
+      const rows = [...new Set(seats.map(s => s.seatRow || ''))]
+        .filter(r => r)
+        .sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
+      
+      const maxCol = Math.max(...seats.map(s => parseInt(s.seatNumber, 10) || 1), 1);
+      
+      console.log('[SeatModal] Calculated layout - rows:', rows, 'maxCol:', maxCol);
+
+      // 모달 그리드 레이아웃 동적 셋팅 (행 개수에 무대 가이드 행 +1 추가 - 32px 사각형 포맷)
+      seatArea.style.gridTemplateRows = `repeat(${rows.length + 1}, 32px)`;
+      seatArea.style.gridTemplateColumns = `repeat(${maxCol}, 32px)`;
+
+      // [무대 (STAGE)] 가이드를 맨 위에 배치 (1번 행 전체 열 스팬)
+      const stageGuide = document.createElement('div');
+      stageGuide.className = 'stage-guide';
+      stageGuide.style.gridColumn = `1 / span ${maxCol}`;
+      stageGuide.style.gridRow = '1';
+      stageGuide.innerText = 'STAGE (무대)';
+      seatArea.appendChild(stageGuide);
+
+      // 좌석 맵 빌드
+      const seatMap = {};
+      seats.forEach(s => {
+        if (s.seatRow && s.seatNumber !== undefined) {
+          seatMap[`${s.seatRow}_${s.seatNumber}`] = s;
+        }
+      });
+
+      // 좌석 셀 생성 및 배치 (무대가 1번 행을 차지하므로, 실제 좌석은 2번 행부터 시작)
+      rows.forEach((r, rIdx) => {
+        const gridRowIdx = rIdx + 2;
+        for (let c = 1; c <= maxCol; c++) {
+          const seat = seatMap[`${r}_${c}`];
+          const cell = document.createElement('div');
+          cell.style.gridRow = gridRowIdx.toString();
+          cell.style.gridColumn = c.toString();
+          cell.className = 'seat-cell';
+
+          if (seat) {
+            cell.dataset.id = seat.id;
+            cell.dataset.row = seat.seatRow;
+            cell.dataset.number = seat.seatNumber;
+            cell.dataset.price = seat.price;
+            cell.dataset.grade = seat.status; // VIP, R, S, 등등
+
+            // 마우스 호버 시 띄울 커스텀 툴팁 세팅 & 브라우저 네이티브 title 지정
+            const isSold = seat.isReserved || seat.status === 'RESERVED' || seat.status === 'HOLD' || seat.status === '예매완료';
+            const priceText = typeof formatKRW === 'function' ? formatKRW(seat.price) : `${(seat.price || 0).toLocaleString()}원`;
+            const rowClean = (seat.seatRow || '').replace(/열$/, '');
+            const tooltipValue = isSold 
+              ? `${rowClean}열 ${seat.seatNumber}번 (예매완료)` 
+              : `${rowClean}열 ${seat.seatNumber}번 (${priceText})`;
+            
+            cell.dataset.tooltip = tooltipValue;
+            cell.title = tooltipValue; // overflow: auto 환경에서도 잘리지 않도록 브라우저 툴팁 지원
+
+            // 라벨 표시 (사각형 내부에는 숫자만 노출)
+            const labelSpan = document.createElement('span');
+            labelSpan.innerText = seat.seatNumber;
+            cell.appendChild(labelSpan);
+
+            // 가격 표시
+            const priceSpan = document.createElement('span');
+            priceSpan.className = 'seat-price-tag';
+            priceSpan.innerText = `${(seat.price || 0) / 1000}k`;
+            cell.appendChild(priceSpan);
+
+            // 상태 클래스 분기
+            if (seat.isReserved || seat.status === 'RESERVED' || seat.status === 'HOLD' || seat.status === '예매완료') {
+              cell.classList.add('seat-reserved');
+              const reservedSpan = document.createElement('span');
+              reservedSpan.className = 'seat-price-tag';
+              reservedSpan.innerText = '예매완료';
+              if (priceSpan.parentNode) {
+                priceSpan.replaceWith(reservedSpan);
+              }
+            } else {
+              // 등급별 클래스
+              if (seat.status === 'VIP') cell.classList.add('seat-vip');
+              else if (seat.status === 'R') cell.classList.add('seat-r');
+              else if (seat.status === 'S') cell.classList.add('seat-s');
+              else if (seat.status === 'STAGE') cell.classList.add('seat-stage');
+              else if (seat.status === 'CORRIDOR') cell.classList.add('seat-corridor');
+              else cell.classList.add('seat-available');
+
+              // 일반 좌석인 경우 클릭 리스너 바인딩
+              if (seat.status !== 'STAGE' && seat.status !== 'CORRIDOR') {
+                cell.addEventListener('click', () => toggleSeatSelection(cell, seat));
+              }
+            }
+          } else {
+            cell.classList.add('seat-corridor');
+          }
+          seatArea.appendChild(cell);
+        }
+      });
+    })
+    .catch(err => {
+      console.error('[SeatModal] Error rendering seats modal:', err);
+      loading.style.display = 'none';
+      seatArea.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: #ff4d4f; padding: 40px;">${err.message}</div>`;
+    });
+}
+
+function toggleSeatSelection(cell, seat) {
+  const index = _selectedSeats.findIndex(s => s.id === seat.id);
+  if (index > -1) {
+    // 선택 해제
+    _selectedSeats.splice(index, 1);
+    cell.classList.remove('selected');
+  } else {
+    // 선택
+    if (_selectedSeats.length >= 4) {
+      Toast.warning('최대 4석까지 선택 가능합니다.');
+      return;
+    }
+    _selectedSeats.push(seat);
+    cell.classList.add('selected');
+  }
+
+  updateSelectedSeatsSummary();
+
+  // 우측 사이드바 실시간 동기화
+  const zone = _eventDetail?.zones.find(z => z.zoneNo === _selectedZoneNo);
+  if (zone) updateCtaBar(zone);
+}
+
+function updateSelectedSeatsSummary() {
+  const displayEl = document.getElementById('selected-seats-display');
+  const priceEl = document.getElementById('selected-seats-price');
+  const confirmBtn = document.getElementById('btn-confirm-seats');
+
+  if (_selectedSeats.length === 0) {
+    if (displayEl) displayEl.textContent = '좌석을 선택해 주세요.';
+    if (priceEl) priceEl.textContent = '0원';
+    if (confirmBtn) confirmBtn.disabled = true;
+  } else {
+    const labels = _selectedSeats.map(s => {
+      const rowClean = (s.seatRow || '').replace(/열$/, '');
+      return `${rowClean}열 ${s.seatNumber}번`;
+    }).join(', ');
+    const totalPrice = _selectedSeats.reduce((sum, s) => sum + s.price, 0);
+
+    if (displayEl) displayEl.textContent = labels;
+    if (priceEl) priceEl.textContent = formatKRW(totalPrice);
+    if (confirmBtn) confirmBtn.disabled = false;
+  }
+}
+
 
 /* ═══════════════════════════════════════════════════════════
    수량 선택
@@ -450,35 +710,63 @@ async function initiateTossPayment() {
   const zone = _eventDetail?.zones.find(z => z.zoneNo === _selectedZoneNo);
   if (!zone) { Toast.warning('구역을 선택해 주세요.'); return; }
 
+  if (_selectedSeats.length === 0) {
+    Toast.warning('선택한 좌석이 없습니다.');
+    return;
+  }
+
   const user = Auth.get();
-  if (!user) { Toast.warning('로그인이 필요합니다.'); return; }
+  const customerName = user?.nickname || user?.name || 'FESTIO 게스트';
 
   // 1. 서버에 주문 생성 → orderNo & orderUid 발급
+  // seatIds: DB PK 배열 (정확한 구역별 좌석 특정용)
+  const seatIds = _selectedSeats.map(s => s.id);
+  // seatLabels: 주문 설명용 레이블 (orders.seat_ids 저장)
+  const seatLabels = _selectedSeats.map(s => {
+    const rowClean = (s.seatRow || '').replace(/열$/, '');
+    return `${rowClean}열${s.seatNumber}번`;
+  });
+  const gross = _selectedSeats.reduce((sum, s) => sum + s.price, 0);
+  const discount = _appliedCoupon?.discountAmount || 0;
+  const netAmount = gross - discount;
+
   const orderPayload = {
-    eventNo: _eventDetail.eventNo,
-    zoneNo: zone.zoneNo,
-    quantity: _quantity,
-    couponNo: _appliedCoupon?.couponNo || null,
+    totalPrice: netAmount,
+    seats: seatLabels,      // 주문 설명용 텍스트 레이블
+    seatIds: seatIds,       // DB PK 배열 - 구역별 정확한 좌석 예약용
+    eventNo: getEventNo(),
+    eventName: _eventDetail?.eventName || '',
+    zoneName: zone?.zoneName || ''
   };
 
   Modal.close('modal-payment');
   Toast.info('주문을 생성하는 중...');
 
-  const orderRes = await orderApi.createOrder(orderPayload);
-  if (!orderRes) { Toast.error('주문 생성에 실패했습니다.'); return; }
+  let orderRes;
+  try {
+    const res = await fetch('/api/order/ticket', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(orderPayload)
+    });
+    if (!res.ok) throw new Error('API 응답 실패');
+    orderRes = await res.json();
+  } catch (e) {
+    console.error(e);
+    Toast.error('주문 생성에 실패했습니다.');
+    return;
+  }
 
-  _orderNo = orderRes.orderNo;
-  _orderUid = orderRes.orderUid;
-
-  const gross = zone.price * _quantity;
-  const discount = _appliedCoupon?.discountAmount || 0;
-  const amount = gross - discount;
+  _orderNo = orderRes.orderId;
+  _orderUid = orderRes.ticketNumber;
 
   // FESTIO Pay 결제 시뮬레이션
   if (_selectedPayMethod === 'festiopay') {
     const balEl = $('#festiopay-balance');
     let balance = parseInt(balEl ? balEl.textContent.replace(/[^0-9]/g, '') : 0);
-    if (balance < amount) {
+    if (balance < netAmount) {
       Toast.warning('잔액이 부족합니다. 충전 후 다시 시도해주세요.');
       return;
     }
@@ -498,13 +786,18 @@ async function initiateTossPayment() {
       virtual: '가상계좌',
     };
 
+    const seatDisplay = _selectedSeats.map(s => {
+      const rowClean = (s.seatRow || '').replace(/열$/, '');
+      return `${rowClean}열 ${s.seatNumber}번`;
+    }).join(', ');
+
     await tossPayments.requestPayment(methodMap[_selectedPayMethod] || '카드', {
-      amount,
+      amount: netAmount,
       orderId: _orderUid,
-      orderName: `${_eventDetail.eventName} - ${zone.zoneName} x${_quantity}`,
-      customerName: user.name,
-      successUrl: `${window.location.origin}/payment-success.html?orderNo=${_orderNo}`,
-      failUrl: `${window.location.origin}/payment-fail.html?orderNo=${_orderNo}`,
+      orderName: `${_eventDetail?.eventName || '티켓'} - ${seatDisplay}`,
+      customerName: customerName,
+      successUrl: `${window.location.origin}/Festio/detail.html?eventNo=${getEventNo()}&paymentKey={PAYMENT_KEY}&orderId={ORDER_ID}&amount={AMOUNT}`,
+      failUrl: `${window.location.origin}/Festio/detail.html?eventNo=${getEventNo()}&paymentFail=true`,
     });
 
   } catch (err) {
@@ -571,13 +864,16 @@ function enterPaymentModal() {
 }
 
 function updatePaymentSummary(zone) {
-  const gross = zone.price * _quantity;
+  const gross = _selectedSeats.length > 0
+    ? _selectedSeats.reduce((sum, s) => sum + s.price, 0)
+    : zone.price * _quantity;
   const discount = _appliedCoupon?.discountAmount || 0;
   const net = gross - discount;
+  const seatLabels = _selectedSeats.map(s => `${s.seatRow}-${s.seatNumber}`).join(', ');
 
   const rows = {
     '[data-payment="event-name"]': _eventDetail?.eventName || '',
-    '[data-payment="zone"]': `${zone.zoneName} × ${_quantity}매`,
+    '[data-payment="zone"]': _selectedSeats.length > 0 ? `${zone.zoneName} (${seatLabels}) × ${_quantity}매` : `${zone.zoneName} × ${_quantity}매`,
     '[data-payment="subtotal"]': formatKRW(gross),
     '[data-payment="discount"]': discount > 0 ? `-${formatKRW(discount)}` : '-',
     '[data-payment="total"]': formatKRW(net),
@@ -598,6 +894,12 @@ function initBookingBtn() {
       Toast.warning('구역을 먼저 선택해 주세요.');
       return;
     }
+    if (_selectedSeats.length === 0) {
+      Toast.warning('좌석을 선택해 주세요.');
+      const zone = _eventDetail?.zones.find(z => z.zoneNo === _selectedZoneNo);
+      if (zone) openSeatSelectionModal(_selectedZoneNo, zone);
+      return;
+    }
     Modal.open('modal-queue');
     startQueueSimulation();
   });
@@ -612,6 +914,29 @@ function initBookingBtn() {
 
   on($('#btn-payment-cancel'), 'click', () => {
     Modal.close('modal-payment');
+  });
+
+  // 좌석 선택 완료 버튼 리스너 추가
+  on($('#btn-confirm-seats'), 'click', () => {
+    if (_selectedSeats.length === 0) return;
+
+    _quantity = _selectedSeats.length;
+    updateQtyDisplay();
+
+    // 수량 변경 버튼들 비활성화 처리 (좌석을 직접 고정시켰기 때문)
+    const minus = $('.qty-btn-minus');
+    const plus = $('.qty-btn-plus');
+    if (minus) minus.disabled = true;
+    if (plus) plus.disabled = true;
+
+    // 구역 라벨 및 가격 정보 동기화
+    const zone = _eventDetail?.zones.find(z => z.zoneNo === _selectedZoneNo);
+    if (zone) {
+      updateCtaBar(zone);
+    }
+
+    Modal.close('modal-select-seats');
+    Toast.success(`${_quantity}개의 좌석을 선택했습니다.`);
   });
 }
 
@@ -710,19 +1035,30 @@ async function loadCouponsForPayment() {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   URL 파라미터 확인 — Toss 결제 성공 콜백
+   URL 파라미터 확인 — Toss 결제 성공/실패 콜백
    successUrl redirect 시 ?paymentKey=...&orderId=...&amount=...
+   failUrl redirect 시 ?paymentFail=true
 ═══════════════════════════════════════════════════════════ */
 function checkPaymentCallback() {
   const params = new URLSearchParams(window.location.search);
   const paymentKey = params.get('paymentKey');
   const orderId = params.get('orderId');
+  const paymentFail = params.get('paymentFail');
+
+  if (paymentFail === 'true') {
+    Toast.error('결제가 취소되거나 실패했습니다. 다시 시도해 주세요.');
+    window.history.replaceState({}, '', window.location.pathname + `?eventNo=${getEventNo()}`);
+    return;
+  }
+
   if (paymentKey && orderId) {
-    handlePaymentSuccess(paymentKey, orderId);
-    // URL 파라미터 제거
+    // Toss 성공 리다이렉트: 주문 직접 완료 처리 (서버 confirm 없이 UI만 갱신)
+    Toast.success('결제가 완료되었습니다! 티켓을 발급 중입니다...', 4000);
+    setTimeout(() => showBookingSuccess(), 1000);
     window.history.replaceState({}, '', window.location.pathname + `?eventNo=${getEventNo()}`);
   }
 }
+
 
 /* ═══════════════════════════════════════════════════════════
    DOMContentLoaded — 진입점

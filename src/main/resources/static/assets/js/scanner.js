@@ -59,8 +59,9 @@ function startNewScanner(containerId, onScanSuccess, onScanFailure) {
       } catch (e) {
         console.error(e);
       } finally {
-        // 즉시 락 해제! (새로운 다음 손님 티켓을 바로 찍을 수 있게)
+        // 즉시 락 해제 및 이전 스캔 기록 초기화 (동일 티켓 즉시 반복 스캔 허용)
         isProcessing = false;
+        lastScannedText = "";
       }
     },
     (errorMessage) => {
@@ -78,19 +79,25 @@ export function resumeScanning() {
 
 export function stopQRScanner() {
   if (html5Qrcode) {
-    // Check if the camera is actively streaming before stopping it
-    if (html5Qrcode.isScanning) {
-      html5Qrcode.stop()
-        .then(() => {
-          html5Qrcode = null;
-        })
-        .catch(err => {
-          console.error("Failed to stop html5-qrcode scanner: ", err);
-          html5Qrcode = null;
-        });
-    } else {
-      // If it never started successfully (e.g. no camera device), just reset the reference silently
+    const cleanup = () => {
+      try {
+        if (typeof html5Qrcode.clear === 'function') {
+          html5Qrcode.clear(); // DOM 및 내부 메모리 찌꺼기 강제 정리
+        }
+      } catch (e) {}
       html5Qrcode = null;
+    };
+
+    try {
+      // 카메라 상태와 상관없이 stop 시도 후 무조건 정리
+      html5Qrcode.stop()
+        .then(cleanup)
+        .catch((err) => {
+          console.warn("카메라 정상 종료 실패, 강제 정리 진행:", err);
+          cleanup();
+        });
+    } catch (err) {
+      cleanup();
     }
   }
 }
@@ -139,91 +146,39 @@ function playBeep(status) {
 
 // Validates ticket state and performs mutations in the Mock DB or Memory DB
 export async function validateTicketState(text) {
-  // New Backend Check for Live QR Tickets
-  if (text.startsWith("FESTIO:TICKET:") || text.startsWith("TOTP:")) {
-      try {
-          const res = await fetch('/api/order/tickets/scan', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ qrText: text })
-          });
-          const data = await res.json();
-          const scanLog = {
-              timestamp: new Date().toLocaleTimeString(),
-              ticketId: text.split(":")[2] || text,
-              status: data.status,
-              statusText: data.status === "VALID" ? "인증 성공 (정상 티켓)" : (data.status === "ALREADY_ENTERED" ? "중복 입장" : "미등록/위조 티켓"),
-              color: data.status === "VALID" ? "green" : (data.status === "ALREADY_ENTERED" ? "purple" : "red"),
-              seatId: data.seats || "-",
-              holder: "현장 고객"
-          };
-          publish("scan-log", { ticketId: scanLog.ticketId, status: data.status, log: scanLog });
-          return { status: data.status, message: data.message, log: scanLog };
-      } catch (e) {
-          return { status: "INVALID", message: "서버 통신 오류", log: null };
+  // 스캔된 모든 텍스트는 모의 로직을 거치지 않고 서버로 전송하여 검증 및 로그(scan_log)를 생성합니다.
+  try {
+      const res = await fetch('/api/order/tickets/scan', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ qrText: text })
+      });
+      const data = await res.json();
+      
+      let parsedTicketId = text;
+      if (text.startsWith("TOTP:")) parsedTicketId = text.split(":")[2];
+      else if (text.startsWith("FESTIO:TICKET:")) parsedTicketId = text.split(":")[2];
+      else if (text.includes("?orderId=")) {
+          const urlParams = new URLSearchParams(text.substring(text.indexOf('?')));
+          parsedTicketId = "URL_TICKET_" + (urlParams.get("orderId") || "UNKNOWN");
       }
+      
+      const scanLog = {
+          timestamp: new Date().toLocaleTimeString(),
+          ticketId: parsedTicketId,
+          status: data.status,
+          statusText: data.status === "VALID" ? "인증 성공 (정상 티켓)" : (data.status === "ALREADY_ENTERED" ? "중복 입장" : "미등록/위조 티켓"),
+          color: data.status === "VALID" ? "green" : (data.status === "ALREADY_ENTERED" ? "purple" : "red"),
+          seatId: data.seats || "-",
+          holder: "현장 고객"
+      };
+      
+      publish("scan-log", { ticketId: scanLog.ticketId, status: data.status, log: scanLog });
+      return { status: data.status, message: data.message, log: scanLog };
+  } catch (e) {
+      console.error("Scan validation error:", e);
+      return { status: "INVALID", message: "서버 통신 오류", log: null };
   }
-
-  // Fallback: Mock DB Logic for backward compatibility
-  const ticketId = text;
-  const ticket = DB.tickets.find(t => t.id === ticketId);
-  
-  if (!ticket) {
-    // INVALID Ticket
-    const scanLog = {
-      timestamp: new Date().toLocaleTimeString(),
-      ticketId: ticketId,
-      status: "INVALID",
-      statusText: "미등록/위조 티켓",
-      color: "red",
-      seatId: "-"
-    };
-    publish("scan-log", { ticketId, status: "INVALID", log: scanLog });
-    return { status: "INVALID", message: "존재하지 않거나 올바르지 않은 티켓입니다.", log: scanLog };
-  }
-
-  if (ticket.used) {
-    // ALREADY_ENTERED Ticket (Duplicate entry attempt)
-    const scanLog = {
-      timestamp: new Date().toLocaleTimeString(),
-      ticketId: ticketId,
-      status: "ALREADY_ENTERED",
-      statusText: "중복 입장 (이미 사용됨)",
-      color: "purple",
-      seatId: ticket.seat,
-      holder: ticket.holder
-    };
-    publish("scan-log", { ticketId, status: "ALREADY_ENTERED", log: scanLog });
-    return { status: "ALREADY_ENTERED", message: "이미 입장 처리된 티켓입니다! (중복 입장 불가)", log: scanLog };
-  }
-
-  // VALID Ticket
-  ticket.used = true;
-  
-  // Update Seat Map State
-  const seatId = ticket.seat;
-  if (DB.seats[seatId]) {
-    DB.seats[seatId].status = "ENTERED";
-    DB.seats[seatId].holder = `${ticket.holder} (입장완료)`;
-  }
-  
-  const scanLog = {
-    timestamp: new Date().toLocaleTimeString(),
-    ticketId: ticketId,
-    status: "VALID",
-    statusText: "인증 성공 (정상 티켓)",
-    color: "green",
-    seatId: seatId,
-    holder: ticket.holder
-  };
-
-  saveDB();
-  
-  // Publish changes to components
-  publish("seat-change", { seatId, status: "ENTERED", seat: DB.seats[seatId] });
-  publish("scan-log", { ticketId, status: "VALID", log: scanLog });
-
-  return { status: "VALID", message: `유효성 검증 성공! [${ticket.holder}] 고객 입장 처리되었습니다. (좌석: ${seatId})`, log: scanLog };
 }
 
 // Exchange Goods or Coffee QR Scanner

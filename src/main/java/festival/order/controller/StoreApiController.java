@@ -4,7 +4,7 @@ import festival.order.domain.ProductEntity;
 import festival.order.domain.StoreEntity;
 import festival.order.service.ProductService;
 import festival.order.service.StoreService;
-import festival.festival.domain.FestivalZoneEntity;
+import festival.festival.domain.FestivalZone;
 import festival.user.domain.UserVo;
 import festival.user.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -52,8 +52,8 @@ public class StoreApiController {
      * 특정 행사의 구역(Zone) 목록 조회 (상점 구역 배치를 위한 드롭다운 소스)
      */
     @GetMapping("/zones")
-    public ResponseEntity<List<FestivalZoneEntity>> getZonesByFestival(@RequestParam("festivalId") Long festivalId) {
-        List<FestivalZoneEntity> zones = storeService.getZonesByFestival(festivalId);
+    public ResponseEntity<List<FestivalZone>> getZonesByFestival(@RequestParam("festivalId") Long festivalId) {
+        List<FestivalZone> zones = storeService.getZonesByFestival(festivalId);
         return ResponseEntity.ok(zones);
     }
 

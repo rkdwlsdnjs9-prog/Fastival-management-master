@@ -1,156 +1,2326 @@
-﻿<!doctype html>
-<html lang="ko" class="layout-menu-fixed layout-compact" data-assets-path="/assets/" data-template="vertical-menu-template-free">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
-    <title>실시간 좌석 맵 시각화 | FESTIO</title>
+<!doctype html>
+<html lang="ko" class="layout-menu-fixed layout-compact" data-assets-path="/assets/"
+  data-template="vertical-menu-template-free">
 
-    <link rel="icon" type="image/x-icon" href="/assets/img/favicon/favicon.ico" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="/assets/vendor/fonts/iconify-icons.css" />
-    <link rel="stylesheet" href="/assets/vendor/css/core.css" />
-    <link rel="stylesheet" href="/assets/css/demo.css" />
-    <link rel="stylesheet" href="/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
-    <link rel="stylesheet" href="/assets/vendor/libs/apex-charts/apex-charts.css" />
-    <script src="/assets/vendor/js/helpers.js"></script>
-    <script src="/assets/js/config.js"></script>
-    <link rel="stylesheet" href="./css/seat-map.css" />
-  </head>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+  <title>가변 좌석 격자 생성 및 시각적 레이아웃 편집기 | FESTIO</title>
 
-  <body>
-    <div class="layout-wrapper layout-content-navbar">
-      <div class="layout-container">
-        
-        <!-- Sidebar Menu -->
-        <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
-          <!-- sidebar.js 가 런타임에 동적으로 삽입 -->
-        </aside>
+  <link rel="icon" type="image/x-icon" href="/assets/img/favicon/favicon.ico" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="/assets/vendor/fonts/iconify-icons.css" />
+  <link rel="stylesheet" href="/assets/vendor/css/core.css" />
+  <link rel="stylesheet" href="/assets/css/demo.css" />
+  <link rel="stylesheet" href="/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
 
-        <div class="layout-page">
-          <!-- Navbar -->
-          <nav class="layout-navbar container-xxl navbar navbar-expand-xl navbar-detached align-items-center bg-navbar-theme" id="layout-navbar">
-            <div class="layout-menu-toggle navbar-nav align-items-xl-center me-4 me-xl-0 d-xl-none">
-              <a class="nav-item nav-link px-0 me-xl-6" href="javascript:void(0)">
-                <i class="bx bx-menu bx-sm"></i>
-              </a>
-            </div>
-            <div class="navbar-nav-right d-flex align-items-center" id="navbar-collapse">
-              <h5 class="mb-0 fw-bold"><i class="bx bx-grid-alt me-2 text-primary"></i>실시간 좌석 맵 시각화</h5>
-              <ul class="navbar-nav flex-row align-items-center ms-auto">
-                <li class="nav-item dropdown-user dropdown">
-                  <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown">
-                    <div class="avatar avatar-online">
-                      <img src="/assets/img/avatars/1.png" class="w-px-40 h-auto rounded-circle" />
-                    </div>
-                  </a>
-                  <ul class="dropdown-menu dropdown-menu-end">
-                    <li>
-                      <a class="dropdown-item" href="#">
-                        <div class="d-flex">
-                          <div class="flex-shrink-0 me-3">
-                            <div class="avatar avatar-online">
-                              <img src="/assets/img/avatars/1.png" class="w-px-40 h-auto rounded-circle" />
-                            </div>
-                          </div>
-                          <div class="flex-grow-1">
-                            <span class="fw-medium d-block">최고 관리자</span>
-                            <small class="text-muted">Master Admin</small>
+  <!-- SweetAlert2 for beautiful alerts -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
+  <script src="/assets/vendor/js/helpers.js"></script>
+  <script src="/assets/js/config.js"></script>
+
+  <style>
+    /* Premium Light Theme Styling matching Sneat Admin Template */
+    body {
+      font-family: 'Public Sans', 'Noto Sans KR', sans-serif;
+      background-color: #f5f5f9 !important;
+      color: #566a7f;
+    }
+
+    .content-wrapper {
+      background-color: #f5f5f9;
+    }
+
+    .card {
+      background: #ffffff;
+      border: 0 solid rgba(0, 0, 0, 0.125);
+      border-radius: 8px;
+      box-shadow: 0 2px 6px 0 rgba(67, 89, 113, 0.12);
+      color: #566a7f;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .card-header {
+      border-bottom: 1px solid #d9dee3;
+      background: transparent;
+    }
+
+    .form-label {
+      color: #566a7f;
+      font-weight: 500;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* Segmented Control for Editor Mode */
+    .segmented-control {
+      display: flex;
+      background: #eceef1;
+      border: 1px solid #d9dee3;
+      border-radius: 12px;
+      padding: 4px;
+      gap: 4px;
+    }
+
+    .segmented-control input[type="radio"] {
+      display: none;
+    }
+
+    .segmented-control label {
+      flex: 1;
+      text-align: center;
+      padding: 10px 20px;
+      cursor: pointer;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      transition: all 0.2s ease;
+      margin: 0;
+      color: #697a8d;
+    }
+
+    .segmented-control input[type="radio"]:checked+label {
+      background: #696cff;
+      color: white;
+      box-shadow: 0 4px 12px rgba(105, 108, 255, 0.3);
+    }
+
+    /* Seat Matrix Grid Container */
+    .grid-editor-container {
+      position: relative;
+      background: #f5f5f9;
+      border: 1px solid #d9dee3;
+      border-radius: 12px;
+      padding: 24px;
+      overflow: auto;
+      min-height: 400px;
+      max-height: 600px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      user-select: none;
+      z-index: 1;
+    }
+
+    .grid-bg-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-size: contain;
+      background-position: center;
+      background-repeat: no-repeat;
+      opacity: 0.5;
+      z-index: -1;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+
+    .grid-wrapper {
+      display: grid;
+      gap: 6px;
+      margin: auto;
+    }
+
+    /* Seat Cells */
+    .seat-cell {
+      aspect-ratio: 1;
+      width: 44px;
+      height: 44px;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 700;
+      cursor: pointer;
+      line-height: 1.1;
+      transition: all 0.15s ease;
+      box-sizing: border-box;
+    }
+
+    .seat-cell:hover {
+      transform: scale(1.15);
+      z-index: 10;
+      box-shadow: 0 0 10px rgba(105, 108, 255, 0.3);
+    }
+
+    /* Seat States Styles matching light theme colors */
+    .seat-available {
+      background: rgba(133, 146, 163, 0.08);
+      border: 1px solid rgba(133, 146, 163, 0.4);
+      color: #8592a3;
+    }
+
+    .seat-available:hover {
+      background: rgba(133, 146, 163, 0.18);
+    }
+
+    /* Seat Grade Styles */
+    .seat-vip {
+      background: rgba(255, 171, 0, 0.08) !important;
+      border: 1px solid rgba(255, 171, 0, 0.6) !important;
+      color: #ffab00 !important;
+    }
+
+    .seat-vip:hover {
+      background: rgba(255, 171, 0, 0.18) !important;
+    }
+
+    .seat-r {
+      background: rgba(105, 108, 255, 0.08) !important;
+      border: 1px solid rgba(105, 108, 255, 0.6) !important;
+      color: #696cff !important;
+    }
+
+    .seat-r:hover {
+      background: rgba(105, 108, 255, 0.18) !important;
+    }
+
+    .seat-s {
+      background: rgba(3, 195, 236, 0.08) !important;
+      border: 1px solid rgba(3, 195, 236, 0.6) !important;
+      color: #03c3ec !important;
+    }
+
+    .seat-s:hover {
+      background: rgba(3, 195, 236, 0.18) !important;
+    }
+
+    .seat-price-tag {
+      font-size: 8px;
+      opacity: 0.85;
+      font-weight: 500;
+      margin-top: 1px;
+    }
+
+    .seat-stage {
+      background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+      border: 1px solid #2563eb;
+      color: #ffffff;
+      box-shadow: 0 0 12px rgba(59, 130, 246, 0.3);
+    }
+
+    .seat-corridor {
+      background: transparent;
+      border: 1px dashed #d9dee3;
+      color: #b4bdc6;
+    }
+
+    .seat-reserved {
+      background: rgba(255, 62, 29, 0.08);
+      border: 1px solid rgba(255, 62, 29, 0.3);
+      color: #ff3e1d;
+      cursor: not-allowed;
+    }
+
+    .seat-hold {
+      background: rgba(255, 62, 29, 0.05) !important;
+      border: 2px dashed #ff3e1d !important;
+      color: #ff3e1d !important;
+    }
+
+    .seat-hold:hover {
+      background: rgba(255, 62, 29, 0.12) !important;
+    }
+
+    .seat-stage {
+      background: #003366 !important;
+      /* 다크블루 */
+      border: 1px solid #002244 !important;
+      color: #ffffff !important;
+      cursor: default;
+    }
+
+    .seat-corridor {
+      background: transparent !important;
+      border: 1px dashed rgba(217, 222, 227, 0.4) !important;
+      color: #b4bdc6 !important;
+      opacity: 0.15;
+      /* 통로 공백 연출 */
+    }
+
+    /* Legend UI */
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.85rem;
+      color: #697a8d;
+    }
+
+    .legend-box {
+      width: 16px;
+      height: 16px;
+      border-radius: 4px;
+    }
+
+    .empty-state {
+      text-align: center;
+      color: #8592a3;
+      font-size: 0.95rem;
+    }
+
+    .empty-state i {
+      font-size: 3rem;
+      display: block;
+      margin-bottom: 12px;
+      color: #a1acb8;
+    }
+
+    /* 3중 레이어 및 줌 효과 스타일 추가 */
+    .grid-editor-container {
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.5s ease-in-out;
+      transform-origin: center center;
+      width: 100%;
+      min-height: 520px;
+      background: #f5f5f9;
+      border-radius: 8px;
+      border: 1px solid #d9dee3;
+    }
+
+    .grid-bg-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center center;
+      z-index: 1;
+      opacity: 0.8;
+      pointer-events: none;
+    }
+
+    #zoneSvgLayer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 2;
+      pointer-events: auto;
+    }
+
+    .zone-polygon {
+      fill: rgba(105, 108, 255, 0.15);
+      stroke: #696cff;
+      stroke-width: 2;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      pointer-events: auto;
+    }
+
+    .zone-polygon:hover {
+      fill: rgba(105, 108, 255, 0.35);
+      stroke-width: 3;
+    }
+
+    .zone-polygon.active {
+      fill: rgba(113, 221, 55, 0.15);
+      stroke: #71dd37;
+    }
+
+    /* 드로잉 활성화 시 임시 폴리곤 및 점 스타일 */
+    .draw-point {
+      fill: #ff3e1d;
+      stroke: #ffffff;
+      stroke-width: 1.5;
+      cursor: pointer;
+    }
+
+    .draw-line {
+      stroke: #ff3e1d;
+      stroke-width: 2;
+      stroke-dasharray: 4;
+    }
+
+    .draw-polygon {
+      fill: rgba(255, 62, 29, 0.15);
+      stroke: #ff3e1d;
+      stroke-width: 2;
+    }
+
+    /* 리사이즈용 컨트롤 앵커 스타일 */
+    .resize-anchor {
+      fill: #ff3e1d;
+      stroke: #ffffff;
+      stroke-width: 2px;
+      cursor: pointer;
+      transition: fill 0.2s ease;
+    }
+
+    .resize-anchor:hover {
+      fill: #71dd37;
+      /* 호버 시 녹색으로 하이라이트 */
+    }
+
+    .grid-wrapper {
+      position: absolute;
+      z-index: 3;
+      display: none;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      pointer-events: none;
+      background: rgba(255, 255, 255, 0.9);
+      padding: 10px;
+      border-radius: 6px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .grid-wrapper.active {
+      display: grid !important;
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* 줌 아웃 버튼 스타일 */
+    .btn-zoom-out {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      z-index: 10;
+      display: none;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="layout-wrapper layout-content-navbar">
+    <div class="layout-container">
+
+      <!-- Sidebar Menu -->
+      <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
+        <!-- sidebar.js 가 런타임에 동적으로 삽입됨 -->
+      </aside>
+
+      <div class="layout-page">
+        <!-- Navbar -->
+        <nav
+          class="layout-navbar container-xxl navbar navbar-expand-xl navbar-detached align-items-center bg-navbar-theme"
+          id="layout-navbar">
+          <div class="layout-menu-toggle navbar-nav align-items-xl-center me-4 me-xl-0 d-xl-none">
+            <a class="nav-item nav-link px-0 me-xl-6" href="javascript:void(0)">
+              <i class="bx bx-menu bx-sm"></i>
+            </a>
+          </div>
+          <div class="navbar-nav-right d-flex align-items-center" id="navbar-collapse">
+            <h5 class="mb-0 fw-bold"><i class="bx bx-cog me-2 text-primary"></i>좌석 격자판 대량 생성 및 레이아웃 편집기</h5>
+            <ul class="navbar-nav flex-row align-items-center ms-auto">
+              <li class="nav-item dropdown-user dropdown">
+                <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown">
+                  <div class="avatar avatar-online">
+                    <img src="/assets/img/avatars/1.png" class="w-px-40 h-auto rounded-circle" />
+                  </div>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end">
+                  <li>
+                    <a class="dropdown-item" href="#">
+                      <div class="d-flex">
+                        <div class="flex-shrink-0 me-3">
+                          <div class="avatar avatar-online">
+                            <img src="/assets/img/avatars/1.png" class="w-px-40 h-auto rounded-circle" />
                           </div>
                         </div>
-                      </a>
-                    </li>
-                  </ul>
-                </li>
-              </ul>
-            </div>
-          </nav>
-
-          <!-- Content wrapper -->
-          <div class="content-wrapper">
-            <div class="container-xxl flex-grow-1 container-p-y">
-              
-<div class="row">
-  <div class="col-lg-8 mb-6">
-    <div class="card h-100">
-      <div class="card-header d-flex justify-content-between align-items-center border-bottom">
-        <h5 class="card-title m-0 fw-semibold">메인 무대 지정석 실시간 좌석 현황</h5>
-        <div class="d-flex gap-2">
-          <span class="badge bg-success">예매가능</span>
-          <span class="badge bg-warning">가선점 (O2O)</span>
-          <span class="badge bg-danger">결제완료</span>
-        </div>
-      </div>
-      <div class="card-body py-4">
-        <div class="stage-bar bg-dark text-white text-center py-2 mb-6 fw-bold rounded">STAGE (무대 정면)</div>
-        <div class="seat-grid d-flex flex-column align-items-center">
-          <!-- 10x10 Seat Matrix -->
-          <div class="row g-2 mb-2">
-            <script src="./js/seat-map.js"></script>
+                        <div class="flex-grow-1">
+                          <span class="fw-medium d-block">최고 관리자</span>
+                          <small class="text-muted">Master Admin</small>
+                        </div>
+                      </div>
+                    </a>
+                  </li>
+                </ul>
+              </li>
+            </ul>
           </div>
-        </div>
-      </div>
-    </div>
-  </div>
+        </nav>
 
-  <div class="col-lg-4 mb-6">
-    <div class="card h-100">
-      <div class="card-header">
-        <h5 class="card-title m-0 fw-semibold">구역별 예매 실황</h5>
-      </div>
-      <div class="card-body">
-        <div id="seatStatsChart"></div>
-        <ul class="list-group list-group-flush mt-4">
-          <li class="list-group-item d-flex justify-content-between align-items-center">
-            VIP 지정석 A
-            <span class="badge bg-danger">92.4% 완료</span>
-          </li>
-          <li class="list-group-item d-flex justify-content-between align-items-center">
-            일반 지정석 B
-            <span class="badge bg-warning">78.5% 가선점</span>
-          </li>
-          <li class="list-group-item d-flex justify-content-between align-items-center">
-            스탠딩 자유구역
-            <span class="badge bg-success">65.2% 가능</span>
-          </li>
-        </ul>
-      </div>
-    </div>
-  </div>
-</div>
+        <!-- Content wrapper -->
+        <div class="content-wrapper">
+          <div class="container-xxl flex-grow-1 container-p-y">
 
-            </div>
+            <div class="row">
+              <!-- 좌측: 설정 및 대량 생성 제어판 -->
+              <div class="col-lg-4 mb-6">
+                <div class="card mb-6">
+                  <div class="card-header d-flex align-items-center justify-content-between">
+                    <h5 class="card-title m-0 fw-bold"><i class="bx bx-slider me-2 text-primary"></i>1. 대상 축제 & 구역 선택
+                    </h5>
+                  </div>
+                  <div class="card-body pt-4">
+                    <div class="mb-4">
+                      <label class="form-label" for="festivalSelect">페스티벌 선택</label>
+                      <select id="festivalSelect" class="form-select">
+                        <option value="">-- 페스티벌을 선택하세요 --</option>
+                      </select>
+                    </div>
+                    <div class="mb-4">
+                      <label class="form-label" for="zoneSelect">구역(Zone) 선택</label>
+                      <div class="input-group flex-nowrap">
+                        <select id="zoneSelect" class="form-select" disabled style="max-width: 60%;">
+                          <option value="">-- 구역을 먼저 선택하세요 --</option>
+                        </select>
+                        <button class="btn btn-outline-primary" type="button" id="btnCreateZone" disabled
+                          style="padding-left: 10px; padding-right: 10px;">
+                          <i class="bx bx-plus-circle me-1"></i>추가
+                        </button>
+                        <button class="btn btn-outline-danger" type="button" id="btnDeleteZone" disabled
+                          style="padding-left: 10px; padding-right: 10px;">
+                          <i class="bx bx-trash me-1"></i>삭제
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
-            <!-- Footer -->
-            <footer class="content-footer footer bg-footer-theme">
-              <div class="container-xxl d-flex flex-wrap justify-content-between py-2 flex-md-row flex-column">
-                <div class="mb-2 mb-md-0">
-                  © <script>document.write(new Date().getFullYear());</script> FESTIO
+                <div class="card">
+                  <div class="card-header d-flex align-items-center justify-content-between">
+                    <h5 class="card-title m-0 fw-bold"><i class="bx bx-grid me-2 text-success"></i>2. 가변 좌석 격자판 대량 생성
+                    </h5>
+                  </div>
+                  <div class="card-body pt-4">
+                    <!-- 선택된 구역 정보 표시기 -->
+                    <div class="alert alert-info py-2 px-3 mb-3 d-flex align-items-center justify-content-between"
+                      style="font-size: 0.85rem;">
+                      <span><i class="bx bx-info-circle me-1"></i>대상 구역:</span>
+                      <span id="targetZoneLabel" class="fw-bold text-muted">-- 구역을 선택하세요 --</span>
+                    </div>
+                    <div class="row mb-4">
+                      <div class="col-6">
+                        <label class="form-label" for="rowCountInput">행 크기 (Row)</label>
+                        <input type="number" id="rowCountInput" class="form-control" placeholder="예: 10" min="1"
+                          max="50" value="10">
+                      </div>
+                      <div class="col-6">
+                        <label class="form-label" for="colCountInput">열 크기 (Col)</label>
+                        <input type="number" id="colCountInput" class="form-control" placeholder="예: 12" min="1"
+                          max="50" value="12">
+                      </div>
+                    </div>
+                    <div class="mb-4">
+                      <label class="form-label" for="priceInput">기본 티켓 예매 가격 (₩)</label>
+                      <input type="number" id="priceInput" class="form-control" placeholder="예: 50000" min="0"
+                        step="1000" value="50000">
+                    </div>
+                    <button id="btnGenerate" class="btn btn-primary w-100 mt-2" disabled>
+                      <i class="bx bx-plus-circle me-2"></i>좌석 판 생성
+                    </button>
+                  </div>
+                </div>
+
+                <!-- 3. 도면 배경 설정 카드 추가 -->
+                <div class="card mt-4">
+                  <div class="card-header d-flex align-items-center justify-content-between">
+                    <h5 class="card-title m-0 fw-bold"><i class="bx bx-image me-2 text-info"></i>3. 도면 배경 설정</h5>
+                  </div>
+                  <div class="card-body pt-4">
+                    <div class="mb-4">
+                      <label class="form-label" for="mapBgInput">배경 도면 이미지 (파일)</label>
+                      <input type="file" id="mapBgInput" class="form-control" accept="image/*">
+                    </div>
+                    <div class="mb-2">
+                      <label class="form-label d-flex justify-content-between" for="bgOpacityRange">
+                        <span>도면 투명도</span>
+                        <span id="opacityVal">50%</span>
+                      </label>
+                      <input type="range" id="bgOpacityRange" class="form-range" min="0" max="100" value="50">
+                    </div>
+                    <button id="btnSaveBg" class="btn btn-primary btn-sm w-100 mt-2" style="display: none;">
+                      <i class="bx bx-save me-1"></i>도면 저장
+                    </button>
+                    <button id="btnClearBg" class="btn btn-outline-danger btn-sm w-100 mt-2" style="display: none;">
+                      <i class="bx bx-trash me-1"></i>배경 지우기
+                    </button>
+                  </div>
+                </div>
+
+                <!-- 3-1. 등급별 티켓 단가 설정 카드 추가 -->
+                <div class="card mt-4">
+                  <div class="card-header d-flex align-items-center justify-content-between">
+                    <h5 class="card-title m-0 fw-bold"><i class="bx bx-won me-2 text-warning"></i>3-1. 등급별 티켓 단가 설정</h5>
+                  </div>
+                  <div class="card-body pt-4">
+                    <div class="row g-2 mb-3">
+                      <div class="col-6">
+                        <label class="form-label text-warning fw-bold" for="priceVipInput">VIP석 가격 (₩)</label>
+                        <input type="number" id="priceVipInput" class="form-control" value="150000" step="5000" min="0">
+                      </div>
+                      <div class="col-6">
+                        <label class="form-label text-primary fw-bold" for="priceRInput">R석 가격 (₩)</label>
+                        <input type="number" id="priceRInput" class="form-control" value="120000" step="5000" min="0">
+                      </div>
+                    </div>
+                    <div class="row g-2">
+                      <div class="col-6">
+                        <label class="form-label text-info fw-bold" for="priceSInput">S석 가격 (₩)</label>
+                        <input type="number" id="priceSInput" class="form-control" value="90000" step="5000" min="0">
+                      </div>
+                      <div class="col-6">
+                        <label class="form-label text-secondary fw-bold" for="priceNormalInput">일반석 가격 (₩)</label>
+                        <input type="number" id="priceNormalInput" class="form-control" value="50000" step="5000"
+                          min="0">
+                      </div>
+                    </div>
+                    <small class="text-muted d-block mt-3">
+                      <i class="bx bx-info-circle me-1"></i>설정 가격은 좌석을 새로 지정할 때 실시간 반영됩니다.
+                    </small>
+                  </div>
                 </div>
               </div>
-            </footer>
 
-            <div class="content-backdrop fade"></div>
+              <!-- 우측: 전체 페스티벌 구역 배치도 -->
+              <div class="col-lg-8 mb-6">
+                <div class="card h-100">
+                  <div class="card-header d-flex flex-wrap align-items-center justify-content-between gap-3">
+                    <div class="d-flex align-items-center gap-2">
+                      <h5 class="card-title m-0 fw-bold"><i class="bx bx-map-alt me-2 text-warning"></i>4. 전체 페스티벌 구역 배치도</h5>
+                      <button type="button" id="btnToggleDraw" class="btn btn-xs btn-outline-danger ms-2">
+                        <i class="bx bx-edit me-1"></i>구역 드로잉 모드 ON
+                      </button>
+                      <button type="button" id="btnCompleteDraw" class="btn btn-xs btn-danger" style="display: none;">
+                        <i class="bx bx-check me-1"></i>드로잉 완료
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="card-body pt-4 d-flex flex-column h-100 justify-content-between"
+                    style="min-height: 520px;">
+
+                    <!-- Interactive SVG Area -->
+                    <div class="grid-editor-container flex-grow-1" id="gridEditorContainer"
+                      style="position: relative; overflow: hidden; min-height: 520px; border-radius: 8px; border: 1px solid #d9dee3; display: flex; align-items: center; justify-content: center;">
+                      
+                      <!-- 1층: 배경 이미지 오버레이 (전체 페스티벌 도면) -->
+                      <div class="grid-bg-overlay" id="gridBgOverlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-size: contain; background-repeat: no-repeat; background-position: center center; opacity: 0.8; z-index: 1; pointer-events: none;"></div>
+
+                      <!-- 2층: 구역 다각형을 그리고 감지할 SVG 레이어 -->
+                      <svg id="zoneSvgLayer" viewBox="0 0 1000 1000"
+                        style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; pointer-events: auto;">
+                        <!-- JS dynamic SVG polygons -->
+                      </svg>
+
+                      <!-- 안내 문구 -->
+                      <div class="empty-state" id="emptyState" style="position: absolute; z-index: 4; pointer-events: none;">
+                        <i class="bx bx-select-multiple"></i>
+                        <span id="emptyStateText">구역 다각형을 클릭하면 해당 구역의 좌석 배치도 편집창(모달)이 열립니다.</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
           </div>
+
+          <!-- Footer -->
+          <footer class="content-footer footer bg-footer-theme">
+            <div class="container-xxl d-flex flex-wrap justify-content-between py-2 flex-md-row flex-column">
+              <div class="mb-2 mb-md-0">
+                ©
+                <script>document.write(new Date().getFullYear());</script> FESTIO
+              </div>
+            </div>
+          </footer>
+
+          <div class="content-backdrop fade"></div>
         </div>
       </div>
-      <div class="layout-overlay layout-menu-toggle"></div>
     </div>
+    <div class="layout-overlay layout-menu-toggle"></div>
+  </div>
 
-    <!-- Scripts -->
-    <script src="/assets/vendor/libs/jquery/jquery.js"></script>
-    <script src="/assets/vendor/libs/popper/popper.js"></script>
-    <script src="/assets/vendor/js/bootstrap.js"></script>
-    <script src="/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
-    <script src="/assets/vendor/js/menu.js"></script>
-    <script src="/assets/vendor/libs/apex-charts/apexcharts.js"></script>
-    <script src="/assets/js/main.js"></script>
-    <script src="/assets/js/sidebar.js"></script>
-    
+  <!-- 좌석 세부 관제 정보 Offcanvas -->
+  <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasSeatCtrl" aria-labelledby="offcanvasSeatCtrlLabel"
+    style="width: 400px;">
+    <div class="offcanvas-header border-bottom">
+      <h5 id="offcanvasSeatCtrlLabel" class="offcanvas-title fw-bold">
+        <i class="bx bx-receipt me-2 text-primary"></i>좌석 관제 및 예매 정보
+      </h5>
+      <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body pt-4">
+      <!-- 좌석 요약 헤더 -->
+      <div class="text-center mb-4 py-3 bg-light rounded-3">
+        <h2 class="fw-bold mb-1 text-primary" id="ctrlSeatName">A-12</h2>
+        <span class="badge bg-label-warning px-3 py-2 fs-7" id="ctrlSeatGrade">VIP석 (₩150,000)</span>
+      </div>
 
+      <!-- 예매 정보 내역 -->
+      <div id="ctrlReservationDetails">
+        <div class="mb-3">
+          <h6 class="fw-bold text-muted mb-1"><i class="bx bx-circle me-1 text-success"></i>예약 상태</h6>
+          <p class="fs-5 fw-bold text-dark ms-3" id="ctrlSeatStatus">예약완료 (PAID)</p>
+        </div>
 
-  </body>
+        <div class="mb-3">
+          <h6 class="fw-bold text-muted mb-1"><i class="bx bx-user me-1"></i>예매자 성함</h6>
+          <p class="fs-5 text-dark ms-3" id="ctrlCustomerName">홍길동</p>
+        </div>
+
+        <div class="mb-3">
+          <h6 class="fw-bold text-muted mb-1"><i class="bx bx-envelope me-1"></i>이메일 주소</h6>
+          <p class="fs-5 text-dark ms-3" id="ctrlCustomerEmail">hong@gmail.com</p>
+        </div>
+
+        <div class="mb-3">
+          <h6 class="fw-bold text-muted mb-1"><i class="bx bx-phone me-1"></i>연락처</h6>
+          <p class="fs-5 text-dark ms-3" id="ctrlCustomerPhone">010-1234-5678</p>
+        </div>
+
+        <div class="mb-3">
+          <h6 class="fw-bold text-muted mb-1"><i class="bx bx-calendar me-1"></i>결제 승인 일시</h6>
+          <p class="fs-5 text-dark ms-3" id="ctrlPaymentTime">2026-06-09 12:00:00</p>
+        </div>
+
+        <div class="mb-3">
+          <h6 class="fw-bold text-muted mb-1"><i class="bx bx-barcode me-1"></i>주문 마스터 번호</h6>
+          <p class="fs-5 text-dark ms-3" id="ctrlOrderId">ORD-99382</p>
+        </div>
+      </div>
+
+      <div id="ctrlNoReservation" class="text-center py-5 text-muted" style="display: none;">
+        <i class="bx bx-info-circle fs-1 mb-2"></i>
+        <p>이 좌석은 아직 예매된 내역이 없습니다.<br>현재 판매 가능 상태입니다.</p>
+      </div>
+
+      <!-- 좌석 라벨 개별 수정 폼 -->
+      <div class="mt-4 pt-4 border-top">
+        <h6 class="fw-bold text-dark mb-3">
+          <i class="bx bx-edit-alt me-1 text-warning"></i>개별 좌석 라벨 수정 (행정 편집)
+        </h6>
+        <div class="row g-2">
+          <div class="col-6">
+            <label class="form-label fs-7" for="editSeatRow">행 이름 (Row)</label>
+            <input type="text" id="editSeatRow" class="form-control form-control-sm" maxlength="10"
+              placeholder="예: A열 또는 SP">
+          </div>
+          <div class="col-6">
+            <label class="form-label fs-7" for="editSeatNumber">좌석 번호 (Num)</label>
+            <input type="number" id="editSeatNumber" class="form-control form-control-sm" min="1" placeholder="예: 12">
+          </div>
+        </div>
+        <button type="button" class="btn btn-warning btn-sm w-100 mt-3" id="btnSaveSeatLabel">
+          <i class="bx bx-check me-1"></i>라벨 변경 저장
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="/assets/vendor/libs/jquery/jquery.js"></script>
+  <script src="/assets/vendor/libs/popper/popper.js"></script>
+  <script src="/assets/vendor/js/bootstrap.js"></script>
+  <script src="/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
+  <script src="/assets/vendor/js/menu.js"></script>
+  <script src="/assets/js/main.js"></script>
+  <script src="/assets/js/sidebar.js"></script>
+
+  <!-- SweetAlert2 JavaScript -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <!-- Client-side Logic -->
+  <script>
+    // 1. 관리자 권한 및 세션 검증
+    (function () {
+      const userEmail = localStorage.getItem('userEmail') || localStorage.getItem('email');
+      const userRole = localStorage.getItem('userRole');
+
+      if (userEmail !== 'admin@gmail.com' || userRole !== 'ADMIN') {
+        alert('관리자만 접근할 수 있는 페이지입니다.');
+        window.location.href = '../../../Festio/login.html';
+      }
+    })();
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // DOM Elements
+      const festivalSelect = document.getElementById('festivalSelect');
+      const zoneSelect = document.getElementById('zoneSelect');
+      const btnCreateZone = document.getElementById('btnCreateZone');
+      const btnDeleteZone = document.getElementById('btnDeleteZone');
+      const rowCountInput = document.getElementById('rowCountInput');
+      const colCountInput = document.getElementById('colCountInput');
+      const priceInput = document.getElementById('priceInput');
+      const btnGenerate = document.getElementById('btnGenerate');
+      const targetZoneLabel = document.getElementById('targetZoneLabel');
+      const emptyState = document.getElementById('emptyState');
+      const gridEditorContainer = document.getElementById('gridEditorContainer');
+
+      // 좌석 라벨 개별 수정 DOM 바인딩
+      const editSeatRow = document.getElementById('editSeatRow');
+      const editSeatNumber = document.getElementById('editSeatNumber');
+      const btnSaveSeatLabel = document.getElementById('btnSaveSeatLabel');
+
+      // 드로잉 관련 DOM 바인딩
+      const btnToggleDraw = document.getElementById('btnToggleDraw');
+      const btnCompleteDraw = document.getElementById('btnCompleteDraw');
+      const zoneSvgLayer = document.getElementById('zoneSvgLayer');
+      const emptyStateText = document.getElementById('emptyStateText');
+
+      // 도면 배경 엘리먼트 바인딩 (메인 화면)
+      const mapBgInput = document.getElementById('mapBgInput');
+      const bgOpacityRange = document.getElementById('bgOpacityRange');
+      const opacityVal = document.getElementById('opacityVal');
+      const btnSaveBg = document.getElementById('btnSaveBg');
+      const btnClearBg = document.getElementById('btnClearBg');
+      const gridBgOverlay = document.getElementById('gridBgOverlay');
+
+      // 모달 엘리먼트 바인딩
+      const seatEditorModalEl = document.getElementById('seatEditorModal');
+      const seatEditorModal = new bootstrap.Modal(seatEditorModalEl);
+      const modalZoneTitle = document.getElementById('modalZoneTitle');
+      const modalGridBgOverlay = document.getElementById('modalGridBgOverlay');
+      const modalGridWrapper = document.getElementById('modalGridWrapper');
+      const btnModalReset = document.getElementById('btnModalReset');
+      const btnModalSaveLayout = document.getElementById('btnModalSaveLayout');
+
+      // 모달 대시보드 통계 엘리먼트 바인딩
+      const modalSeatingDashboard = document.getElementById('modalSeatingDashboard');
+      const modalDashTotalSeats = document.getElementById('modalDashTotalSeats');
+      const modalDashReservedSeats = document.getElementById('modalDashReservedSeats');
+      const modalDashAvailableSeats = document.getElementById('modalDashAvailableSeats');
+      const modalDashTotalRevenue = document.getElementById('modalDashTotalRevenue');
+      const modalSeatingGaugeContainer = document.getElementById('modalSeatingGaugeContainer');
+      const modalDashReservedPercent = document.getElementById('modalDashReservedPercent');
+      const modalDashReservedProgressBar = document.getElementById('modalDashReservedProgressBar');
+
+      // 등급 단가 인풋 바인딩
+      const priceVipInput = document.getElementById('priceVipInput');
+      const priceRInput = document.getElementById('priceRInput');
+      const priceSInput = document.getElementById('priceSInput');
+      const priceNormalInput = document.getElementById('priceNormalInput');
+
+      // Global State
+      let seatsData = [];
+      let isDrawing = false;
+      let selectedMode = '일반석'; // '일반석', 'VIP석', 'R석', 'S석', '무대', '통로'
+      let originalSeatsState = []; // 되돌리기용 복사본
+      let activeCtrlSeatId = null; // 현재 오프캔버스 열람 중인 좌석 ID
+      let currentZones = []; // 구역 정보 백업
+
+      // 드로잉 및 줌 상태 변수
+      let isDrawingMode = false;
+      let drawPoints = [];
+      let zoomState = { zoomed: false, scale: 1, x: 0, y: 0, activeZoneId: null };
+
+      // 구역 다각형 드래그 상태 관리 변수 추가
+      let isDraggingPolygon = false;
+      let draggedPolygon = null;
+      let dragStartX = 0;
+      let dragStartY = 0;
+      let originalPointsArray = [];
+      let dragHasMoved = false;
+
+      // 앵커 리사이즈 상태 관리 변수 추가
+      let isDraggingAnchor = false;
+      let activeAnchorIdx = -1;
+      let activeEditZoneId = null;
+
+      // 대량 생성 기본 가격 변경 시 일반석 가격도 동기화
+      priceInput.addEventListener('input', (e) => {
+        priceNormalInput.value = e.target.value;
+      });
+
+      // 도면 배경 이미지 로컬 로더 바인딩 (미리보기 제거하고 저장 유도)
+      mapBgInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          btnSaveBg.style.display = 'block'; // 저장 버튼 표시
+          btnClearBg.style.display = 'block';
+          Swal.fire('알림', '도면 이미지를 영구 저장하려면 [도면 저장] 버튼을 눌러주세요.', 'info');
+        }
+      });
+
+      // 도면 배경 투명도 조절
+      bgOpacityRange.addEventListener('input', (e) => {
+        const val = e.target.value;
+        opacityVal.innerText = `${val}%`;
+        modalGridBgOverlay.style.opacity = val / 100;
+      });
+
+      // 도면 배경 저장 버튼 이벤트
+      btnSaveBg.addEventListener('click', async () => {
+        const zoneId = zoneSelect.value;
+        if (!zoneId) {
+          Swal.fire('경고', '배경 도면을 저장할 구역을 선택해 주세요.', 'warning');
+          return;
+        }
+
+        const file = mapBgInput.files[0];
+        if (!file) {
+          Swal.fire('경고', '저장할 파일이 없습니다.', 'warning');
+          return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+          Swal.showLoading();
+          const res = await fetch(`/api/admin/zones/${zoneId}/background`, {
+            method: 'POST',
+            headers: {
+              'Authorization': getAuthHeader()
+            },
+            body: formData
+          });
+
+          if (!res.ok) throw new Error('도면 이미지 업로드에 실패했습니다.');
+          const data = await res.json();
+
+          // 전역 데이터 업데이트
+          const zoneIndex = currentZones.findIndex(z => z.id == zoneId);
+          if (zoneIndex !== -1) {
+            currentZones[zoneIndex].mapBgUrl = data.fileUrl;
+          }
+
+          // 메인 화면 배경 이미지 및 모달 배경 이미지 즉시 갱신 반영
+          gridBgOverlay.style.backgroundImage = `url('${data.fileUrl}')`;
+          modalGridBgOverlay.style.backgroundImage = `url('${data.fileUrl}')`;
+
+          btnSaveBg.style.display = 'none';
+          btnClearBg.style.display = 'block';
+          mapBgInput.value = '';
+          Swal.fire('성공', '배경 도면 이미지가 서버와 DB에 저장되었습니다.', 'success');
+        } catch (err) {
+          Swal.fire('에러', err.message, 'error');
+        }
+      });
+
+      // 배경 도면 삭제
+      btnClearBg.addEventListener('click', async () => {
+        const zoneId = zoneSelect.value;
+        if (zoneId) {
+          try {
+            Swal.showLoading();
+            const res = await fetch(`/api/admin/zones/${zoneId}/background`, {
+              method: 'DELETE',
+              headers: {
+                'Authorization': getAuthHeader()
+              }
+            });
+
+            if (!res.ok) throw new Error('배경 이미지 제거에 실패했습니다.');
+
+            // 전역 데이터 업데이트
+            const zoneIndex = currentZones.findIndex(z => z.id == zoneId);
+            if (zoneIndex !== -1) {
+              currentZones[zoneIndex].mapBgUrl = null;
+            }
+          } catch (err) {
+            Swal.fire('에러', err.message, 'error');
+            return;
+          }
+        }
+
+        // 배경 이미지 소거
+        gridBgOverlay.style.backgroundImage = 'none';
+        modalGridBgOverlay.style.backgroundImage = 'none';
+
+        mapBgInput.value = '';
+        btnClearBg.style.display = 'none';
+        btnSaveBg.style.display = 'none';
+        Swal.fire('완료', '배경 이미지가 제거되었습니다.', 'info');
+      });
+
+      // 임시 구역 다각형 상대 좌표 변수
+      let tempSvgPoints = null;
+
+      // 드로잉 모드 토글
+      btnToggleDraw.addEventListener('click', () => {
+        isDrawingMode = !isDrawingMode;
+        if (isDrawingMode) {
+          btnToggleDraw.className = 'btn btn-xs btn-success ms-2';
+          btnToggleDraw.innerHTML = '<i class="bx bx-check me-1"></i>드로잉 중...';
+          btnCompleteDraw.style.display = 'inline-block';
+          drawPoints = [];
+          // 기존 다각형들의 클릭 이벤트를 비활성화하고 임시로 다각형들을 흐리게 처리
+          document.querySelectorAll('.zone-polygon').forEach(p => {
+            p.style.opacity = '0.3';
+            p.style.pointerEvents = 'none';
+          });
+          Swal.fire('드로잉 모드 활성화', '배경 이미지 위를 마우스로 클릭하여 꼭짓점들을 찍어주세요. 더블클릭하면 닫힙니다.', 'info');
+        } else {
+          resetDrawingUI();
+        }
+      });
+
+      // 드로잉 완료 버튼
+      btnCompleteDraw.addEventListener('click', () => {
+        finishDrawing();
+      });
+
+      // SVG 드로잉 마우스 클릭 & 더블클릭 핸들러
+      zoneSvgLayer.addEventListener('click', (e) => {
+        if (!isDrawingMode) return;
+
+        // SVG 영역 내 0~1000 뷰박스 기준 상대 비율 좌표 산출
+        const rect = zoneSvgLayer.getBoundingClientRect();
+        const x = Math.round(((e.clientX - rect.left) / rect.width) * 1000);
+        const y = Math.round(((e.clientY - rect.top) / rect.height) * 1000);
+
+        // 유효 좌표 등록
+        drawPoints.push([x, y]);
+
+        // 시각적 피드백 점 추가
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('cx', x);
+        circle.setAttribute('cy', y);
+        circle.setAttribute('r', '6');
+        circle.setAttribute('class', 'draw-point');
+        zoneSvgLayer.appendChild(circle);
+
+        // 이전 점과 선 연결
+        if (drawPoints.length > 1) {
+          const prev = drawPoints[drawPoints.length - 2];
+          const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+          line.setAttribute('x1', prev[0]);
+          line.setAttribute('y1', prev[1]);
+          line.setAttribute('x2', x);
+          line.setAttribute('y2', y);
+          line.setAttribute('class', 'draw-line');
+          zoneSvgLayer.appendChild(line);
+        }
+      });
+
+      // 더블클릭 시 닫힌 다각형 완료
+      zoneSvgLayer.addEventListener('dblclick', (e) => {
+        if (!isDrawingMode) return;
+        e.preventDefault();
+        finishDrawing();
+      });
+
+      // 드로잉 완료 로직
+      function finishDrawing() {
+        if (drawPoints.length < 3) {
+          Swal.fire('드로잉 실패', '구역을 완성하려면 최소 3개 이상의 점이 필요합니다.', 'warning');
+          return;
+        }
+
+        // 다각형 포인트 스트링 변환
+        tempSvgPoints = drawPoints.map(p => p.join(',')).join(' ');
+
+        // 시각적 가다듬기: 임시 닫힌 다각형 추가
+        const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+        polygon.setAttribute('points', tempSvgPoints);
+        polygon.setAttribute('class', 'draw-polygon');
+        zoneSvgLayer.appendChild(polygon);
+
+        Swal.fire({
+          title: '구역 드로잉 완료',
+          text: '다각형 영역이 지정되었습니다. 우측 \'2. 구역 생성\' 창에서 구역 이름과 인원을 입력하여 저장하면 이 다각형으로 구역이 매핑됩니다.',
+          icon: 'success'
+        });
+
+        resetDrawingUI();
+      }
+
+      // 드로잉 UI 리셋
+      function resetDrawingUI() {
+        isDrawingMode = false;
+        btnToggleDraw.className = 'btn btn-xs btn-outline-danger ms-2';
+        btnToggleDraw.innerHTML = '<i class="bx bx-edit me-1"></i>구역 드로잉 모드 ON';
+        btnCompleteDraw.style.display = 'none';
+
+        // 임시 드로잉 마커(점, 선)만 골라서 소거
+        document.querySelectorAll('.draw-point, .draw-line').forEach(el => el.remove());
+
+        // 기존 구역 다각형 복구
+        document.querySelectorAll('.zone-polygon').forEach(p => {
+          p.style.opacity = '1';
+          p.style.pointerEvents = 'auto';
+        });
+      }
+
+      // 모달 닫힐 때의 리셋 이벤트 추가 (메인 뷰 선택 상태 및 배경 도면은 유지)
+      seatEditorModalEl.addEventListener('hidden.bs.modal', () => {
+        modalGridWrapper.innerHTML = '';
+        modalGridWrapper.classList.remove('active');
+        modalGridBgOverlay.style.backgroundImage = 'none';
+        
+        btnModalReset.disabled = true;
+        btnModalSaveLayout.disabled = true;
+      });
+
+      // 설정 모드 체인지 바인딩 (모달용)
+      document.querySelectorAll('input[name="editorMode"]').forEach(radio => {
+        radio.addEventListener('change', (e) => {
+          selectedMode = e.target.value;
+        });
+      });
+
+      // SVG 영역 내 다각형 드래그 및 꼭짓점 앵커 드래그 실시간 매핑
+      zoneSvgLayer.addEventListener('mousemove', (e) => {
+        const rect = zoneSvgLayer.getBoundingClientRect();
+        const curX = Math.round(((e.clientX - rect.left) / rect.width) * 1000);
+        const curY = Math.round(((e.clientY - rect.top) / rect.height) * 1000);
+
+        // A. 앵커 리사이즈 핸들링
+        if (isDraggingAnchor && draggedPolygon && activeAnchorIdx !== -1) {
+          const clampedX = Math.max(0, Math.min(1000, curX));
+          const clampedY = Math.max(0, Math.min(1000, curY));
+
+          originalPointsArray[activeAnchorIdx] = [clampedX, clampedY];
+
+          const pointsStr = originalPointsArray.map(p => p.join(',')).join(' ');
+          draggedPolygon.setAttribute('points', pointsStr);
+
+          // 해당 앵커 원 위치도 실시간 업데이트
+          const anchor = zoneSvgLayer.querySelector(`.resize-anchor[data-index="${activeAnchorIdx}"]`);
+          if (anchor) {
+            anchor.setAttribute('cx', clampedX.toString());
+            anchor.setAttribute('cy', clampedY.toString());
+          }
+          return;
+        }
+
+        // B. 다각형 전체 드래그 이동 핸들링
+        if (isDraggingPolygon && draggedPolygon) {
+          const dx = curX - dragStartX;
+          const dy = curY - dragStartY;
+
+          // 미세한 흔들림은 드래그 이동으로 판단하지 않음 (오클릭 방지)
+          if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
+            dragHasMoved = true;
+          }
+
+          if (dragHasMoved) {
+            // 다각형 꼭짓점 이동
+            const newPoints = originalPointsArray.map(p => {
+              const nx = Math.max(0, Math.min(1000, p[0] + dx)); // SVG 뷰박스 범위 내로 고정 제한
+              const ny = Math.max(0, Math.min(1000, p[1] + dy));
+              return [nx, ny];
+            });
+            const pointsStr = newPoints.map(p => p.join(',')).join(' ');
+            draggedPolygon.setAttribute('points', pointsStr);
+
+            // 활성화된 앵커 원 위치도 함께 실시간 이동
+            newPoints.forEach((p, idx) => {
+              const anchor = zoneSvgLayer.querySelector(`.resize-anchor[data-index="${idx}"]`);
+              if (anchor) {
+                anchor.setAttribute('cx', p[0].toString());
+                anchor.setAttribute('cy', p[1].toString());
+              }
+            });
+          }
+        }
+      });
+
+      // 드래그 드롭 및 좌표 DB 업데이트
+      zoneSvgLayer.addEventListener('mouseup', async (e) => {
+        // A. 앵커 리사이즈 완료 시
+        if (isDraggingAnchor && draggedPolygon) {
+          const polygon = draggedPolygon;
+          const zoneId = activeEditZoneId;
+
+          isDraggingAnchor = false;
+          activeAnchorIdx = -1;
+          draggedPolygon = null;
+
+          const svgPoints = polygon.getAttribute('points');
+          try {
+            const res = await fetch(`/api/admin/zones/${zoneId}/points`, {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': getAuthHeader()
+              },
+              body: JSON.stringify({ svgPoints })
+            });
+
+            if (!res.ok) throw new Error('구역 크기 저장에 실패했습니다.');
+
+            const Toast = Swal.mixin({
+              toast: true,
+              position: 'top-end',
+              showConfirmButton: false,
+              timer: 1500,
+              timerProgressBar: false
+            });
+            Toast.fire({
+              icon: 'success',
+              title: '구역 크기 및 형태가 변경되었습니다.'
+            });
+
+            // 구역 리스트 리프레시
+            const festivalId = festivalSelect.value;
+            if (festivalId) {
+              await refreshZones(festivalId);
+            }
+          } catch (err) {
+            Swal.fire('에러', err.message, 'error');
+          }
+          return;
+        }
+
+        // B. 다각형 전체 이동 완료 시
+        if (isDraggingPolygon && draggedPolygon) {
+          const polygon = draggedPolygon;
+          const hasMoved = dragHasMoved;
+
+          isDraggingPolygon = false;
+          draggedPolygon = null;
+
+          if (hasMoved) {
+            const zoneId = polygon.getAttribute('data-zone-id');
+            const svgPoints = polygon.getAttribute('points');
+
+            try {
+              const res = await fetch(`/api/admin/zones/${zoneId}/points`, {
+                method: 'PUT',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': getAuthHeader()
+                },
+                body: JSON.stringify({ svgPoints })
+              });
+
+              if (!res.ok) throw new Error('구역 위치 저장에 실패했습니다.');
+
+              const Toast = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 1500,
+                timerProgressBar: false
+              });
+              Toast.fire({
+                icon: 'success',
+                title: '구역 배치가 성공적으로 변경되었습니다.'
+              });
+
+              const festivalId = festivalSelect.value;
+              if (festivalId) {
+                await refreshZones(festivalId);
+              }
+            } catch (err) {
+              Swal.fire('에러', err.message, 'error');
+            }
+          }
+        }
+      });
+
+      // SVG 영역을 아예 벗어날 때 앵커 소거
+      zoneSvgLayer.addEventListener('mouseleave', () => {
+        if (isDraggingPolygon || isDraggingAnchor) return; // 드래그 중엔 유지
+        document.querySelectorAll('.resize-anchor').forEach(el => el.remove());
+        activeEditZoneId = null;
+      });
+
+      // Authorization Header Helper
+      function getAuthHeader() {
+        const token = localStorage.getItem('userToken') || sessionStorage.getItem('userToken');
+        return token ? 'Bearer ' + token : '';
+      }
+
+      // 등급 판별 헬퍼 함수
+      function getGradeClass(price) {
+        const vip = Number(priceVipInput.value);
+        const r = Number(priceRInput.value);
+        const s = Number(priceSInput.value);
+
+        if (price === vip) return 'seat-vip';
+        if (price === r) return 'seat-r';
+        if (price === s) return 'seat-s';
+        return 'seat-available'; // 일반석
+      }
+
+      // Event listener for editor mode switch
+      document.querySelectorAll('input[name="editorMode"]').forEach(radio => {
+        radio.addEventListener('change', (e) => {
+          selectedMode = e.target.value;
+        });
+      });
+
+      // 1. 페이지 로드 시 백엔드 API (GET /api/admin/festivals) 호출
+      async function fetchFestivals() {
+        try {
+          const res = await fetch('/api/admin/festivals', {
+            headers: {
+              'Authorization': getAuthHeader()
+            }
+          });
+          if (!res.ok) throw new Error('페스티벌 목록을 가져오지 못했습니다.');
+          const festivals = await res.json();
+
+          festivalSelect.innerHTML = '<option value="">-- 페스티벌을 선택하세요 --</option>';
+          festivals.forEach(fest => {
+            festivalSelect.innerHTML += `<option value="${fest.id}">${fest.name}</option>`;
+          });
+        } catch (err) {
+          Swal.fire('에러', err.message, 'error');
+        }
+      }
+
+      // 2-1. 구역 목록 새로고침 헬퍼 함수
+      async function refreshZones(festivalId, selectZoneId = null) {
+        try {
+          const res = await fetch(`/api/admin/festivals/${festivalId}/zones`, {
+            headers: {
+              'Authorization': getAuthHeader()
+            }
+          });
+          if (!res.ok) throw new Error('구역 목록을 가져오지 못했습니다.');
+          const zones = await res.json();
+
+          zoneSelect.innerHTML = '<option value="">-- 구역을 선택하세요 --</option>';
+          if (zones.length === 0) {
+            currentZones = []; // 백업 초기화
+            zoneSelect.innerHTML += '<option value="">등록된 구역이 없습니다.</option>';
+            zoneSelect.disabled = true;
+            btnCreateZone.disabled = false;
+            zoneSvgLayer.innerHTML = ''; // 다각형 레이어 초기화
+            return;
+          }
+
+          currentZones = zones; // 백업 저장
+
+          zones.forEach(zone => {
+            const selectedAttr = (selectZoneId && zone.id == selectZoneId) ? 'selected' : '';
+            zoneSelect.innerHTML += `<option value="${zone.id}" ${selectedAttr}>${zone.zoneName}</option>`;
+          });
+          zoneSelect.disabled = false;
+          btnCreateZone.disabled = false;
+
+          // SVG 레이어에 구역 다각형 지도 그리기 연동
+          drawZonesOnSvg(zones);
+
+          // 만약 구역을 새로 생성하여 자동 선택시켰을 경우, 좌석 목록도 즉시 리로드 처리
+          if (selectZoneId) {
+            btnGenerate.disabled = false;
+
+            // 대상 구역 레이블 업데이트
+            const selectedZone = zones.find(z => z.id == selectZoneId);
+            if (selectedZone && targetZoneLabel) {
+              targetZoneLabel.innerText = selectedZone.zoneName;
+              targetZoneLabel.classList.remove('text-muted');
+              targetZoneLabel.classList.add('text-primary');
+            }
+
+            await loadSeats(selectZoneId);
+          }
+        } catch (err) {
+          Swal.fire('에러', err.message, 'error');
+        }
+      }
+
+      // SVG 다각형 구역 렌더링 및 줌인 바인딩
+      function drawZonesOnSvg(zones) {
+        zoneSvgLayer.innerHTML = ''; // 기존 다각형 삭제
+
+        if (!zones || zones.length === 0) return;
+
+        zones.forEach(zone => {
+          if (!zone.svgPoints) return;
+
+          const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+          polygon.setAttribute('points', zone.svgPoints);
+          polygon.setAttribute('class', 'zone-polygon');
+          polygon.setAttribute('data-zone-id', zone.id);
+
+          // 구역 명칭 툴팁 타이틀 부여
+          const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+          title.textContent = `${zone.zoneName} (정원: ${zone.safetyLimit}명)`;
+          polygon.appendChild(title);
+
+          // 마우스 호버 시 조절 꼭짓점 앵커 노출
+          polygon.addEventListener('mouseenter', () => {
+            if (isDrawingMode || zoomState.zoomed || isDraggingPolygon || isDraggingAnchor) return;
+            showResizeAnchors(polygon, zone.id);
+          });
+
+          // 마우스 드래그 시작 바인딩
+          polygon.addEventListener('mousedown', (e) => {
+            if (isDrawingMode || zoomState.zoomed) return;
+            e.stopPropagation();
+
+            // 드래그 시 앵커 갱신 노출 보장
+            showResizeAnchors(polygon, zone.id);
+
+            isDraggingPolygon = true;
+            draggedPolygon = polygon;
+            dragHasMoved = false;
+
+            const rect = zoneSvgLayer.getBoundingClientRect();
+            dragStartX = Math.round(((e.clientX - rect.left) / rect.width) * 1000);
+            dragStartY = Math.round(((e.clientY - rect.top) / rect.height) * 1000);
+
+            const pointsAttr = polygon.getAttribute('points');
+            originalPointsArray = pointsAttr.trim().split(/\s+/).map(pair => {
+              const [x, y] = pair.split(',').map(Number);
+              return [x, y];
+            });
+          });
+
+          // 클릭 줌인 리스너 -> 모달 오픈 연동
+          polygon.addEventListener('click', (e) => {
+            if (isDrawingMode) return;
+            if (dragHasMoved) {
+              // 드래그하여 옮긴 뒤에는 모달이 발동하지 않도록 제어
+              e.stopPropagation();
+              return;
+            }
+            e.stopPropagation();
+            sessionStorage.setItem('selectedZoneId', zone.id); // 세션 저장
+            openSeatEditor(zone.id, zone.zoneName);
+          });
+
+          zoneSvgLayer.appendChild(polygon);
+        });
+      }
+
+      // 특정 구역 다각형 꼭짓점 조절용 앵커 렌더링 함수
+      function showResizeAnchors(polygonEl, zoneId) {
+        // 기존 앵커들 모두 제거
+        document.querySelectorAll('.resize-anchor').forEach(el => el.remove());
+
+        if (!polygonEl) return;
+
+        activeEditZoneId = zoneId;
+
+        const pointsAttr = polygonEl.getAttribute('points');
+        if (!pointsAttr) return;
+
+        const pts = pointsAttr.trim().split(/\s+/).map(pair => pair.split(',').map(Number));
+
+        pts.forEach((pt, idx) => {
+          if (pt.length < 2) return;
+          const [x, y] = pt;
+
+          const anchor = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+          anchor.setAttribute('cx', x.toString());
+          anchor.setAttribute('cy', y.toString());
+          anchor.setAttribute('r', '8');
+          anchor.setAttribute('class', 'resize-anchor');
+          anchor.setAttribute('data-zone-id', zoneId);
+          anchor.setAttribute('data-index', idx.toString());
+
+          // 앵커 마우스 드래그 시작 리스너
+          anchor.addEventListener('mousedown', (e) => {
+            if (isDrawingMode || zoomState.zoomed) return;
+            e.stopPropagation();
+
+            isDraggingAnchor = true;
+            activeAnchorIdx = idx;
+            draggedPolygon = polygonEl;
+
+            const pAttr = polygonEl.getAttribute('points');
+            originalPointsArray = pAttr.trim().split(/\s+/).map(pair => pair.split(',').map(Number));
+          });
+
+          zoneSvgLayer.appendChild(anchor);
+        });
+      }
+
+      // 구역 클릭 시 모달 열기 및 데이터 연동
+      async function openSeatEditor(zoneId, zoneName) {
+        modalZoneTitle.innerText = zoneName;
+
+        // 구역 배경 도면 매핑
+        const curZone = currentZones.find(z => z.id == zoneId);
+        if (curZone && curZone.mapBgUrl) {
+          modalGridBgOverlay.style.backgroundImage = `url('${curZone.mapBgUrl}')`;
+          gridBgOverlay.style.backgroundImage = `url('${curZone.mapBgUrl}')`; // 메인 화면 배경도 갱신
+          btnClearBg.style.display = 'block';
+          btnSaveBg.style.display = 'none';
+        } else {
+          modalGridBgOverlay.style.backgroundImage = 'none';
+          btnClearBg.style.display = 'none';
+          btnSaveBg.style.display = 'none';
+        }
+
+        // 대상 구역 레이블 업데이트
+        if (targetZoneLabel) {
+          targetZoneLabel.innerText = zoneName;
+          targetZoneLabel.classList.remove('text-muted');
+          targetZoneLabel.classList.add('text-primary');
+        }
+
+        // 구역 삭제 버튼 활성화
+        if (btnDeleteZone) {
+          btnDeleteZone.disabled = false;
+        }
+
+        // 구역 선택박스 값 동기화
+        zoneSelect.value = zoneId;
+
+        // 좌석 로드 및 렌더링
+        await loadSeats(zoneId);
+
+        // 모달 팝업 표출
+        seatEditorModal.show();
+      }
+
+      // 2-2. 구역 신규 추가 이벤트 바인딩
+      btnCreateZone.addEventListener('click', async () => {
+        const festivalId = festivalSelect.value;
+        if (!festivalId) return;
+
+        const { value: formValues } = await Swal.fire({
+          title: '새로운 구역 추가',
+          html:
+            '<div class="mb-3 text-start">' +
+            '  <label class="form-label fw-bold" style="color: #566a7f;">구역명 (Zone Name)</label>' +
+            '  <input id="swal-zone-name" class="form-control" placeholder="예: A구역, 스탠딩 레드존">' +
+            '</div>' +
+            '<div class="mb-3 text-start">' +
+            '  <label class="form-label fw-bold" style="color: #566a7f;">안전 수용인원 (Safety Limit)</label>' +
+            '  <input type="number" id="swal-safety-limit" class="form-control" value="500" min="1">' +
+            '</div>',
+          focusConfirm: false,
+          showCancelButton: true,
+          confirmButtonText: '구역 생성',
+          cancelButtonText: '취소',
+          confirmButtonColor: '#696cff',
+          cancelButtonColor: '#8592a3',
+          preConfirm: () => {
+            const zoneName = document.getElementById('swal-zone-name').value.trim();
+            const safetyLimit = document.getElementById('swal-safety-limit').value;
+            if (!zoneName) {
+              Swal.showValidationMessage('구역명을 입력해주세요.');
+              return false;
+            }
+            return { zoneName, safetyLimit: parseInt(safetyLimit) || 500 };
+          }
+        });
+
+        if (formValues) {
+          try {
+            Swal.showLoading();
+
+            // 드로잉 데이터 결합 및 API 경로 준수
+            const payload = {
+              festivalId: parseInt(festivalId),
+              zoneName: formValues.zoneName,
+              safetyLimit: formValues.safetyLimit,
+              svgPoints: tempSvgPoints || '0,0 200,0 200,200 0,200'
+            };
+
+            const res = await fetch('/api/admin/zones', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': getAuthHeader()
+              },
+              body: JSON.stringify(payload)
+            });
+
+            if (!res.ok) throw new Error('구역 생성 도중 오류가 발생했습니다.');
+            const newZone = await res.json();
+
+            Swal.fire('완료', `[${newZone.zoneName}] 구역이 성공적으로 생성되었습니다.`, 'success');
+
+            // 사용된 드로잉 임시값 및 임시 다각형 소거
+            tempSvgPoints = null;
+            document.querySelectorAll('.draw-polygon').forEach(el => el.remove());
+
+            // 구역 드롭다운 갱신 및 신규 생성된 구역 자동 선택
+            await refreshZones(festivalId, newZone.id);
+          } catch (err) {
+            Swal.fire('에러', err.message, 'error');
+          }
+        }
+      });
+
+      // 2-2-1. 구역 삭제 이벤트 바인딩
+      btnDeleteZone.addEventListener('click', async () => {
+        const zoneId = zoneSelect.value;
+        const festivalId = festivalSelect.value;
+        if (!zoneId || !festivalId) return;
+
+        const selectedOptionText = zoneSelect.options[zoneSelect.selectedIndex].text;
+
+        const confirmResult = await Swal.fire({
+          title: '구역 삭제 경고',
+          html: `정말로 <strong>[${selectedOptionText}]</strong> 구역을 삭제하시겠습니까?<br><span class="text-danger" style="font-size: 0.85rem;"><i class="bx bx-error me-1"></i>삭제 시 해당 구역에 포함된 모든 좌석 정보가 영구 삭제됩니다.</span>`,
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: '삭제 실행',
+          cancelButtonText: '취소',
+          confirmButtonColor: '#ff3e1d',
+          cancelButtonColor: '#8592a3'
+        });
+
+        if (confirmResult.isConfirmed) {
+          try {
+            Swal.showLoading();
+
+            const res = await fetch(`/api/admin/zones/${zoneId}`, {
+              method: 'DELETE',
+              headers: {
+                'Authorization': getAuthHeader()
+              }
+            });
+
+            if (!res.ok) throw new Error('구역 삭제 도중 오류가 발생했습니다.');
+
+            Swal.fire('삭제 완료', '구역 및 하위 좌석들이 성공적으로 삭제되었습니다.', 'success');
+
+            // 줌 아웃 및 화면 초기화
+            zoomOut();
+            clearGrid();
+
+            // 구역 정보 갱신
+            await refreshZones(festivalId);
+          } catch (err) {
+            Swal.fire('에러', err.message, 'error');
+          }
+        }
+      });
+
+      // 2-3. 특정 페스티벌 선택 시 구역 목록 조회
+      festivalSelect.addEventListener('change', async (e) => {
+        const festivalId = e.target.value;
+
+        if (festivalId) {
+          sessionStorage.setItem('selectedFestivalId', festivalId);
+        } else {
+          sessionStorage.removeItem('selectedFestivalId');
+          sessionStorage.removeItem('selectedZoneId');
+        }
+
+        // 초기화
+        zoneSelect.innerHTML = '<option value="">-- 구역을 선택하세요 --</option>';
+        zoneSelect.disabled = true;
+        btnCreateZone.disabled = true;
+        btnGenerate.disabled = true;
+        clearGrid();
+
+        if (!festivalId) return;
+
+        btnCreateZone.disabled = false;
+        await refreshZones(festivalId);
+      });
+
+      // 3. 특정 구역 선택 시 모달 오픈 연동
+      zoneSelect.addEventListener('change', async (e) => {
+        const zoneId = e.target.value;
+
+        if (zoneId) {
+          sessionStorage.setItem('selectedZoneId', zoneId);
+        } else {
+          sessionStorage.removeItem('selectedZoneId');
+        }
+
+        if (!zoneId) {
+          btnGenerate.disabled = true;
+          if (targetZoneLabel) {
+            targetZoneLabel.innerText = '-- 구역을 선택하세요 --';
+            targetZoneLabel.classList.remove('text-primary');
+            targetZoneLabel.classList.add('text-muted');
+          }
+          modalGridWrapper.innerHTML = '';
+          return;
+        }
+
+        // 드롭다운 변경 시 레이블 업데이트 및 모달 오픈
+        const selectedOptionText = zoneSelect.options[zoneSelect.selectedIndex].text;
+        if (targetZoneLabel) {
+          targetZoneLabel.innerText = selectedOptionText;
+          targetZoneLabel.classList.remove('text-muted');
+          targetZoneLabel.classList.add('text-primary');
+        }
+
+        // 메인 화면 배경 이미지 미리 연동 (이미지가 존재할 때만 덮어씀, 없으면 이전 배경 유지)
+        const curZone = currentZones.find(z => z.id == zoneId);
+        if (curZone && curZone.mapBgUrl) {
+          gridBgOverlay.style.backgroundImage = `url('${curZone.mapBgUrl}')`;
+        }
+
+        btnGenerate.disabled = false;
+        openSeatEditor(zoneId, selectedOptionText);
+      });
+
+      // 좌석 목록 로드 API 호출
+      async function loadSeats(zoneId) {
+        if (zoneId) {
+          btnGenerate.disabled = false;
+        }
+        try {
+          const res = await fetch(`/api/admin/seats?zoneId=${zoneId}`, {
+            headers: {
+              'Authorization': getAuthHeader()
+            }
+          });
+          if (!res.ok) throw new Error('좌석 데이터를 로드하지 못했습니다.');
+          seatsData = await res.json();
+
+          // 백업본 저장
+          originalSeatsState = JSON.parse(JSON.stringify(seatsData));
+
+          if (seatsData.length === 0) {
+            modalGridWrapper.style.display = 'block';
+            modalGridWrapper.classList.add('active');
+            modalGridWrapper.innerHTML = '<div class="text-center py-5 text-muted"><i class="bx bx-error-alt fs-1 d-block mb-3 text-warning"></i>구역에 생성된 좌석이 없습니다.<br>좌측 \'3. 좌석 생성\' 메뉴에서 크기를 설정해 좌석 판을 생성해 주세요.</div>';
+            btnModalReset.disabled = true;
+            btnModalSaveLayout.disabled = true;
+          } else {
+            renderGrid(seatsData);
+            btnModalReset.disabled = false;
+            btnModalSaveLayout.disabled = false;
+          }
+        } catch (err) {
+          Swal.fire('에러', err.message, 'error');
+        }
+      }
+
+      // 4. 가변 좌석 격자판 대량 생성 (POST /api/admin/seats/generate)
+      btnGenerate.addEventListener('click', async () => {
+        const zoneId = zoneSelect.value;
+        const rowCount = parseInt(rowCountInput.value);
+        const colCount = parseInt(colCountInput.value);
+        const price = parseInt(priceInput.value);
+
+        if (!zoneId) {
+          Swal.fire('알림', '구역을 먼저 선택해 주세요.', 'warning');
+          return;
+        }
+        if (isNaN(rowCount) || rowCount <= 0 || rowCount > 50) {
+          Swal.fire('알림', '행 크기를 1~50 사이로 입력해 주세요.', 'warning');
+          return;
+        }
+        if (isNaN(colCount) || colCount <= 0 || colCount > 50) {
+          Swal.fire('all', '열 크기를 1~50 사이로 입력해 주세요.', 'warning');
+          return;
+        }
+        if (isNaN(price) || price < 0) {
+          Swal.fire('알림', '가격을 올바르게 입력해 주세요.', 'warning');
+          return;
+        }
+
+        Swal.fire({
+          title: '좌석 판 생성 확인',
+          text: '기존에 등록되어 있던 해당 구역의 좌석 데이터는 모두 삭제되고 새로 생성됩니다. 진행하시겠습니까?',
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#6366f1',
+          cancelButtonColor: '#475569',
+          confirmButtonText: '네, 생성합니다',
+          cancelButtonText: '취소'
+        }).then(async (result) => {
+          if (result.isConfirmed) {
+            try {
+              Swal.showLoading();
+              const res = await fetch('/api/admin/seats/generate', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': getAuthHeader()
+                },
+                body: JSON.stringify({ zoneId, rowCount, colCount, price })
+              });
+
+              if (!res.ok) throw new Error('좌석판 생성 중 에러가 발생했습니다.');
+
+              Swal.fire('완료', '좌석 격자판이 새로 생성되었습니다.', 'success');
+              await loadSeats(zoneId);
+            } catch (err) {
+              Swal.fire('에러', err.message, 'error');
+            }
+          }
+        });
+      });
+
+      // 5. 시각적 격자판(CSS Grid) 실시간 드로잉 렌더러
+      function renderGrid(seats) {
+        modalGridWrapper.style.display = 'grid';
+        modalGridWrapper.classList.add('active');
+        modalGridWrapper.innerHTML = '';
+
+        // 행 레이블 고유값 추출 (예: 'A열', 'B열' ...)
+        const rows = [...new Set(seats.map(s => s.seatRow))].sort((a, b) => {
+          return a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
+        });
+
+        // 각 행의 최대 열 번호 계산
+        const maxCol = Math.max(...seats.map(s => s.seatNumber), 1);
+
+        // Grid 레이아웃 설정 (너비 44px에 맞춰 조정)
+        modalGridWrapper.style.gridTemplateColumns = `repeat(${maxCol}, minmax(44px, 1fr))`;
+
+        // [무대 (STAGE)] 바 가이드 맨 위에 배치 (1번 행 전체 열 스팬)
+        const stageGuide = document.createElement('div');
+        stageGuide.className = 'w-100 bg-primary text-white text-center py-2 fw-bold rounded mb-2 d-flex align-items-center justify-content-center';
+        stageGuide.style.gridColumn = `1 / span ${maxCol}`;
+        stageGuide.style.gridRow = '1';
+        stageGuide.style.fontSize = '0.9rem';
+        stageGuide.style.letterSpacing = '1px';
+        stageGuide.innerHTML = '<i class="bx bx-cube-alt me-2"></i>무대 (STAGE)';
+        modalGridWrapper.appendChild(stageGuide);
+
+        // 좌석 데이터를 행/열 맵으로 정렬
+        const seatMap = {};
+        seats.forEach(seat => {
+          seatMap[`${seat.seatRow}_${seat.seatNumber}`] = seat;
+        });
+
+        // Grid Cell 렌더링
+        rows.forEach((rowName, rIdx) => {
+          const gridRowIndex = rIdx + 2; // 무대가 1번 행을 먹었으므로 2번 행부터 시작
+          for (let c = 1; c <= maxCol; c++) {
+            const seat = seatMap[`${rowName}_${c}`];
+            const cell = document.createElement('div');
+            cell.style.gridRow = gridRowIndex.toString();
+            cell.style.gridColumn = c.toString();
+
+            if (seat) {
+              cell.className = 'seat-cell';
+              cell.dataset.id = seat.id;
+              cell.dataset.row = seat.seatRow;
+              cell.dataset.number = seat.seatNumber;
+              cell.dataset.status = seat.status;
+              cell.dataset.price = seat.price;
+
+              // 스타일 및 내용 적용
+              applyCellClassAndContent(cell, seat.status, seat.price, seat.isReserved, seat.seatRow, seat.seatNumber);
+
+              // Drag & Click Events
+              cell.addEventListener('mousedown', (e) => {
+                isDrawing = true;
+                updateCellState(cell);
+              });
+
+              cell.addEventListener('mouseenter', () => {
+                if (isDrawing) {
+                  updateCellState(cell);
+                }
+              });
+
+              // 개별 좌석 클릭 시 관제 상세 정보 바인딩
+              cell.addEventListener('click', () => {
+                if (seat.status !== '무대' && seat.status !== '통로') {
+                  showSeatReservationDetails(seat);
+                }
+              });
+            } else {
+              // 비어 있는 자리 채우기용 (통로 표시)
+              cell.className = 'seat-cell seat-corridor';
+              cell.innerHTML = '<span>PASS</span>';
+            }
+            modalGridWrapper.appendChild(cell);
+          }
+        });
+
+        // 실시간 요약 대시보드 통계 업데이트
+        updateDashboardStats(seats);
+      }
+
+      // 마우스 업 전역 리스너
+      window.addEventListener('mouseup', () => {
+        isDrawing = false;
+      });
+
+      // 개별 셀 상태 업데이트 로직
+      function updateCellState(cell) {
+        const seatId = cell.dataset.id;
+        if (!seatId) return;
+
+        const seat = seatsData.find(s => s.id == seatId);
+        if (!seat) return;
+
+        // 프론트 모드에 따른 상태 및 가격 설정
+        if (selectedMode === '일반석') {
+          seat.status = '빈자리';
+          seat.price = Number(priceNormalInput.value);
+          seat.isReserved = false;
+        } else if (selectedMode === 'VIP석') {
+          seat.status = '빈자리';
+          seat.price = Number(priceVipInput.value);
+          seat.isReserved = false;
+        } else if (selectedMode === 'R석') {
+          seat.status = '빈자리';
+          seat.price = Number(priceRInput.value);
+          seat.isReserved = false;
+        } else if (selectedMode === 'S석') {
+          seat.status = '빈자리';
+          seat.price = Number(priceSInput.value);
+          seat.isReserved = false;
+        } else if (selectedMode === '무대') {
+          seat.status = '무대';
+          seat.price = 0;
+          seat.isReserved = true;
+        } else if (selectedMode === '통로') {
+          seat.status = '통로';
+          seat.price = 0;
+          seat.isReserved = true;
+        } else if (selectedMode === '보류석') {
+          seat.status = '보류';
+          // 보류 지정 시 기존 등급 단가는 유지하되, isReserved 플래그를 true로 바꾸어 일반 관객 예매를 원천 차단
+          seat.isReserved = true;
+        }
+
+        cell.dataset.status = seat.status;
+        cell.dataset.price = seat.price;
+
+        applyCellClassAndContent(cell, seat.status, seat.price, seat.isReserved, seat.seatRow, seat.seatNumber);
+      }
+
+      // 상태 및 가격별 CSS & Label 렌더링 통합 헬퍼
+      function applyCellClassAndContent(cell, status, price, isReserved, seatRow, seatNumber) {
+        cell.classList.remove('seat-available', 'seat-vip', 'seat-r', 'seat-s', 'seat-stage', 'seat-corridor', 'seat-reserved', 'seat-hold');
+
+        if (status === '보류') {
+          cell.classList.add('seat-hold');
+          cell.innerHTML = `<span>${seatRow.replace('열', '')}-${seatNumber}</span><small class="seat-price-tag"><i class="bx bx-lock-alt"></i> 보류</small>`;
+        } else if (isReserved && status !== '무대' && status !== '통로') {
+          cell.classList.add('seat-reserved');
+          cell.innerHTML = `<span>${seatRow.replace('열', '')}-${seatNumber}</span><small class="seat-price-tag">예매불가</small>`;
+        } else if (status === '무대') {
+          cell.classList.add('seat-stage');
+          cell.innerHTML = '<span>STAGE</span>';
+        } else if (status === '통로') {
+          cell.classList.add('seat-corridor');
+          cell.innerHTML = '<span>PASS</span>';
+        } else {
+          // 등급별 클래스 맵핑
+          const gradeClass = getGradeClass(price);
+          cell.classList.add(gradeClass);
+
+          // 가격 단위 (만원) 보기 좋게 변환
+          const displayPrice = price >= 10000
+            ? `${(price / 10000).toFixed(0)}만`
+            : `${price}`;
+          cell.innerHTML = `<span>${seatRow.replace('열', '')}-${seatNumber}</span><small class="seat-price-tag">${displayPrice}</small>`;
+        }
+      }
+
+      // 5-1. 실시간 대시보드 통계 업데이트 함수
+      function updateDashboardStats(seats) {
+        const dashboard = modalSeatingDashboard;
+        const gaugeContainer = modalSeatingGaugeContainer;
+
+        if (!seats || seats.length === 0) {
+          if (dashboard) dashboard.style.display = 'none';
+          if (gaugeContainer) gaugeContainer.style.display = 'none';
+          return;
+        }
+
+        // 무대와 통로를 제외한 유효 좌석만 필터링
+        const activeSeats = seats.filter(s => s.status !== '무대' && s.status !== '통로');
+        const totalSeatsCount = activeSeats.length;
+
+        if (totalSeatsCount === 0) {
+          if (dashboard) dashboard.style.display = 'none';
+          if (gaugeContainer) gaugeContainer.style.display = 'none';
+          return;
+        }
+
+        // 예매 완료(isReserved === true)된 좌석 수 집계
+        const reservedSeatsCount = activeSeats.filter(s => s.isReserved).length;
+        const availableSeatsCount = totalSeatsCount - reservedSeatsCount;
+
+        // 실시간 매출액 계산 (예매 완료된 일반 좌석 가격 합산)
+        const totalRevenue = activeSeats
+          .filter(s => s.isReserved)
+          .reduce((sum, s) => sum + (s.price || 0), 0);
+
+        // 예매율 계산
+        const reservedPercent = Math.round((reservedSeatsCount / totalSeatsCount) * 100) || 0;
+
+        // DOM 반영
+        modalDashTotalSeats.innerText = totalSeatsCount.toLocaleString() + ' 석';
+        modalDashReservedSeats.innerText = reservedSeatsCount.toLocaleString() + ' 석';
+        modalDashAvailableSeats.innerText = availableSeatsCount.toLocaleString() + ' 석';
+        modalDashTotalRevenue.innerText = '₩' + totalRevenue.toLocaleString();
+        modalDashReservedPercent.innerText = reservedPercent + '%';
+
+        const progressBar = modalDashReservedProgressBar;
+        progressBar.style.width = reservedPercent + '%';
+        progressBar.setAttribute('aria-valuenow', reservedPercent);
+
+        if (dashboard) dashboard.style.display = 'flex';
+        if (gaugeContainer) gaugeContainer.style.display = 'block';
+      }
+
+      // 5-2. 좌석 예매 상세 조회 및 오프캔버스 표출
+      async function showSeatReservationDetails(seat) {
+        activeCtrlSeatId = seat.id;
+
+        // 개별 라벨 수정 폼 초기 값 바인딩
+        editSeatRow.value = seat.seatRow;
+        editSeatNumber.value = seat.seatNumber;
+
+        const offcanvasEl = document.getElementById('offcanvasSeatCtrl');
+        const offcanvas = bootstrap.Offcanvas.getOrCreateInstance(offcanvasEl);
+
+        // 기본 요약 타이틀 바인딩
+        document.getElementById('ctrlSeatName').innerText = `${seat.seatRow} ${seat.seatNumber}번`;
+
+        let gradeName = '일반석';
+        const vip = Number(priceVipInput.value);
+        const r = Number(priceRInput.value);
+        const s = Number(priceSInput.value);
+        if (seat.price === vip) gradeName = 'VIP석';
+        else if (seat.price === r) gradeName = 'R석';
+        else if (seat.price === s) gradeName = 'S석';
+
+        document.getElementById('ctrlSeatGrade').innerText = `${gradeName} (₩${seat.price.toLocaleString()})`;
+
+        const detailsDiv = document.getElementById('ctrlReservationDetails');
+        const noResDiv = document.getElementById('ctrlNoReservation');
+
+        // 만약 행정 보류석(Hold)인 경우 API 요청 없이 보류 정보 표시
+        if (seat.status === '보류') {
+          detailsDiv.style.display = 'block';
+          noResDiv.style.display = 'none';
+          document.getElementById('ctrlSeatStatus').innerText = '행정 보류 중 (ADMIN_HOLD)';
+          document.getElementById('ctrlCustomerName').innerText = '시스템 관리자 (판매 제한)';
+          document.getElementById('ctrlCustomerEmail').innerText = 'admin@fastival.com';
+          document.getElementById('ctrlCustomerPhone').innerText = 'N/A';
+          document.getElementById('ctrlPaymentTime').innerText = '설정 시간 기준';
+          document.getElementById('ctrlOrderId').innerText = 'ADMIN_LOCK_HOLD';
+          offcanvas.show();
+          return;
+        }
+
+        // 만약 예약된 자리가 아니면 API 요청 없이 빈자리 정보만 표시
+        if (!seat.isReserved) {
+          detailsDiv.style.display = 'none';
+          noResDiv.style.display = 'block';
+          offcanvas.show();
+          return;
+        }
+
+        try {
+          // 로딩 상태 텍스트
+          document.getElementById('ctrlSeatStatus').innerText = '조회 중...';
+          document.getElementById('ctrlCustomerName').innerText = '...';
+          document.getElementById('ctrlCustomerEmail').innerText = '...';
+          document.getElementById('ctrlCustomerPhone').innerText = '...';
+          document.getElementById('ctrlPaymentTime').innerText = '...';
+          document.getElementById('ctrlOrderId').innerText = '...';
+
+          detailsDiv.style.display = 'block';
+          noResDiv.style.display = 'none';
+          offcanvas.show();
+
+          const res = await fetch(`/api/admin/seats/${seat.id}/reservation`, {
+            headers: {
+              'Authorization': getAuthHeader()
+            }
+          });
+
+          if (!res.ok) throw new Error('예매 내역을 가져오지 못했습니다.');
+          const info = await res.json();
+
+          if (info.status === 'NONE') {
+            // 예약됨 상태인데 DB 예매가 매칭되지 않는 경우 (기획사 홀딩석 혹은 오프라인 판매 등)
+            document.getElementById('ctrlSeatStatus').innerText = '관리자 선점 / 판매 제한석';
+            document.getElementById('ctrlCustomerName').innerText = '시스템 관리자';
+            document.getElementById('ctrlCustomerEmail').innerText = 'admin@gmail.com';
+            document.getElementById('ctrlCustomerPhone').innerText = 'N/A';
+            document.getElementById('ctrlPaymentTime').innerText = '티켓팅 오픈 시점';
+            document.getElementById('ctrlOrderId').innerText = 'SYSTEM_HOLD';
+          } else {
+            document.getElementById('ctrlSeatStatus').innerText = `예약 완료 (${info.status})`;
+            document.getElementById('ctrlCustomerName').innerText = info.customerName;
+            document.getElementById('ctrlCustomerEmail').innerText = info.customerEmail;
+            document.getElementById('ctrlCustomerPhone').innerText = info.customerPhone;
+            document.getElementById('ctrlPaymentTime').innerText = info.createdAt;
+            document.getElementById('ctrlOrderId').innerText = 'ORD-' + info.orderId;
+          }
+        } catch (err) {
+          console.error(err);
+          document.getElementById('ctrlSeatStatus').innerText = '정보 조회 실패';
+        }
+      }
+
+      // 6. 레이아웃 확정 저장 (PUT /api/admin/seats/layout)
+      btnModalSaveLayout.addEventListener('click', async () => {
+        const zoneId = zoneSelect.value;
+        if (!zoneId || seatsData.length === 0) return;
+
+        // 변경 사항 필터링 (상태 및 단가 모두 업데이트)
+        const payload = seatsData.map(s => ({
+          id: s.id,
+          status: s.status,
+          price: s.price
+        }));
+
+        try {
+          Swal.showLoading();
+          const res = await fetch('/api/admin/seats/layout', {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': getAuthHeader()
+            },
+            body: JSON.stringify(payload)
+          });
+
+          if (!res.ok) throw new Error('레이아웃을 저장하는 도중 에러가 발생했습니다.');
+
+          Swal.fire('성공', '좌석 레이아웃 배치 정보가 DB에 최종 반영되었습니다.', 'success');
+          await loadSeats(zoneId);
+        } catch (err) {
+          Swal.fire('에러', err.message, 'error');
+        }
+      });
+
+      // 되돌리기
+      btnModalReset.addEventListener('click', () => {
+        seatsData = JSON.parse(JSON.stringify(originalSeatsState));
+        renderGrid(seatsData);
+        Swal.fire('초기화', '마지막으로 저장된 상태로 되돌렸습니다.', 'info');
+      });
+
+      // 개별 좌석 라벨 변경 저장 처리
+      btnSaveSeatLabel.addEventListener('click', async () => {
+        if (!activeCtrlSeatId) {
+          Swal.fire('경고', '선택된 좌석이 없습니다.', 'warning');
+          return;
+        }
+
+        const seatRowVal = editSeatRow.value.trim();
+        const seatNumVal = parseInt(editSeatNumber.value, 10);
+
+        if (!seatRowVal || seatRowVal.length > 10) {
+          Swal.fire('실패', '행 이름은 1~10자 이내로 입력해주세요.', 'error');
+          return;
+        }
+        if (isNaN(seatNumVal) || seatNumVal <= 0) {
+          Swal.fire('실패', '올바른 좌석 번호를 입력해주세요 (1 이상의 정수).', 'error');
+          return;
+        }
+
+        try {
+          Swal.showLoading();
+          const res = await fetch(`/api/admin/seats/${activeCtrlSeatId}/label`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': getAuthHeader()
+            },
+            body: JSON.stringify({ seatRow: seatRowVal, seatNumber: seatNumVal })
+          });
+
+          if (!res.ok) {
+            const errData = await res.json();
+            throw new Error(errData.message || '라벨 변경 도중 서버 에러가 발생했습니다.');
+          }
+
+          Swal.fire('성공', '좌석의 행/번호 라벨이 성공적으로 변경되었습니다.', 'success');
+
+          // 오프캔버스 닫기
+          const offcanvasEl = document.getElementById('offcanvasSeatCtrl');
+          const offcanvas = bootstrap.Offcanvas.getInstance(offcanvasEl);
+          if (offcanvas) offcanvas.hide();
+
+          // 구역 재조회하여 실시간 리렌더링
+          const zoneId = zoneSelect.value;
+          if (zoneId) {
+            await loadSeats(zoneId);
+          }
+        } catch (err) {
+          Swal.fire('에러', err.message, 'error');
+        }
+      });
+
+      // 공통 UI 핸들러
+      function clearGrid() {
+        seatsData = [];
+        originalSeatsState = [];
+        btnModalReset.disabled = true;
+        btnModalSaveLayout.disabled = true;
+        btnGenerate.disabled = true; // 좌석 생성 버튼 비활성화
+        if (btnDeleteZone) {
+          btnDeleteZone.disabled = true;
+        }
+        updateDashboardStats([]); // 대시보드 통계 비활성화
+        showEmptyState('페스티벌과 구역을 선택하거나 좌석 판을 생성해주세요.');
+      }
+
+      // showEmptyState
+      function showEmptyState(msg) {
+        modalGridWrapper.style.display = 'none';
+      }
+
+      // 초기 시작 및 자동 복원
+      async function initAndRestore() {
+        await fetchFestivals();
+        
+        const savedFestivalId = sessionStorage.getItem('selectedFestivalId');
+        const savedZoneId = sessionStorage.getItem('selectedZoneId');
+        
+        if (savedFestivalId) {
+          festivalSelect.value = savedFestivalId;
+          
+          // 구역 목록 조회
+          await refreshZones(savedFestivalId);
+          
+          if (savedZoneId) {
+            // 구역 선택박스 값 복원
+            zoneSelect.value = savedZoneId;
+            
+            // 대상 구역 레이블 업데이트
+            const selectedOptionText = zoneSelect.options[zoneSelect.selectedIndex]?.text;
+            if (targetZoneLabel && selectedOptionText) {
+              targetZoneLabel.innerText = selectedOptionText;
+              targetZoneLabel.classList.remove('text-muted');
+              targetZoneLabel.classList.add('text-primary');
+            }
+            btnGenerate.disabled = false;
+            
+            // 모달 오픈 연동 및 메인 배경 이미지 복원
+            if (savedZoneId && selectedOptionText) {
+              const curZone = currentZones.find(z => z.id == savedZoneId);
+              if (curZone && curZone.mapBgUrl) {
+                gridBgOverlay.style.backgroundImage = `url('${curZone.mapBgUrl}')`;
+              }
+              openSeatEditor(savedZoneId, selectedOptionText);
+            }
+          }
+        }
+      }
+      initAndRestore();
+    });
+  </script>
+  <!-- 좌석 격자 편집 모달 -->
+  <div class="modal fade" id="seatEditorModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header border-bottom">
+          <h5 class="modal-title fw-bold" id="seatEditorModalLabel">
+            <i class="bx bx-palette me-2 text-warning"></i><span id="modalZoneTitle">--</span> 좌석 격자 레이아웃 편집기
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <!-- 설정 모드 (드래그/클릭으로 채색) -->
+          <div class="mb-4">
+            <div class="form-label mb-2 fw-bold">설정 모드 (드래그/클릭으로 채색)</div>
+            <div class="d-flex flex-wrap gap-2">
+              <input type="radio" class="btn-check" name="editorMode" id="modeNormal" value="일반석" checked>
+              <label class="btn btn-sm btn-outline-secondary" for="modeNormal">
+                <i class="bx bx-purchase-tag me-1"></i>일반석 설정
+              </label>
+
+              <input type="radio" class="btn-check" name="editorMode" id="modeVIP" value="VIP석">
+              <label class="btn btn-sm btn-outline-warning" for="modeVIP">
+                <i class="bx bxs-crown me-1"></i>VIP석 설정
+              </label>
+
+              <input type="radio" class="btn-check" name="editorMode" id="modeR" value="R석">
+              <label class="btn btn-sm btn-outline-primary" for="modeR">
+                <i class="bx bx-star me-1"></i>R석 설정
+              </label>
+
+              <input type="radio" class="btn-check" name="editorMode" id="modeS" value="S석">
+              <label class="btn btn-sm btn-outline-info" for="modeS">
+                <i class="bx bx-certification me-1"></i>S석 설정
+              </label>
+
+              <input type="radio" class="btn-check" name="editorMode" id="modeStage" value="무대">
+              <label class="btn btn-sm btn-outline-dark" for="modeStage">
+                <i class="bx bx-desktop me-1"></i>무대 설정
+              </label>
+
+              <input type="radio" class="btn-check" name="editorMode" id="modeCorridor" value="통로">
+              <label class="btn btn-sm btn-outline-danger" for="modeCorridor">
+                <i class="bx bx-directions me-1"></i>통로 설정
+              </label>
+
+              <input type="radio" class="btn-check" name="editorMode" id="modeHold" value="보류석">
+              <label class="btn btn-sm btn-outline-danger" for="modeHold">
+                <i class="bx bx-lock-alt me-1"></i>보류석 설정
+              </label>
+            </div>
+          </div>
+
+          <!-- 실시간 예매 모니터링 통계 대시보드 요약 바 -->
+          <div class="row g-3 mb-4" id="modalSeatingDashboard" style="display: none;">
+            <div class="col-md-3 col-6">
+              <div class="d-flex align-items-center bg-light p-3 rounded-3 border-start border-primary border-3">
+                <div class="avatar flex-shrink-0 me-3">
+                  <span class="avatar-initial rounded bg-label-primary" style="padding: 6px;"><i class="bx bx-chair fs-4 text-primary"></i></span>
+                </div>
+                <div>
+                  <small class="text-muted d-block mb-1">총 일반 좌석수</small>
+                  <h5 class="mb-0 fw-bold text-dark" id="modalDashTotalSeats">0</h5>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3 col-6">
+              <div class="d-flex align-items-center bg-light p-3 rounded-3 border-start border-success border-3">
+                <div class="avatar flex-shrink-0 me-3">
+                  <span class="avatar-initial rounded bg-label-success" style="padding: 6px;"><i class="bx bx-check-double fs-4 text-success"></i></span>
+                </div>
+                <div>
+                  <small class="text-muted d-block mb-1">예매 완료석</small>
+                  <h5 class="mb-0 fw-bold text-dark" id="modalDashReservedSeats">0</h5>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3 col-6">
+              <div class="d-flex align-items-center bg-light p-3 rounded-3 border-start border-info border-3">
+                <div class="avatar flex-shrink-0 me-3">
+                  <span class="avatar-initial rounded bg-label-info" style="padding: 6px;"><i class="bx bx-door-open fs-4 text-info"></i></span>
+                </div>
+                <div>
+                  <small class="text-muted d-block mb-1">잔여 판매석</small>
+                  <h5 class="mb-0 fw-bold text-dark" id="modalDashAvailableSeats">0</h5>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3 col-6">
+              <div class="d-flex align-items-center bg-light p-3 rounded-3 border-start border-warning border-3">
+                <div class="avatar flex-shrink-0 me-3">
+                  <span class="avatar-initial rounded bg-label-warning" style="padding: 6px;"><i class="bx bx-won fs-4 text-warning"></i></span>
+                </div>
+                <div>
+                  <small class="text-muted d-block mb-1">실시간 매출</small>
+                  <h5 class="mb-0 fw-bold text-dark" id="modalDashTotalRevenue">₩0</h5>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 예매율 게이지 바 -->
+          <div class="mb-4" id="modalSeatingGaugeContainer" style="display: none;">
+            <div class="d-flex justify-content-between mb-1">
+              <span class="fw-bold text-dark fs-7">구역 전체 예매 진행율</span>
+              <span class="fw-bold text-primary fs-7" id="modalDashReservedPercent">0%</span>
+            </div>
+            <div class="progress" style="height: 10px;">
+              <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary" role="progressbar" style="width: 0%" id="modalDashReservedProgressBar"></div>
+            </div>
+          </div>
+
+          <!-- Interactive Grid Editor (모달 내부) -->
+          <div class="modal-grid-editor-container" style="position: relative; background: #eceef1; border: 1px solid #d9dee3; border-radius: 12px; padding: 24px; overflow: auto; min-height: 450px; max-height: 600px; display: flex; align-items: center; justify-content: center; user-select: none;">
+            <!-- 모달용 배경 이미지 오버레이 -->
+            <div class="grid-bg-overlay" id="modalGridBgOverlay" style="position: absolute; top:0; left:0; width:100%; height:100%; background-size: contain; background-repeat: no-repeat; background-position: center center; opacity: 0.5; z-index: 1; pointer-events: none;"></div>
+            
+            <!-- 모달용 개별 좌석 격자가 렌더링될 래퍼 -->
+            <div class="grid-wrapper" id="modalGridWrapper" style="display: none; position: relative; z-index: 3; background: rgba(255, 255, 255, 0.95); padding: 15px; border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.15);">
+              <!-- JS dynamic grid cells -->
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer border-top">
+          <button id="btnModalReset" class="btn btn-outline-secondary" disabled>
+            <i class="bx bx-refresh me-2"></i>되돌리기
+          </button>
+          <button id="btnModalSaveLayout" class="btn btn-success" disabled>
+            <i class="bx bx-save me-2"></i>레이아웃 확정 저장
+          </button>
+          <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal">닫기</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+
 </html>
-
-

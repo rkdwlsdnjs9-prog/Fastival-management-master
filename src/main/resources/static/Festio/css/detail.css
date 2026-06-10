@@ -460,9 +460,23 @@
 
 .booking-cta-top {
   display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-3);
+}
+
+.cta-zone-row {
+  display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: var(--sp-3);
+}
+
+.cta-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .booking-zone-text {
@@ -475,12 +489,84 @@
   font-weight: 700;
 }
 
+/* ── 선택한 좌석 패널 ─────────────────────────────────────── */
+.selected-seats-panel {
+  background: var(--bg-elevated, #1e2030);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 12px;
+  border: 1px solid var(--border-subtle, rgba(255,255,255,0.08));
+}
+
+.selected-seats-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.selected-count-badge {
+  background: var(--color-primary, #696cff);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 99px;
+}
+
+.selected-seats-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 160px;
+  overflow-y: auto;
+}
+
+.seats-placeholder {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 6px 0;
+}
+
+.seat-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 8px;
+  background: var(--bg-surface1, rgba(255,255,255,0.04));
+  border-radius: 6px;
+  border: 1px solid var(--border-subtle, rgba(255,255,255,0.06));
+  animation: fadeInSeat 0.2s ease-out;
+}
+
+@keyframes fadeInSeat {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.seat-list-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.seat-list-price {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--color-primary-light, #a3a6e4);
+}
+
 .booking-total {
   font-family: var(--font-display);
   font-size: 1.25rem;
   font-weight: 700;
   color: var(--color-primary-light);
 }
+
 
 /* ── 통계 차트 ─────────────────────────────────────────────── */
 .stats-section {
@@ -2039,274 +2125,5 @@ body.edit-mode .detail-tabs-section .detail-tab-content.active {
   font-weight: bold;
 }
 
-.btn-add-ticket:hover {
-  background-color: rgba(66, 133, 244, 0.1) !important;
-  border-color: #4285F4 !important;
-  color: #4285F4 !important;
-}
-
-@media (max-width: 1023px) {
-  .detail-layout {
-    padding-bottom: 250px !important;
-  }
-
-  .booking-cta {
-    border-radius: 16px 16px 0 0;
-    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.05);
-  }
-}
-
-/* Builder Edit Mode Fixes */
-.detail-tabs-header {
-  display: flex;
-  flex-wrap: nowrap;
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-
-.detail-tabs-header::-webkit-scrollbar {
-  display: none;
-}
-
-.detail-tab-btn {
-  flex-shrink: 0;
-}
-
-@media (max-width: 1023px) {
-  .builder-tabs-wrapper.edit-builder-layout {
-    display: flex !important;
-    flex-direction: column !important;
-  }
-
-  .builder-tabs-wrapper.edit-builder-layout .builder-sidebar {
-    position: relative !important;
-    top: auto !important;
-  }
-}
-
-.align-toggle-group {
-  border: none !important;
-  padding: 2px;
-}
-
-.btn-align {
-  color: var(--text-muted);
-  border-radius: 6px;
-}
-
-.btn-align.active {
-  background: #ffffff !important;
-  color: #3B82F6 !important;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
 
 
-/* Fix layout grid expand issue and accordion border */
-.detail-center {
-  min-width: 0;
-}
-
-/* View Mode Stacked Layout */
-body:not(.edit-mode) .detail-tabs-section {
-  background: #ffffff !important;
-  padding: 0 2rem 2rem 2rem !important;
-  border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-}
-
-body:not(.edit-mode) .detail-tabs-section .tabs-header-wrapper {
-  position: sticky !important;
-  top: calc(var(--header-h) - 1px) !important;
-  z-index: 100 !important;
-  background: #ffffff !important;
-  padding-top: 0 !important;
-  margin-top: 0 !important;
-  border-bottom: 1px solid var(--border-subtle);
-  margin-bottom: 2rem;
-}
-body:not(.edit-mode) .detail-tabs-section .detail-tabs-header {
-  border-bottom: none;
-}
-
-body:not(.edit-mode) .detail-tabs-section .detail-tab-content {
-  display: block !important;
-  margin-bottom: 3rem;
-  padding: 0;
-  background: transparent;
-  border-radius: 0;
-  box-shadow: none;
-  border: none;
-}
-
-body:not(.edit-mode) .detail-tabs-section .detail-tab-content h2.tab-title {
-  display: block;
-  font-size: 1.5rem;
-  font-weight: 700;
-  margin-bottom: 1.5rem;
-  color: var(--text-main);
-}
-
-body.edit-mode .detail-tabs-section .detail-tab-content h2.tab-title {
-  display: none;
-}
-
-/* Edit Mode Tabs Gap Fix */
-.builder-tabs-wrapper.edit-builder-layout .tabs-header-wrapper {
-  padding: 0 2rem !important; /* give horizontal padding to align with content */
-  margin: 0 !important;
-  min-height: 0 !important;
-  align-items: flex-end !important; /* align tabs to the bottom so the purple line touches the border */
-}
-
-.builder-tabs-wrapper.edit-builder-layout .detail-tabs-header {
-  margin: 0 !important;
-  padding: 0 !important;
-  border-bottom: 1px solid var(--border-subtle) !important;
-  height: auto !important;
-}
-
-.builder-tabs-wrapper.edit-builder-layout .detail-tab-btn {
-  padding: 1rem 0 !important;
-  margin-bottom: -1px !important; /* overlap the border */
-}
-
-.builder-tabs-wrapper.edit-builder-layout .detail-tab-content.active {
-  padding-top: 2rem !important;
-}
-
-
-/* =======================================
-   ULTIMATE TABS GAP FIX (View & Edit Mode)
-   ======================================= */
-
-/* 1. Remove all top spacing from the section itself */
-.detail-tabs-section,
-body:not(.edit-mode) .detail-tabs-section {
-  padding-top: 0 !important;
-}
-
-/* 2. Force the wrapper to perfectly hug the tabs */
-.tabs-header-wrapper {
-  margin: 0 !important;
-  padding: 0 !important;
-  min-height: 0 !important;
-  height: auto !important;
-  align-items: flex-end !important; /* Push tabs to the bottom */
-}
-
-/* 3. Force the tabs header to perfectly hug the buttons */
-.detail-tabs-header {
-  margin: 0 !important;
-  padding: 0 !important;
-  height: auto !important;
-  min-height: 0 !important;
-  align-items: flex-end !important; /* Ensure buttons sit at the bottom line */
-}
-
-/* 4. Fix button padding and ensure the purple line perfectly overlaps the gray border */
-.detail-tab-btn {
-  margin: 0 !important;
-  padding: 1rem 0 !important; /* keep normal click area */
-  height: auto !important;
-  margin-bottom: -1px !important; /* Pull the active underline down over the border */
-}
-
-/* 5. The border should ONLY be on the wrapper, right at the bottom */
-body:not(.edit-mode) .detail-tabs-section .tabs-header-wrapper {
-  border-bottom: 1px solid var(--border-subtle) !important;
-  margin-bottom: 2rem !important; /* Space BELOW the line, for content */
-}
-body:not(.edit-mode) .detail-tabs-section .detail-tabs-header {
-  border-bottom: none !important;
-}
-
-/* 6. Edit Mode specific border and spacing */
-.builder-tabs-wrapper.edit-builder-layout .tabs-header-wrapper {
-  padding: 0 2rem !important; /* Horizontal padding only */
-  border-bottom: 1px solid var(--border-subtle) !important;
-  margin-bottom: 2rem !important; 
-  position: sticky !important;
-  top: calc(var(--header-h, 60px) - 1px) !important;
-  z-index: 100 !important;
-  background: #ffffff !important;
-}
-.builder-tabs-wrapper.edit-builder-layout .detail-tabs-header {
-  border-bottom: none !important;
-}
-
-.builder-tabs-wrapper.edit-builder-layout .tabs-header-wrapper {
-  padding: 0 2rem !important; 
-  border-bottom: 1px solid var(--border-subtle) !important;
-  margin-bottom: 2rem !important; /* Fix for Image 3: Natural expansion below the line */
-  position: sticky !important; /* Fix for Tabs not sticking in Edit Mode */
-  top: calc(var(--header-h, 60px) - 1px) !important;
-  z-index: 100 !important;
-  background: #ffffff !important;
-}
-
-/* Force shrink top margin/padding for Edit Mode wrapper */
-.builder-tabs-wrapper.edit-builder-layout { padding-top: 0 !important; margin-top: 2rem !important; }
-
-.builder-tabs-wrapper.edit-builder-layout .builder-sidebar {
-  margin-top: 0 !important;
-}
-
-body.edit-mode .detail-tabs-section,
-body.edit-mode .detail-tabs-section {
-  padding-top: 0 !important;
-  margin-top: 0 !important;
-}
-
-
-/* Push content down so it doesn't overlap sticky tabs */
-body.edit-mode .detail-tab-content.active {
-    padding-top: 3rem !important;
-}
-
-/* Fix sidebar gap */
-body.edit-mode .builder-sidebar {
-    padding-top: 0 !important;
-    margin-top: 0 !important;
-}
-body.edit-mode .builder-sidebar-header {
-    padding-top: 1rem !important;
-    margin-top: 0 !important;
-}
-body.edit-mode .builder-tabs-wrapper {
-    padding-top: 0 !important;
-    margin-top: 0 !important;
-}
-
-
-/* Reduce gap between sidebar and tabs in Edit Mode */
-.builder-tabs-wrapper.edit-builder-layout {
-  gap: 0.5rem !important; /* Reduced from 2rem to naturally shrink space */
-}
-
-/* Ensure no huge top padding in sidebar header */
-body.edit-mode .builder-sidebar-header { padding-top: 1.5rem !important; }
-
-/* Ensure no huge top padding in tabs wrapper */
-body.edit-mode .tabs-header-wrapper { padding-top: 1.5rem !important; }
-
-/* Restore title display explicitly */
-body.edit-mode .detail-tab-content h2.tab-title {
-  display: block !important;
-  margin-top: 1rem !important;
-}
-
-
-/* DEFINITIVE V4 OVERRIDES */
-.builder-tabs-wrapper.edit-builder-layout {
-  gap: 0.5rem !important;
-  grid-template-columns: 360px 1fr !important;
-  margin-top: 2rem !important; /* Prevents sticky offset from pushing tabs down inside the card */
-}
-
-body.edit-mode .builder-sidebar-header {
-  padding-top: 1.5rem !important; /* Natural gap above "섹션 구성" */
-}
-
-body.edit-mode .tabs-header-wrapper {
-  padding-top: 1.5rem !important; /* Natural gap above tabs */
-}

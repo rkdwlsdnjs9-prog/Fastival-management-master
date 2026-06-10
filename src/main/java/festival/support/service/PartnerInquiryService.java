@@ -1,9 +1,9 @@
 package festival.support.service;
 
-import festival.festival.domain.FestivalVo;
+import festival.festival.domain.Festival;
 import festival.festival.repository.FestivalRepository;
 import festival.support.domain.PartnerInquiryVo;
-import festival.festival.domain.FestivalZoneEntity;
+import festival.festival.domain.FestivalZone;
 import festival.festival.repository.FestivalZoneRepository;
 import festival.support.repository.PartnerInquiryRepository;
 import festival.order.repository.StoreRepository;
@@ -45,7 +45,7 @@ public class PartnerInquiryService {
 
         // 만약 문의 유형이 'EVENT' (행사 제휴) 인 경우, 축제 테이블에 심사 대기(PENDING) 상태로 자동 입고!
         if ("EVENT".equalsIgnoreCase(vo.getInquiryType())) {
-            FestivalVo newFestival = FestivalVo.builder()
+            Festival newFestival = Festival.builder()
                     .name(vo.getCompanyName()) // 신청 업체명/행사명을 축제 명칭으로 사용
                     .category("대학축제") // 기본값 매핑
                     .venue("장소 미정 (입점 제휴 검토 중)")
@@ -92,7 +92,7 @@ public class PartnerInquiryService {
                 // 구역 정보 조회 (기본 fallback: 1L)
                 Long zoneId = 1L;
                 if (inquiry.getFestivalId() != null) {
-                    List<FestivalZoneEntity> zones = festivalZoneRepository.findByFestivalId(inquiry.getFestivalId());
+                    List<FestivalZone> zones = festivalZoneRepository.findByFestivalId(inquiry.getFestivalId());
                     if (zones != null && !zones.isEmpty()) {
                         zoneId = zones.get(0).getId();
                     }

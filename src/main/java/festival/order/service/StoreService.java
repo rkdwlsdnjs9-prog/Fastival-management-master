@@ -2,7 +2,7 @@ package festival.order.service;
 
 import festival.order.domain.StoreEntity;
 import festival.order.repository.StoreRepository;
-import festival.festival.domain.FestivalZoneEntity;
+import festival.festival.domain.FestivalZone;
 import festival.festival.repository.FestivalZoneRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,7 +43,7 @@ public class StoreService {
     }
 
     // 특정 축제의 모든 구역 리스트 조회
-    public List<FestivalZoneEntity> getZonesByFestival(Long festivalId) {
+    public List<FestivalZone> getZonesByFestival(Long festivalId) {
         return festivalZoneRepository.findByFestivalId(festivalId);
     }
     

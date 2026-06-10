@@ -133,7 +133,7 @@ public class OrderController {
 
     @GetMapping("/seats")
     public List<Map<String, Object>> getAllSeats(@RequestParam(value = "zones", required = false) String zonesParam) {
-        String sql = "SELECT SUBSTRING(seat_row, 1, 1) as zone, seat_number, is_reserved " +
+        String sql = "SELECT SUBSTRING(seat_row, 1, 1) as zone, seat_number " +
                      "FROM seat_map ";
                      
         List<Map<String, Object>> rows;
@@ -148,22 +148,50 @@ public class OrderController {
             rows = jdbcTemplate.queryForList(sql);
         }
         
+        List<Map<String, Object>> activeOrders = jdbcTemplate.queryForList(
+            "SELECT seat_ids, is_entered FROM orders WHERE payment_status = 'PAID' AND seat_ids IS NOT NULL"
+        );
+        
+        Set<String> reservedSeats = new HashSet<>();
+        Set<String> enteredSeats = new HashSet<>();
+        
+        for (Map<String, Object> order : activeOrders) {
+            String seatIdsStr = (String) order.get("seat_ids");
+            Boolean isEntered = (Boolean) order.get("is_entered");
+            if (seatIdsStr != null && !seatIdsStr.isEmpty()) {
+                String[] seats = seatIdsStr.split(",");
+                for (String s : seats) {
+                    String cleanSeat = s.trim();
+                    reservedSeats.add(cleanSeat);
+                    if (isEntered != null && isEntered) {
+                        enteredSeats.add(cleanSeat);
+                    }
+                }
+            }
+        }
+        
         List<Map<String, Object>> allSeats = new ArrayList<>();
         
         for (Map<String, Object> row : rows) {
             Map<String, Object> seat = new HashMap<>();
             String zone = (String) row.get("zone");
             Number number = (Number) row.get("seat_number");
-            Boolean isReserved = (Boolean) row.get("is_reserved");
+            String seatId = zone + "-" + number;
             
-            seat.put("id", zone + "-" + number);
+            seat.put("id", seatId);
             seat.put("zone", zone);
             seat.put("number", number);
-            seat.put("isReserved", isReserved);
+            seat.put("isReserved", reservedSeats.contains(seatId));
+            seat.put("isEntered", enteredSeats.contains(seatId));
             allSeats.add(seat);
         }
         
         return allSeats;
+    }
+
+    @GetMapping("/debug/seats")
+    public List<Map<String, Object>> debugSeats() {
+        return jdbcTemplate.queryForList("SELECT * FROM seat_map");
     }
 
     // -------------------------------------------------------------
@@ -235,9 +263,10 @@ public class OrderController {
 
     private void insertScanLog(Long orderId, Long scannerUserId, boolean isValid) {
         try {
+            String result = isValid ? "SUCCESS" : "FAIL";
             jdbcTemplate.update(
-                "INSERT INTO scan_log (order_id, scanner_user_id, is_valid, scanned_at) VALUES (?, ?, ?, NOW())",
-                orderId, scannerUserId, isValid
+                "INSERT INTO scan_log (order_item_id, staff_user_id, scan_type, result, scanned_at) VALUES (?, ?, 'ENTRY_QR', ?, NOW())",
+                orderId, scannerUserId, result
             );
         } catch (Exception e) {
             System.err.println("Failed to insert scan_log: " + e.getMessage());
@@ -246,6 +275,17 @@ public class OrderController {
 
     @PostMapping("/ticket")
     public Map<String, Object> createTicketOrder(@RequestBody Map<String, Object> payload) {
+<<<<<<< Updated upstream
+        int totalPrice = ((Number) payload.get("totalPrice")).intValue();
+        List<String> seats = (List<String>) payload.get("seats");      // 텍스트 레이블 (표시용)
+        List<Object> seatIdsRaw = (List<Object>) payload.get("seatIds"); // DB PK 배열 (예약 처리용)
+
+        // seatIds가 있으면 PK 기반으로 정확하게 처리 (구역 혼동 없음)
+        List<Long> seatIds = new ArrayList<>();
+        if (seatIdsRaw != null) {
+            for (Object idObj : seatIdsRaw) {
+                try { seatIds.add(((Number) idObj).longValue()); } catch (Exception e) { /* 무시 */ }
+=======
         int totalPrice = (Integer) payload.get("totalPrice");
         List<String> seats = (List<String>) payload.get("seats");
         String seatIdsStr = String.join(", ", seats);
@@ -273,12 +313,69 @@ public class OrderController {
             try {
                 jdbcTemplate.update(
                     "UPDATE seat_map SET is_reserved = true WHERE seat_row LIKE ? AND seat_number = ?", 
-                    zone + "%", number);
+                    "%" + zone + "%", number);
             } catch (Exception e) {
-                // Ignore
+                e.printStackTrace();
+>>>>>>> Stashed changes
             }
         }
-        
+
+        // seat_ids 컬럼에는 PK 목록 저장 (조회 및 환불 처리에 활용)
+        String seatIdsStr = seatIds.isEmpty()
+            ? (seats != null ? String.join(", ", seats) : "")
+            : seatIds.stream().map(String::valueOf).collect(java.util.stream.Collectors.joining(", "));
+
+        // eventNo를 festival_id로 사용 (없으면 1 기본값)
+        int festivalId = 1;
+        if (payload.get("eventNo") != null) {
+            try { festivalId = ((Number) payload.get("eventNo")).intValue(); } catch (Exception e) { /* 무시 */ }
+        }
+
+        // QR 텍스트 데이터 및 고유 난수 생성
+        String ticketNum = generateRandomTicketNumber();
+
+        // INSERT 후 생성된 orderId 반환
+        String insertSql = "INSERT INTO orders (user_id, festival_id, total_price, payment_status, created_at, seat_ids, is_entered, ticket_type, ticket_number) " +
+                           "VALUES (NULL, ?, ?, 'PAID', NOW(), ?, false, 'ONSITE', ?) RETURNING id";
+
+        Long orderId = jdbcTemplate.queryForObject(insertSql, Long.class, festivalId, totalPrice, seatIdsStr, ticketNum);
+
+        // 보안: TOTP 전용 비밀키 생성 후 저장
+        String secret = generateHexSecret();
+        String qrPayload = "SECRET:" + secret;
+        jdbcTemplate.update("UPDATE orders SET qr_code = ? WHERE id = ?", qrPayload, orderId);
+
+        // ★ 구역별 정확한 좌석 예약 처리 ★
+        if (!seatIds.isEmpty()) {
+            // seatIds(PK)가 있으면 ID로 정확히 업데이트 → 구역 혼동 없음
+            for (Long seatId : seatIds) {
+                try {
+                    int updated = jdbcTemplate.update(
+                        "UPDATE seat_map SET is_reserved = true WHERE id = ?", seatId);
+                    if (updated == 0) {
+                        System.err.println("좌석 예약 처리: id=" + seatId + " 에 해당하는 좌석 없음");
+                    }
+                } catch (Exception e) {
+                    System.err.println("좌석 예약 실패 id=" + seatId + ": " + e.getMessage());
+                }
+            }
+        } else if (seats != null) {
+            // 하위 호환: seatIds 없을 때 기존 방식 (row+number 패턴)
+            for (String seat : seats) {
+                seat = seat.trim();
+                if (!seat.contains("-")) continue;
+                String[] parts = seat.split("-", 2);
+                try {
+                    int number = Integer.parseInt(parts[1]);
+                    jdbcTemplate.update(
+                        "UPDATE seat_map SET is_reserved = true WHERE seat_row LIKE ? AND seat_number = ?",
+                        parts[0] + "%", number);
+                } catch (Exception e) {
+                    System.err.println("좌석 예약 처리 실패: " + seat + " - " + e.getMessage());
+                }
+            }
+        }
+
         Map<String, Object> res = new HashMap<>();
         res.put("status", "success");
         res.put("orderId", orderId);
@@ -324,6 +421,7 @@ public class OrderController {
         Map<String, Object> res = new HashMap<>();
         
         if (qrText == null || !qrText.startsWith("TOTP:")) {
+            insertScanLog(-1L, 1L, false); // 형식이 맞지 않는 스캔도 실패로 기록
             res.put("status", "INVALID");
             res.put("message", "올바른 동적(TOTP) 모바일 티켓 형식이 아닙니다.");
             return res;
@@ -331,6 +429,7 @@ public class OrderController {
         
         String[] parts = qrText.split(":");
         if (parts.length != 3) {
+            insertScanLog(-1L, 1L, false);
             res.put("status", "INVALID");
             res.put("message", "티켓 데이터가 손상되었습니다.");
             return res;
@@ -341,6 +440,7 @@ public class OrderController {
         try {
             orderId = Long.parseLong(parts[1]);
         } catch (Exception e) {
+            insertScanLog(-1L, 1L, false);
             res.put("status", "INVALID");
             res.put("message", "주문 번호를 인식할 수 없습니다.");
             return res;
@@ -351,6 +451,7 @@ public class OrderController {
         );
         
         if (orders.isEmpty()) {
+            insertScanLog(orderId, 1L, false);
             res.put("status", "INVALID");
             res.put("message", "존재하지 않는 주문이거나 올바르지 않은 티켓입니다.");
             return res;
@@ -359,6 +460,7 @@ public class OrderController {
         Map<String, Object> order = orders.get(0);
         String savedSecret = (String) order.get("qr_code");
         if (savedSecret == null || !savedSecret.startsWith("SECRET:")) {
+            insertScanLog(orderId, 1L, false);
             res.put("status", "INVALID");
             res.put("message", "구형 티켓입니다. 최신 TOTP 티켓을 발급받아주세요.");
             return res;
@@ -366,14 +468,21 @@ public class OrderController {
         
         String hexSecret = savedSecret.substring(7);
         if (!verifyTotp(hexSecret, totpCode)) {
+            insertScanLog(orderId, 1L, false);
             res.put("status", "INVALID");
             res.put("message", "시간이 초과되었거나 복사된 위조 티켓입니다. 앱을 열어 새로고침된 QR을 스캔해주세요.");
             return res;
         }
-        Boolean isEntered = (Boolean) order.get("is_entered");
         String seats = (String) order.get("seat_ids");
         
-        if (isEntered != null && isEntered) {
+        // 원자적 업데이트 (Atomic Update): is_entered가 false(또는 null)일 때만 true로 변경
+        // 이렇게 하면 찰나의 순간에 2명의 스태프가 동시 스캔해도 1명만 성공(1)하고 다른 1명은 실패(0)하게 됩니다.
+        int updatedRows = jdbcTemplate.update(
+            "UPDATE orders SET is_entered = true WHERE id = ? AND (is_entered = false OR is_entered IS NULL)", 
+            orderId
+        );
+        
+        if (updatedRows == 0) {
             insertScanLog(orderId, 1L, false); // 중복 스캔 (실패 로그)
             res.put("status", "ALREADY_ENTERED");
             res.put("message", "이미 입장 처리된 티켓입니다! (중복 입장 불가)");
@@ -381,7 +490,6 @@ public class OrderController {
             return res;
         }
         
-        jdbcTemplate.update("UPDATE orders SET is_entered = true WHERE id = ?", orderId);
         insertScanLog(orderId, 1L, true); // 정상 스캔 (성공 로그)
         
         res.put("status", "VALID");
@@ -391,13 +499,58 @@ public class OrderController {
         return res;
     }
 
+    @PostMapping("/tickets/{id}/manual-enter")
+    public Map<String, Object> manualEnterTicket(@PathVariable("id") Long id) {
+        Map<String, Object> res = new HashMap<>();
+        
+        List<Map<String, Object>> orders = jdbcTemplate.queryForList(
+            "SELECT id, seat_ids, is_entered FROM orders WHERE id = ?", id
+        );
+        
+        if (orders.isEmpty()) {
+            insertScanLog(id, 1L, false);
+            res.put("status", "INVALID");
+            res.put("message", "존재하지 않는 주문입니다.");
+            return res;
+        }
+        
+        Map<String, Object> order = orders.get(0);
+        Boolean isEntered = (Boolean) order.get("is_entered");
+        String seats = (String) order.get("seat_ids");
+        
+        if (isEntered != null && isEntered) {
+            insertScanLog(id, 1L, false);
+            res.put("status", "ALREADY_ENTERED");
+            res.put("message", "이미 입장 처리된 티켓입니다.");
+            return res;
+        }
+        
+        jdbcTemplate.update("UPDATE orders SET is_entered = true WHERE id = ?", id);
+        insertScanLog(id, 1L, true);
+        
+        res.put("status", "VALID");
+        res.put("message", "수동 입장 처리가 완료되었습니다.");
+        
+        return res;
+    }
+
     @GetMapping("/tickets")
     public List<Map<String, Object>> getTicketOrders() {
-        String sql = "SELECT id, total_price, payment_status, created_at, seat_ids " +
+        String sql = "SELECT id, total_price, payment_status, created_at, seat_ids, is_entered, ticket_number " +
                      "FROM orders " +
                      "WHERE seat_ids IS NOT NULL " +
                      "ORDER BY created_at DESC";
         
+        return jdbcTemplate.queryForList(sql);
+    }
+
+    @GetMapping("/scan-logs")
+    public List<Map<String, Object>> getScanLogs() {
+        String sql = "SELECT s.id, s.result, TO_CHAR(s.scanned_at, 'YYYY-MM-DD HH24:MI:SS') as scanned_at, " +
+                     "o.seat_ids, o.ticket_number, o.ticket_type " +
+                     "FROM scan_log s " +
+                     "LEFT JOIN orders o ON s.order_item_id = o.id " +
+                     "ORDER BY s.scanned_at DESC LIMIT 50";
         return jdbcTemplate.queryForList(sql);
     }
 
@@ -421,7 +574,7 @@ public class OrderController {
                             int number = Integer.parseInt(seat.split("-")[1]);
                             jdbcTemplate.update(
                                 "UPDATE seat_map SET is_reserved = false WHERE seat_row LIKE ? AND seat_number = ?", 
-                                zone + "%", number);
+                                "%" + zone + "%", number);
                         }
                     }
                 }

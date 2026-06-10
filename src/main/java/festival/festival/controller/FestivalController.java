@@ -1,6 +1,6 @@
 package festival.festival.controller;
 
-import festival.festival.domain.FestivalVo;
+import festival.festival.domain.Festival;
 import festival.festival.service.FestivalService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -17,13 +17,14 @@ import java.util.List;
 public class FestivalController {
 
     private final FestivalService festivalService;
+    private final festival.festival.service.SeatMapService seatMapService;
 
     /**
      * 전체 페스티벌 마스터 목록을 최신 순서로 조회합니다.
      * GET /api/festival
      */
     @GetMapping
-    public ResponseEntity<List<FestivalVo>> getAllFestivals() {
+    public ResponseEntity<List<Festival>> getAllFestivals() {
         return ResponseEntity.ok(festivalService.getAllFestivals());
     }
 
@@ -32,8 +33,8 @@ public class FestivalController {
      * POST /api/festival
      */
     @PostMapping
-    public ResponseEntity<FestivalVo> createFestival(@RequestBody FestivalVo festivalVo) {
-        FestivalVo savedFestival = festivalService.createFestival(festivalVo);
+    public ResponseEntity<Festival> createFestival(@RequestBody Festival festival) {
+        Festival savedFestival = festivalService.createFestival(festival);
         return ResponseEntity.ok(savedFestival);
     }
 
@@ -42,8 +43,8 @@ public class FestivalController {
      * PUT /api/festival/{id}/toggle
      */
     @PutMapping("/{id}/toggle")
-    public ResponseEntity<FestivalVo> toggleActive(@PathVariable("id") Long id) {
-        FestivalVo updatedFestival = festivalService.toggleActive(id);
+    public ResponseEntity<Festival> toggleActive(@PathVariable("id") Long id) {
+        Festival updatedFestival = festivalService.toggleActive(id);
         return ResponseEntity.ok(updatedFestival);
     }
 
@@ -62,12 +63,21 @@ public class FestivalController {
      * PATCH /api/festival/{id}/status
      */
     @PatchMapping("/{id}/status")
-    public ResponseEntity<FestivalVo> updateStatus(
-            @PathVariable("id") Long id,
-            @RequestBody java.util.Map<String, String> statusMap) {
+    public ResponseEntity<Festival> updateStatus(
+             @PathVariable("id") Long id,
+             @RequestBody java.util.Map<String, String> statusMap) {
         String reviewStatus = statusMap.get("reviewStatus");
         String operationalStatus = statusMap.get("operationalStatus");
-        FestivalVo updatedFestival = festivalService.updateStatus(id, reviewStatus, operationalStatus);
+        Festival updatedFestival = festivalService.updateStatus(id, reviewStatus, operationalStatus);
         return ResponseEntity.ok(updatedFestival);
+    }
+
+    /**
+     * 특정 구역(zoneId)에 속한 모든 좌석 데이터를 조회합니다 (일반 사용자용 비보안 API).
+     * GET /api/festival/seats
+     */
+    @GetMapping("/seats")
+    public ResponseEntity<List<festival.festival.domain.SeatMap>> getSeatsByZone(@RequestParam("zoneId") Long zoneId) {
+        return ResponseEntity.ok(seatMapService.getSeatsByZone(zoneId));
     }
 }
