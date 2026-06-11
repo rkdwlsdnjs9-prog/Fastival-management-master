@@ -219,7 +219,8 @@ svg {
   transition: background 0.3s ease, border-color 0.3s ease;
 }
 
-.app-header:hover {
+.app-header:hover,
+.app-header.scrolled {
   background: var(--bg-surface1);
   border-bottom: 1px solid var(--border-subtle);
 }
@@ -905,7 +906,7 @@ svg {
   left: 0;
   right: 0;
   z-index: var(--z-header);
-  height: var(--bottom-nav-h);
+  height: calc(var(--bottom-nav-h) + env(safe-area-inset-bottom));
   background: var(--bg-surface1);
   border-top: 1px solid var(--border-subtle);
   display: flex;

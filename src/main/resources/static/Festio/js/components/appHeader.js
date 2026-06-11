@@ -128,7 +128,7 @@
     document.head.appendChild(style);
   }
 
-  const detailHideClass = isDetail ? 'desktop-only' : '';
+  const detailHideClass = '';
 
   // 4-2. 통합 헤더 레이아웃 (홈, 서브 페이지, 상세 페이지 공통)
   let rightAction = '';
@@ -152,9 +152,9 @@
 
   headerHtml = `
     <header class="${headerClass}" role="banner" id="appHeader">
-      <button class="header-hamburger ${detailHideClass}" id="hamburgerBtn" aria-label="전체 메뉴 열기" aria-expanded="false">${hamburgerSvg}</button>
+      <button class="header-hamburger" id="hamburgerBtn" aria-label="전체 메뉴 열기" aria-expanded="false">${hamburgerSvg}</button>
       ${detailBackBtn}
-      <a href="index.html" class="header-logo ${detailHideClass}" aria-label="FESTIO 홈"><span class="header-logo-text">FESTIO</span></a>
+      <a href="index.html" class="header-logo" aria-label="FESTIO 홈"><span class="header-logo-text">FESTIO</span></a>
       ${catNavHtml}
       <div class="header-spacer"></div>
       <div class="header-actions">

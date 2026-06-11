@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Festival O2O Platform — detail.js
  * ─────────────────────────────────────────────────────────────
  * 상세/예매 화면:
@@ -124,8 +124,15 @@ function initVenueMap(zones) {
 
     const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
     polygon.setAttribute('points', zone.svgPoints);
-    polygon.setAttribute('class', 'zone-polygon');
+    const dotClass = zone.zoneType === 'VIP' ? 'zone-vip' : zone.zoneName.includes('A') ? 'zone-a' : zone.zoneName.includes('B') ? 'zone-b' : 'standing';
+    polygon.setAttribute('class', 'zone-polygon ' + (dotClass === 'standing' ? 'zone-standing' : dotClass));
     polygon.setAttribute('data-zone-no', zone.zoneNo);
+
+    // API에 색상이 명시적으로 있다면 덮어쓰기
+    if (zone.color) {
+      polygon.setAttribute('fill', zone.color);
+      polygon.setAttribute('fill-opacity', '0.4');
+    }
 
     // 툴팁 텍스트 추가
     const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
@@ -155,7 +162,7 @@ function initVenueMap(zones) {
       legendItem.dataset.zoneNo = zone.zoneNo;
       legendItem.setAttribute('role', 'button');
       legendItem.setAttribute('tabindex', '0');
-      
+
       // 가격 포맷
       const priceText = formatKRW(zone.price);
 
@@ -242,7 +249,7 @@ function updateCtaBar(zone) {
     } else {
       seatsList.innerHTML = _selectedSeats.map(s => {
         const rowClean = (s.seatRow || '').replace(/열$/, '');
-        const priceText = typeof formatKRW === 'function' ? formatKRW(s.price) : `${(s.price||0).toLocaleString()}원`;
+        const priceText = typeof formatKRW === 'function' ? formatKRW(s.price) : `${(s.price || 0).toLocaleString()}원`;
         return `<li class="seat-list-item">
           <span class="seat-list-label">${rowClean}열 ${s.seatNumber}번</span>
           <span class="seat-list-price">${priceText}</span>
@@ -315,9 +322,9 @@ function openSeatSelectionModal(zoneNo, zone) {
       const rows = [...new Set(seats.map(s => s.seatRow || ''))]
         .filter(r => r)
         .sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
-      
+
       const maxCol = Math.max(...seats.map(s => parseInt(s.seatNumber, 10) || 1), 1);
-      
+
       console.log('[SeatModal] Calculated layout - rows:', rows, 'maxCol:', maxCol);
 
       // 모달 그리드 레이아웃 동적 셋팅 (행 개수에 무대 가이드 행 +1 추가 - 32px 사각형 포맷)
@@ -361,10 +368,10 @@ function openSeatSelectionModal(zoneNo, zone) {
             const isSold = seat.isReserved || seat.status === 'RESERVED' || seat.status === 'HOLD' || seat.status === '예매완료';
             const priceText = typeof formatKRW === 'function' ? formatKRW(seat.price) : `${(seat.price || 0).toLocaleString()}원`;
             const rowClean = (seat.seatRow || '').replace(/열$/, '');
-            const tooltipValue = isSold 
-              ? `${rowClean}열 ${seat.seatNumber}번 (예매완료)` 
+            const tooltipValue = isSold
+              ? `${rowClean}열 ${seat.seatNumber}번 (예매완료)`
               : `${rowClean}열 ${seat.seatNumber}번 (${priceText})`;
-            
+
             cell.dataset.tooltip = tooltipValue;
             cell.title = tooltipValue; // overflow: auto 환경에서도 잘리지 않도록 브라우저 툴팁 지원
 
@@ -1117,6 +1124,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       const targetContent = document.getElementById(targetId);
       if (targetContent) {
         targetContent.classList.add('active');
+        if (isEditMode) {
+          const accordionItem = document.querySelector(`.builder-accordion-item[data-target-id="${targetId}"]`);
+          if (accordionItem) {
+            document.querySelectorAll('.builder-accordion-item').forEach(a => a.classList.remove('active'));
+            accordionItem.classList.add('active');
+            accordionItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }
+        }
         if (!isEditMode) {
           const header = document.querySelector('.detail-tabs-header');
           const headerHeight = header ? header.offsetHeight : 0;
@@ -1165,6 +1180,13 @@ function toggleEditMode(enable) {
     body.classList.add('edit-mode');
     if (editBadge) editBadge.style.display = 'inline-flex';
     if (btnSave) btnSave.style.display = 'inline-flex';
+
+    // Add delete buttons to tabs if missing
+    document.querySelectorAll('.detail-tab-btn').forEach(btn => {
+      if (!btn.querySelector('.tab-delete-btn')) {
+        btn.insertAdjacentHTML('beforeend', '<span class="tab-delete-btn"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></span>');
+      }
+    });
 
     if (!document.querySelector('.builder-tabs-wrapper')) {
       const wrapper = document.createElement('div');
@@ -1243,7 +1265,7 @@ function destroyMainAreaEditors(tabsSection) {
 
 function initBuilderSidebar(sidebar, tabsSection) {
   sidebar.innerHTML = `
-    <div class="builder-sidebar-header" style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1rem;">
+    <div class="builder-sidebar-header" style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.25rem;">
       <div>
         <h3 style="margin:0; font-size:1.1rem;">섹션 구성</h3>
         <p style="font-size:0.75rem; color:var(--text-muted); margin:0.5rem 0 0 0;">드래그하여 순서를 변경하거나 섹션을 관리하세요.</p>
@@ -1576,8 +1598,23 @@ function updateGalleryPreview(targetId) {
   inner.innerHTML = html;
 }
 
+const fontList = [
+  false, // 기본값 (Sans Serif)
+  'noto-sans', 'nanum-gothic', 'nanum-myeongjo',
+  'gowun-batang', 'do-hyeon', 'poor-story', 'song-myung', 'yeon-sung',
+  'jua', 'dongle', 'gowun-dodum', 'hahmlet', 'gamja-flower', 'black-han-sans',
+  'roboto', 'open-sans', 'lato', 'montserrat', 'oswald', 'source-code-pro',
+  'playfair-display', 'poppins', 'merriweather'
+];
+
+if (typeof Quill !== 'undefined') {
+  var Font = Quill.import('formats/font');
+  Font.whitelist = fontList;
+  Quill.register(Font, true);
+}
+
 const quillToolbarOptions = [
-  [{ 'font': [] }, { 'size': [] }],
+  [{ 'font': fontList }, { 'size': ['small', false, 'large', 'huge'] }],
   ['bold', 'italic', 'underline', 'strike'],
   [{ 'color': [] }, { 'background': [] }],
   [{ 'script': 'sub' }, { 'script': 'super' }],
@@ -1605,22 +1642,42 @@ function initMainAreaEditors(tabsSection) {
         <div class="venue-editor-wrap" style="background: var(--bg-surface1); padding: 1.5rem; border-radius: 12px; margin-bottom: 1.5rem; border: 1px dashed var(--border-default);">
           <div style="margin-bottom: 1rem;">
             <label style="display:block; font-weight: 700; margin-bottom: 0.5rem; color:var(--text-main);">행사 장소 주소</label>
-            <div style="display:flex; gap: 0.5rem;">
-              <input type="text" id="venueEditAddress" class="form-control" style="flex: 1; border-radius:8px;" placeholder="예: 서울특별시 강남구 테헤란로 123" value="${currentAddress === '장소 정보가 없습니다.' ? '' : currentAddress}">
-              <button type="button" class="btn btn-primary" id="btnUpdateVenueMap" style="border-radius:8px;">지도 반영</button>
+            <div style="display:flex; flex-direction: column; gap: 0.8rem;">
+              <div style="display:flex; gap: 0.5rem; align-items: center;">
+                <input type="text" id="venueEditAddress" class="form-control" style="flex: 1; padding: 0.75rem 1rem; border-radius:8px;" placeholder="예: 서울특별시 강남구 테헤란로 123" value="${currentAddress === '장소 정보가 없습니다.' ? '' : currentAddress.replace(/\\n/g, ' ').replace(/\n/g, ' ')}">
+                <button type="button" class="btn" id="btnSearchAddress" style="padding: 0.75rem 1.2rem; border-radius:8px; background:var(--bg-surface2); border:1px solid var(--border-default); white-space:nowrap;">주소 검색</button>
+              </div>
+              <button type="button" class="btn btn-primary" id="btnUpdateVenueMap" style="padding: 0.75rem 1.2rem; border-radius:8px; width: 100%;">지도 및 안내 반영</button>
             </div>
           </div>
           <div>
             <label style="display:block; font-weight: 700; margin-bottom: 0.5rem; color:var(--text-main);">대중교통 안내</label>
-            <textarea id="venueEditTransit" class="form-control" style="width:100%; min-height: 100px; resize: vertical; border-radius:8px;" placeholder="지하철, 버스 등 교통편 안내를 입력하세요">${currentTransit === '대중교통 정보가 없습니다.' ? '' : currentTransit}</textarea>
+            <textarea id="venueEditTransit" class="form-control" style="width:100%; min-height: 100px; resize: vertical; border-radius:8px; padding: 0.75rem 1rem;" placeholder="지하철, 버스 등 교통편 안내를 입력하세요">${currentTransit === '대중교통 정보가 없습니다.' ? '' : currentTransit}</textarea>
           </div>
         </div>
       `;
       inner.insertAdjacentHTML('afterbegin', editorHtml);
 
       const btnUpdate = inner.querySelector('#btnUpdateVenueMap');
+      const btnSearch = inner.querySelector('#btnSearchAddress');
       const addressInput = inner.querySelector('#venueEditAddress');
       const transitInput = inner.querySelector('#venueEditTransit');
+
+      if (btnSearch) {
+        btnSearch.addEventListener('click', () => {
+          if (typeof daum !== 'undefined' && daum.Postcode) {
+            new daum.Postcode({
+              oncomplete: function (data) {
+                const road = data.roadAddress || data.address;
+                const jibun = data.jibunAddress || data.autoJibunAddress || '';
+                addressInput.value = road + (jibun ? ' (지번: ' + jibun + ')' : '');
+              }
+            }).open();
+          } else {
+            alert('우편번호 서비스를 사용할 수 없습니다.');
+          }
+        });
+      }
 
       btnUpdate.addEventListener('click', () => {
         const address = addressInput.value.trim();
@@ -1630,7 +1687,7 @@ function initMainAreaEditors(tabsSection) {
         const transitContentEl = inner.querySelector('#transitContent');
         const googleMapFrame = inner.querySelector('#googleMap');
 
-        if (addressTextEl) addressTextEl.textContent = address || '장소 정보가 없습니다.';
+        if (addressTextEl) addressTextEl.style.display = 'none';
         if (transitContentEl) transitContentEl.innerHTML = transit.replace(/\n/g, '<br>') || '대중교통 정보가 없습니다.';
 
         if (googleMapFrame && address) {
@@ -1645,13 +1702,17 @@ function initMainAreaEditors(tabsSection) {
         }
 
         if (address) {
+          const formattedAddress = address.replace(/\\n/g, '<br>').replace(/\n/g, '<br>').replace(' (지번:', '<br>(지번:');
           linksWrap.innerHTML = `
-            <div style="margin-top: 1.5rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
-              <a href="https://map.kakao.com/link/search/${encodeURIComponent(address)}" target="_blank" style="display:inline-flex; align-items:center; gap:6px; padding: 10px 16px; background: #FEE500; color: #000; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 0.9rem;"><svg width="16" height="16" viewBox="0 0 24 24" fill="#000"><path d="M12 3c-5.523 0-10 3.514-10 7.85 0 2.804 1.83 5.253 4.606 6.647l-1.18 4.34c-.05.18.17.33.32.22l5.12-3.41c.37.04.74.06 1.13.06 5.523 0 10-3.514 10-7.85C22 6.514 17.523 3 12 3z"/></svg>카카오맵</a>
-              <a href="https://map.naver.com/v5/search/${encodeURIComponent(address)}" target="_blank" style="display:inline-flex; align-items:center; gap:6px; padding: 10px 16px; background: #03C75A; color: #fff; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 0.9rem;"><svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M16.084 12.637L8.03 2.127C7.625 1.597 7.026 1.334 6.386 1.334H2v21.332h5.922V11.233l8.053 10.51C16.42 22.316 17.02 22.58 17.658 22.58H22V1.248h-5.916v11.389z"/></svg>네이버지도</a>
-              <a href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(address)}&travelmode=transit" target="_blank" style="display:inline-flex; align-items:center; gap:6px; padding: 10px 16px; background: #4285F4; color: #fff; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 0.9rem;"><svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>구글맵 길찾기</a>
+          <div style="margin-top: 1.5rem;">
+            <h4 style="font-size: 1.1rem; font-weight: 700; color: var(--text-main); margin-top: 0; margin-bottom: 12px; line-height: 1.4;">${formattedAddress}</h4>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+              <a href="https://map.kakao.com/link/search/${encodeURIComponent(address.replace(/ \(지번:.*$/, '').replace(/\\n.*$/, '').replace(/\n.*$/, ''))}" target="_blank" style="display:inline-flex; align-items:center; gap:6px; padding: 10px 16px; background: #FEE500; color: #000; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 0.9rem;"><svg width="16" height="16" viewBox="0 0 24 24" fill="#000"><path d="M12 3c-5.523 0-10 3.514-10 7.85 0 2.804 1.83 5.253 4.606 6.647l-1.18 4.34c-.05.18.17.33.32.22l5.12-3.41c.37.04.74.06 1.13.06 5.523 0 10-3.514 10-7.85C22 6.514 17.523 3 12 3z"/></svg>카카오맵</a>
+              <a href="https://map.naver.com/v5/search/${encodeURIComponent(address.replace(/ \(지번:.*$/, '').replace(/\\n.*$/, '').replace(/\n.*$/, ''))}" target="_blank" style="display:inline-flex; align-items:center; gap:6px; padding: 10px 16px; background: #03C75A; color: #fff; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 0.9rem;"><svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M16.084 12.637L8.03 2.127C7.625 1.597 7.026 1.334 6.386 1.334H2v21.332h5.922V11.233l8.053 10.51C16.42 22.316 17.02 22.58 17.658 22.58H22V1.248h-5.916v11.389z"/></svg>네이버지도</a>
+              <a href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(address.replace(/ \(지번:.*$/, '').replace(/\\n.*$/, '').replace(/\n.*$/, ''))}&travelmode=transit" target="_blank" style="display:inline-flex; align-items:center; gap:6px; padding: 10px 16px; background: #4285F4; color: #fff; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 0.9rem;"><svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>구글 길찾기</a>
             </div>
-          `;
+          </div>
+        `;
         } else {
           linksWrap.innerHTML = '';
         }
@@ -1735,7 +1796,7 @@ function makeBlockEditor(tab, sidebarContainer) {
     block.style.padding = '40px 0 0 0';
     block.style.background = '#fff';
     block.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.05)';
-    block.style.overflow = 'hidden';
+    block.style.overflow = 'visible';
 
     const controls = document.createElement('div');
     controls.style.position = 'absolute';
@@ -1795,7 +1856,7 @@ function makeBlockEditor(tab, sidebarContainer) {
     block.style.padding = '40px 0 0 0';
     block.style.background = '#fff';
     block.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.05)';
-    block.style.overflow = 'hidden';
+    block.style.overflow = 'visible';
 
     const controls = document.createElement('div');
     controls.style.position = 'absolute';
@@ -2013,7 +2074,7 @@ function handleAddSection(customTitle) {
     const newBtn = document.createElement('button');
     newBtn.className = 'detail-tab-btn';
     newBtn.dataset.target = newId;
-    newBtn.textContent = title;
+    newBtn.innerHTML = title + '<span class="tab-delete-btn"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></span>';
     tabsHeader.appendChild(newBtn);
 
     newBtn.addEventListener('click', () => {
@@ -2041,11 +2102,10 @@ function handleAddSection(customTitle) {
   tabsSection.appendChild(newContent);
 
   const inner = newContent.querySelector('.tab-content-inner');
-  makeBlockEditor(newContent, inner);
 
   const listWrap = document.getElementById('builderAccordionList');
   const items = listWrap.querySelectorAll('.builder-accordion-item');
-  addAccordionItem(listWrap, title, newId, items.length);
+  addAccordionItem(listWrap, title, newId, items.length, newContent);
 
   const newItem = listWrap.lastElementChild;
   newItem.querySelector('.builder-accordion-header').click();
@@ -2053,7 +2113,7 @@ function handleAddSection(customTitle) {
 
 document.addEventListener('DOMContentLoaded', () => {
   // 관리자 권한 확인 (여기서는 데모용으로 항상 표시)
-  
+
   const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true' || sessionStorage.getItem('isLoggedIn') === 'true' || !!localStorage.getItem('userToken') || !!sessionStorage.getItem('userToken');
   const userRole = localStorage.getItem('userRole') || sessionStorage.getItem('userRole') || 'CLIENT';
   const globalEdit = document.getElementById('globalEditControls');
@@ -2188,22 +2248,42 @@ function makeVenueEditor(tab, sidebarContainer) {
     <div class="venue-editor-wrap" style="background: var(--bg-surface1); padding: 1.5rem; border-radius: 12px; margin-bottom: 1.5rem; border: 1px dashed var(--border-default);">
       <div style="margin-bottom: 1rem;">
         <label style="display:block; font-weight: 700; margin-bottom: 0.5rem; color:var(--text-main);">오시는 길 주소</label>
-        <div style="display:flex; gap: 0.5rem; flex-direction:column;">
-          <input type="text" id="venueEditAddress" class="form-control" style="width: 100%; border-radius:8px;" placeholder="예: 올림픽공원 체조경기장" value="${currentAddress === '등록된 주소가 없습니다.' ? '' : currentAddress}">
-          <button type="button" class="btn btn-primary" id="btnUpdateVenueMap" style="border-radius:8px; width:100%;">지도 및 안내 업데이트</button>
+        <div style="display:flex; flex-direction: column; gap: 0.8rem;">
+          <div style="display:flex; gap: 0.5rem; align-items: center;">
+            <input type="text" id="venueEditAddress" class="form-control" style="flex: 1; padding: 0.75rem 1rem; border-radius:8px;" placeholder="예: 올림픽공원 체조경기장" value="${currentAddress === '등록된 주소가 없습니다.' ? '' : currentAddress.replace(/\\n/g, ' ').replace(/\n/g, ' ')}">
+            <button type="button" class="btn" id="btnSearchAddress" style="padding: 0.75rem 1.2rem; border-radius:8px; background:var(--bg-surface2); border:1px solid var(--border-default); white-space:nowrap;">주소 검색</button>
+          </div>
+          <button type="button" class="btn btn-primary" id="btnUpdateVenueMap" style="padding: 0.75rem 1.2rem; border-radius:8px; width: 100%;">지도 및 안내 업데이트</button>
         </div>
       </div>
       <div>
         <label style="display:block; font-weight: 700; margin-bottom: 0.5rem; color:var(--text-main);">대중교통 안내</label>
-        <textarea id="venueEditTransit" class="form-control" style="width:100%; min-height: 100px; resize: vertical; border-radius:8px;" placeholder="지하철, 버스 등 교통 안내를 입력하세요">${currentTransit === '대중교통 정보가 등록되지 않았습니다.' ? '' : currentTransit.replace(/<br>/g, '\n')}</textarea>
+        <textarea id="venueEditTransit" class="form-control" style="width:100%; min-height: 100px; resize: vertical; border-radius:8px; padding: 0.75rem 1rem;" placeholder="지하철, 버스 등 교통 안내를 입력하세요">${currentTransit === '대중교통 정보가 등록되지 않았습니다.' ? '' : currentTransit.replace(/<br>/g, '\n')}</textarea>
       </div>
     </div>
   `;
   sidebarContainer.innerHTML = editorHtml;
 
   const btnUpdate = sidebarContainer.querySelector('#btnUpdateVenueMap');
+  const btnSearch = sidebarContainer.querySelector('#btnSearchAddress');
   const addressInput = sidebarContainer.querySelector('#venueEditAddress');
   const transitInput = sidebarContainer.querySelector('#venueEditTransit');
+
+  if (btnSearch) {
+    btnSearch.addEventListener('click', () => {
+      if (typeof daum !== 'undefined' && daum.Postcode) {
+        new daum.Postcode({
+          oncomplete: function (data) {
+            const road = data.roadAddress || data.address;
+            const jibun = data.jibunAddress || data.autoJibunAddress || '';
+            addressInput.value = road + (jibun ? ' (지번: ' + jibun + ')' : '');
+          }
+        }).open();
+      } else {
+        alert('우편번호 서비스를 사용할 수 없습니다.');
+      }
+    });
+  }
 
   btnUpdate.addEventListener('click', () => {
     const address = addressInput.value.trim();
@@ -2213,7 +2293,7 @@ function makeVenueEditor(tab, sidebarContainer) {
     const transitContentEl = inner.querySelector('#transitContent');
     const googleMapFrame = inner.querySelector('#googleMap');
 
-    if (addressTextEl) addressTextEl.textContent = address || '등록된 주소가 없습니다.';
+    if (addressTextEl) addressTextEl.style.display = 'none';
     if (transitContentEl) transitContentEl.innerHTML = transit.replace(/\n/g, '<br>') || '대중교통 정보가 등록되지 않았습니다.';
 
     if (googleMapFrame && address) {
@@ -2228,13 +2308,17 @@ function makeVenueEditor(tab, sidebarContainer) {
     }
 
     if (address) {
+      const formattedAddress = address.replace(/\\n/g, '<br>').replace(/\n/g, '<br>').replace(' (지번:', '<br>(지번:');
       linksWrap.innerHTML = `
-        <div style="margin-top: 1.5rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
-          <a href="https://map.kakao.com/link/search/${encodeURIComponent(address)}" target="_blank" style="display:inline-flex; align-items:center; gap:6px; padding: 10px 16px; background: #FEE500; color: #000; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 0.9rem;"><svg width="16" height="16" viewBox="0 0 24 24" fill="#000"><path d="M12 3c-5.523 0-10 3.514-10 7.85 0 2.804 1.83 5.253 4.606 6.647l-1.18 4.34c-.05.18.17.33.32.22l5.12-3.41c.37.04.74.06 1.13.06 5.523 0 10-3.514 10-7.85C22 6.514 17.523 3 12 3z"/></svg>카카오맵</a>
-          <a href="https://map.naver.com/v5/search/${encodeURIComponent(address)}" target="_blank" style="display:inline-flex; align-items:center; gap:6px; padding: 10px 16px; background: #03C75A; color: #fff; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 0.9rem;"><svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M16.084 12.637L8.03 2.127C7.625 1.597 7.026 1.334 6.386 1.334H2v21.332h5.922V11.233l8.053 10.51C16.42 22.316 17.02 22.58 17.658 22.58H22V1.248h-5.916v11.389z"/></svg>네이버지도</a>
-          <a href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(address)}&travelmode=transit" target="_blank" style="display:inline-flex; align-items:center; gap:6px; padding: 10px 16px; background: #4285F4; color: #fff; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 0.9rem;"><svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>구글 길찾기</a>
-        </div>
-      `;
+          <div style="margin-top: 1.5rem;">
+            <h4 style="font-size: 1.1rem; font-weight: 700; color: var(--text-main); margin-top: 0; margin-bottom: 12px; line-height: 1.4;">${formattedAddress}</h4>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+              <a href="https://map.kakao.com/link/search/${encodeURIComponent(address.replace(/ \(지번:.*$/, '').replace(/\\n.*$/, '').replace(/\n.*$/, ''))}" target="_blank" style="display:inline-flex; align-items:center; gap:6px; padding: 10px 16px; background: #FEE500; color: #000; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 0.9rem;"><svg width="16" height="16" viewBox="0 0 24 24" fill="#000"><path d="M12 3c-5.523 0-10 3.514-10 7.85 0 2.804 1.83 5.253 4.606 6.647l-1.18 4.34c-.05.18.17.33.32.22l5.12-3.41c.37.04.74.06 1.13.06 5.523 0 10-3.514 10-7.85C22 6.514 17.523 3 12 3z"/></svg>카카오맵</a>
+              <a href="https://map.naver.com/v5/search/${encodeURIComponent(address.replace(/ \(지번:.*$/, '').replace(/\\n.*$/, '').replace(/\n.*$/, ''))}" target="_blank" style="display:inline-flex; align-items:center; gap:6px; padding: 10px 16px; background: #03C75A; color: #fff; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 0.9rem;"><svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M16.084 12.637L8.03 2.127C7.625 1.597 7.026 1.334 6.386 1.334H2v21.332h5.922V11.233l8.053 10.51C16.42 22.316 17.02 22.58 17.658 22.58H22V1.248h-5.916v11.389z"/></svg>네이버지도</a>
+              <a href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(address.replace(/ \(지번:.*$/, '').replace(/\\n.*$/, '').replace(/\n.*$/, ''))}&travelmode=transit" target="_blank" style="display:inline-flex; align-items:center; gap:6px; padding: 10px 16px; background: #4285F4; color: #fff; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 0.9rem;"><svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>구글 길찾기</a>
+            </div>
+          </div>
+        `;
     } else {
       linksWrap.innerHTML = '';
     }
