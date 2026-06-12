@@ -176,6 +176,7 @@ document.addEventListener('DOMContentLoaded', () => {
       storage.setItem('userName', `${providerName} 유저`);
       storage.setItem('userRole', 'CLIENT');
       storage.setItem('email', `user@${providerName}.com`);
+      storage.setItem('userPhone', '010-1234-5678');
 
       if (window.Auth) {
         window.Auth.save({

@@ -30,6 +30,9 @@ let _selectedZone = null;
 /* ── Toss Payments 설정 ─────────────────────────────────────── */
 const TOSS_CLIENT_KEY = 'test_ck_D5GePWvyJnrK0W0k6q8gLzN97Emo';
 
+/* ── 상수 정의 ────────────────────────────────────────────────── */
+const TAB_DELETE_BTN_HTML = '<span class="tab-delete-btn"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></span>';
+
 /* ── URL 파라미터 ─────────────────────────────────────────────
    사용 예시: detail.html?eventNo=1
 ─────────────────────────────────────────────────────────── */
@@ -1080,13 +1083,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     return;
   }
 
-  // 사용자 편집 데이터 불러오기 (localStorage)
-  const savedTabs = localStorage.getItem(`festio_event_${eventNo}_tabs`);
+  // 사용자 편집 데이터 불러오기 (DB 연동)
+  const savedTabs = await eventApi.getBuilderContent(eventNo);
   if (savedTabs) {
     const tabsSection = document.getElementById('detailTabsSection');
     if (tabsSection) {
       tabsSection.innerHTML = savedTabs;
     }
+  }
+
+  // 빌더 로드 후 실시간 댓글 UI 삽입
+  if (typeof window.initCommentUI === 'function') {
+    window.initCommentUI();
   }
 
   // 추가 데이터 동기 로드
@@ -1108,6 +1116,37 @@ document.addEventListener('DOMContentLoaded', async () => {
   const tabsHeader = document.querySelector('.detail-tabs-header');
   if (tabsHeader) {
     tabsHeader.addEventListener('click', (e) => {
+      // 탭 삭제 로직 (X 버튼 클릭 시)
+      const deleteBtn = e.target.closest('.tab-delete-btn');
+      if (deleteBtn && isEditMode) {
+        e.stopPropagation();
+        const tabBtn = deleteBtn.closest('.detail-tab-btn');
+        if (!tabBtn) return;
+
+        let tId = tabBtn.dataset.target;
+        if (!tId && tabBtn.dataset.tab) {
+          tId = 'tab-' + tabBtn.dataset.tab;
+        }
+
+        // 탭 메뉴 제거
+        tabBtn.remove();
+
+        // 탭 본문 섹션 제거
+        if (tId) {
+          const contentSection = document.getElementById(tId);
+          if (contentSection) contentSection.remove();
+
+          // 빌더 사이드바 아코디언 제거
+          const accordionItem = document.querySelector(`.builder-accordion-item[data-target-id="${tId}"]`);
+          if (accordionItem) accordionItem.remove();
+        }
+
+        // 다른 탭으로 자동 전환 (첫 번째 탭 선택)
+        const firstTab = document.querySelector('.detail-tab-btn');
+        if (firstTab) firstTab.click();
+        return;
+      }
+
       const btn = e.target.closest('.detail-tab-btn');
       if (!btn) return;
 
@@ -1184,7 +1223,7 @@ function toggleEditMode(enable) {
     // Add delete buttons to tabs if missing
     document.querySelectorAll('.detail-tab-btn').forEach(btn => {
       if (!btn.querySelector('.tab-delete-btn')) {
-        btn.insertAdjacentHTML('beforeend', '<span class="tab-delete-btn"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></span>');
+        btn.insertAdjacentHTML('beforeend', TAB_DELETE_BTN_HTML);
       }
     });
 
@@ -1225,9 +1264,23 @@ function destroyMainAreaEditors(tabsSection) {
     if (!inner) return;
 
     if (tab.id === 'tab-venue') {
+      // 1. 사이드바 에디터가 활성화되어 있다면 미리보기 갱신 트리거
+      const sidebarContainer = document.getElementById('builderSidebarOptions');
+      if (sidebarContainer) {
+        const btnUpdate = sidebarContainer.querySelector('#btnUpdateVenueMap');
+        if (btnUpdate) btnUpdate.click();
+      }
+
+      // 2. 인라인 에디터(과거 잔재)가 있다면 갱신 후 삭제
       const editorWrap = inner.querySelector('.venue-editor-wrap');
       if (editorWrap) {
+        const btnUpdate = editorWrap.querySelector('#btnUpdateVenueMap');
+        if (btnUpdate) btnUpdate.click();
         editorWrap.remove();
+      }
+
+      if (quillEditors['tab-venue']) {
+        delete quillEditors['tab-venue'];
       }
       return;
     }
@@ -1652,7 +1705,7 @@ function initMainAreaEditors(tabsSection) {
           </div>
           <div>
             <label style="display:block; font-weight: 700; margin-bottom: 0.5rem; color:var(--text-main);">대중교통 안내</label>
-            <textarea id="venueEditTransit" class="form-control" style="width:100%; min-height: 100px; resize: vertical; border-radius:8px; padding: 0.75rem 1rem;" placeholder="지하철, 버스 등 교통편 안내를 입력하세요">${currentTransit === '대중교통 정보가 없습니다.' ? '' : currentTransit}</textarea>
+            <div id="venueEditTransitQuill" style="background: white; border-radius: 0 0 8px 8px; border: 1px solid var(--border-default); min-height: 150px;"></div>
           </div>
         </div>
       `;
@@ -1661,7 +1714,17 @@ function initMainAreaEditors(tabsSection) {
       const btnUpdate = inner.querySelector('#btnUpdateVenueMap');
       const btnSearch = inner.querySelector('#btnSearchAddress');
       const addressInput = inner.querySelector('#venueEditAddress');
-      const transitInput = inner.querySelector('#venueEditTransit');
+
+      const transitQuillEl = inner.querySelector('#venueEditTransitQuill');
+      if (transitQuillEl) {
+        const transitQuill = new Quill('#venueEditTransitQuill', {
+          theme: 'snow',
+          modules: { toolbar: quillToolbarOptions }
+        });
+        const currentHtml = (currentTransit === '대중교통 정보가 없습니다.' || !currentTransit) ? '' : currentTransit;
+        transitQuill.root.innerHTML = currentHtml;
+        quillEditors['tab-venue'] = transitQuill;
+      }
 
       if (btnSearch) {
         btnSearch.addEventListener('click', () => {
@@ -1681,14 +1744,18 @@ function initMainAreaEditors(tabsSection) {
 
       btnUpdate.addEventListener('click', () => {
         const address = addressInput.value.trim();
-        const transit = transitInput.value.trim();
+        let transitHtml = '';
+        if (quillEditors['tab-venue']) {
+          transitHtml = quillEditors['tab-venue'].root.innerHTML;
+          if (transitHtml === '<p><br></p>') transitHtml = '';
+        }
 
         const addressTextEl = inner.querySelector('.venue-address-text');
         const transitContentEl = inner.querySelector('#transitContent');
         const googleMapFrame = inner.querySelector('#googleMap');
 
         if (addressTextEl) addressTextEl.style.display = 'none';
-        if (transitContentEl) transitContentEl.innerHTML = transit.replace(/\n/g, '<br>') || '대중교통 정보가 없습니다.';
+        if (transitContentEl) transitContentEl.innerHTML = transitHtml || '대중교통 정보가 없습니다.';
 
         if (googleMapFrame && address) {
           googleMapFrame.src = `https://maps.google.com/maps?q=${encodeURIComponent(address)}&output=embed`;
@@ -1887,12 +1954,22 @@ function makeBlockEditor(tab, sidebarContainer) {
     uploadWrap.style.padding = '1.5rem';
     uploadWrap.innerHTML = `
       <div style="margin-bottom:1rem;">
-        <select class="form-control gallery-layout-select" style="width:100%; border-radius:8px;">
-          <option value="grid">Grid (기본 격자)</option>
-          <option value="masonry">Masonry (핀터레스트 스타일)</option>
-          <option value="mosaic">Mosaic (모자이크형)</option>
-          <option value="carousel">Carousel (캐러셀)</option>
-        </select>
+        <div class="custom-ticket-dropdown gallery-layout-dropdown" style="width:100%; position:relative;">
+          <div class="custom-dropdown-selected" onclick="this.parentElement.classList.toggle('open')">
+            <span class="galleryLayoutText">Grid (기본 격자)</span>
+            <svg class="custom-dropdown-icon" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </div>
+          <div class="custom-dropdown-options">
+            <div class="custom-dropdown-option active" data-value="grid" onclick="changeGalleryLayout('${tab.id}', 'grid', 'Grid (기본 격자)', this)">Grid (기본 격자)</div>
+            <div class="custom-dropdown-option" data-value="masonry" onclick="changeGalleryLayout('${tab.id}', 'masonry', 'Masonry (핀터레스트 스타일)', this)">Masonry (핀터레스트 스타일)</div>
+            <div class="custom-dropdown-option" data-value="mosaic" onclick="changeGalleryLayout('${tab.id}', 'mosaic', 'Mosaic (모자이크형)', this)">Mosaic (모자이크형)</div>
+            <div class="custom-dropdown-option" data-value="coverflow" onclick="changeGalleryLayout('${tab.id}', 'coverflow', 'Coverflow (커버플로우)', this)">Coverflow (커버플로우)</div>
+            <div class="custom-dropdown-option" data-value="slider" onclick="changeGalleryLayout('${tab.id}', 'slider', 'Slider (슬라이더)', this)">Slider (슬라이더)</div>
+            <div class="custom-dropdown-option" data-value="carousel" onclick="changeGalleryLayout('${tab.id}', 'carousel', 'Carousel (캐러셀)', this)">Carousel (캐러셀)</div>
+            <div class="custom-dropdown-option" data-value="polaroid" onclick="changeGalleryLayout('${tab.id}', 'polaroid', 'Polaroid (폴라로이드형)', this)">Polaroid (폴라로이드형)</div>
+          </div>
+          <input type="hidden" class="gallery-layout-select" value="grid">
+        </div>
       </div>
       <div style="margin-bottom:1rem; font-weight:700; color:var(--text-main); font-size:0.9rem;">이미지</div>
       <label class="gallery-upload-area" style="display:block; border:1px dashed #d1d5db; border-radius:12px; padding:2rem; text-align:center; cursor:pointer; background:#f9fafb; transition:all 0.2s;">
@@ -1902,7 +1979,7 @@ function makeBlockEditor(tab, sidebarContainer) {
         </div>
         <div style="color:#6b7280; font-size:0.9rem; font-weight:600;">이미지 선택</div>
       </label>
-      <div class="uploaded-image-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(80px, 1fr)); gap:10px; margin-top:1rem;"></div>
+      <div class="uploaded-image-grid" style="display:flex; overflow-x:auto; gap:10px; margin-top:1rem; padding-bottom:10px; align-items:center; white-space:nowrap;"></div>
       <div class="gallery-preview-container" style="display:none;"></div>
     `;
     block.appendChild(uploadWrap);
@@ -1913,10 +1990,6 @@ function makeBlockEditor(tab, sidebarContainer) {
     const fileInput = block.querySelector('.gallery-upload-input');
     const previewGrid = block.querySelector('.uploaded-image-grid');
     const layoutSelect = block.querySelector('.gallery-layout-select');
-
-    layoutSelect.addEventListener('change', () => {
-      updateGalleryPreview(tab.id);
-    });
 
     fileInput.addEventListener('change', (e) => {
       const files = Array.from(e.target.files);
@@ -1935,7 +2008,9 @@ function makeBlockEditor(tab, sidebarContainer) {
           const imgWrap = document.createElement('div');
           imgWrap.className = 'uploaded-image-item';
           imgWrap.style.position = 'relative';
-          imgWrap.style.aspectRatio = '1';
+          imgWrap.style.width = '80px';
+          imgWrap.style.height = '80px';
+          imgWrap.style.flexShrink = '0';
           imgWrap.style.borderRadius = '8px';
           imgWrap.style.overflow = 'hidden';
           imgWrap.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
@@ -2012,54 +2087,59 @@ window.updateGalleryPreview = function (targetId) {
   const targetTab = document.getElementById(targetId);
   if (!accordionItem || !targetTab) return;
 
-  const inner = targetTab.querySelector('.gallery-preview-container') || targetTab.querySelector('.tab-content-inner');
-  if (!inner) return;
+  const blocksContainer = accordionItem.querySelector('.blocks-container');
+  if (!blocksContainer) return;
 
-  const layout = accordionItem.querySelector('.gallery-layout-select')?.value || 'grid';
-  const imgElements = accordionItem.querySelectorAll('.uploaded-image-grid img');
-  const images = Array.from(imgElements).map(img => img.src);
+  const galleryBlocks = accordionItem.querySelectorAll('.gallery-block');
+  galleryBlocks.forEach(block => {
+    const layout = block.querySelector('.gallery-layout-select')?.value || 'grid';
+    const imgElements = block.querySelectorAll('.uploaded-image-grid img');
+    const images = Array.from(imgElements).map(img => img.src);
+    const inner = block.querySelector('.gallery-preview-container');
+    if (!inner) return;
 
-  if (images.length === 0) {
-    if (inner.classList.contains('gallery-preview-container')) {
-      inner.innerHTML = '<div style="padding:2rem; border:1px dashed #d1d5db; border-radius:12px; background:#f9fafb; color:#9ca3af; font-size:0.85rem;">등록된 이미지가 없습니다.</div>';
+    if (images.length === 0) {
+      inner.innerHTML = '<div style="padding:2rem; border:1px dashed #d1d5db; border-radius:12px; background:#f9fafb; color:#9ca3af; font-size:0.85rem; text-align:center;">등록된 이미지가 없습니다.</div>';
+    } else {
+      let html = '';
+      if (layout === 'grid') {
+        html = '<div class="gallery-grid">';
+        images.forEach(src => { html += `<div class="gallery-grid-item"><img src="${src}" alt="갤러리 이미지"></div>`; });
+        html += '</div>';
+      } else if (layout === 'masonry') {
+        html = '<div class="gallery-masonry">';
+        images.forEach(src => { html += `<div class="gallery-masonry-item"><img src="${src}" alt="갤러리 이미지"></div>`; });
+        html += '</div>';
+      } else if (layout === 'mosaic') {
+        html = `<div class="gallery-mosaic layout-${Math.min(images.length, 5)}">`;
+        images.forEach((src, idx) => { html += `<div class="gallery-mosaic-item item-${idx + 1}"><img src="${src}" alt="갤러리 이미지"></div>`; });
+        html += '</div>';
+      } else if (layout === 'coverflow') {
+        html = '<div class="gallery-coverflow">';
+        images.forEach(src => { html += `<div class="gallery-coverflow-item"><img src="${src}" alt="갤러리 이미지"></div>`; });
+        html += '</div>';
+      } else if (layout === 'slider' || layout === 'carousel') {
+        html = '<div class="gallery-slider">';
+        images.forEach(src => { html += `<div class="gallery-slider-item"><img src="${src}" alt="갤러리 이미지"></div>`; });
+        html += '</div>';
+      } else if (layout === 'polaroid') {
+        html = '<div class="gallery-polaroid">';
+        images.forEach(src => {
+          html += `
+            <div class="polaroid-item">
+              <img src="${src}" alt="갤러리 이미지">
+            </div>
+          `;
+        });
+        html += '</div>';
+      }
+      inner.innerHTML = html;
     }
-    return;
-  }
+  });
 
-  let html = '';
-  if (layout === 'grid') {
-    html = '<div class="gallery-grid">';
-    images.forEach(src => { html += `<div class="gallery-grid-item"><img src="${src}" alt="갤러리 이미지"></div>`; });
-    html += '</div>';
-  } else if (layout === 'masonry') {
-    html = '<div class="gallery-masonry">';
-    images.forEach(src => { html += `<div class="gallery-masonry-item"><img src="${src}" alt="갤러리 이미지"></div>`; });
-    html += '</div>';
-  } else if (layout === 'mosaic') {
-    html = `<div class="gallery-mosaic layout-${Math.min(images.length, 5)}">`;
-    images.forEach((src, idx) => { html += `<div class="gallery-mosaic-item item-${idx + 1}"><img src="${src}" alt="갤러리 이미지"></div>`; });
-    html += '</div>';
-  } else if (layout === 'coverflow') {
-    html = '<div class="gallery-coverflow">';
-    images.forEach(src => { html += `<div class="gallery-coverflow-item"><img src="${src}" alt="갤러리 이미지"></div>`; });
-    html += '</div>';
-  } else if (layout === 'slider' || layout === 'carousel') {
-    html = '<div class="gallery-slider">';
-    images.forEach(src => { html += `<div class="gallery-slider-item"><img src="${src}" alt="갤러리 이미지"></div>`; });
-    html += '</div>';
-  } else if (layout === 'polaroid') {
-    html = '<div style="display:flex; flex-wrap:wrap; gap:1.5rem; justify-content:center;">';
-    images.forEach(src => {
-      html += `
-        <div style="background:#fff; padding:12px 12px 36px; box-shadow:0 10px 25px rgba(0,0,0,0.1); border-radius:4px; width:220px; transform:rotate(${Math.floor(Math.random() * 10 - 5)}deg); transition:transform 0.3s; cursor:pointer;" onmouseover="this.style.transform='scale(1.05) rotate(0deg)'" onmouseout="this.style.transform='rotate(${Math.floor(Math.random() * 10 - 5)}deg)'">
-          <img src="${src}" style="width:100%; aspect-ratio:1; object-fit:cover; border:1px solid #f3f4f6;">
-        </div>
-      `;
-    });
-    html += '</div>';
+  if (typeof syncLivePreview === 'function') {
+    syncLivePreview(targetTab, blocksContainer);
   }
-
-  inner.innerHTML = html;
 }
 
 function handleAddSection(customTitle) {
@@ -2074,7 +2154,7 @@ function handleAddSection(customTitle) {
     const newBtn = document.createElement('button');
     newBtn.className = 'detail-tab-btn';
     newBtn.dataset.target = newId;
-    newBtn.innerHTML = title + '<span class="tab-delete-btn"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></span>';
+    newBtn.innerHTML = title + TAB_DELETE_BTN_HTML;
     tabsHeader.appendChild(newBtn);
 
     newBtn.addEventListener('click', () => {
@@ -2131,7 +2211,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const btnSave = document.getElementById('btnSaveAllEdits');
   if (btnSave) {
-    btnSave.addEventListener('click', () => {
+    btnSave.addEventListener('click', async () => {
       const tabsSection = document.getElementById('detailTabsSection');
       if (!tabsSection) return;
 
@@ -2141,13 +2221,42 @@ document.addEventListener('DOMContentLoaded', () => {
         destroyMainAreaEditors(tabsSection);
       }
 
-      // 저장
-      localStorage.setItem(`festio_event_${getEventNo()}_tabs`, tabsSection.innerHTML);
-      Toast.success('이벤트 상세 내용이 저장되었습니다.');
+      // 저장 전 ignore-save 요소 임시 분리
+      const ignoredElements = [];
+      tabsSection.querySelectorAll('[data-ignore-save="true"]').forEach(el => {
+        ignoredElements.push({ parent: el.parentNode, el: el, nextSibling: el.nextSibling });
+        el.remove();
+      });
 
-      // 편집 모드였다면 에디터 다시 활성화
-      if (wasEditMode) {
-        initMainAreaEditors(tabsSection);
+      const finalHtml = tabsSection.innerHTML;
+
+      // 저장 후 ignore-save 요소 다시 복구
+      ignoredElements.forEach(item => {
+        if (item.nextSibling) {
+          item.parent.insertBefore(item.el, item.nextSibling);
+        } else {
+          item.parent.appendChild(item.el);
+        }
+      });
+
+      // 저장
+      const success = await eventApi.saveBuilderContent(getEventNo(), finalHtml);
+      if (success) {
+        Toast.success('이벤트 상세 내용이 저장되었습니다.');
+
+        // 편집 모드 자동 종료 연동
+        const switchBtn = document.getElementById('btnToggleEditModeSwitch');
+        if (switchBtn) {
+          switchBtn.checked = false;
+        }
+        toggleEditMode(false);
+
+      } else {
+        Toast.error('저장에 실패했습니다. 다시 시도해 주세요.');
+        // 실패 시 에디터 다시 활성화
+        if (wasEditMode) {
+          initMainAreaEditors(tabsSection);
+        }
       }
     });
   }
@@ -2258,7 +2367,7 @@ function makeVenueEditor(tab, sidebarContainer) {
       </div>
       <div>
         <label style="display:block; font-weight: 700; margin-bottom: 0.5rem; color:var(--text-main);">대중교통 안내</label>
-        <textarea id="venueEditTransit" class="form-control" style="width:100%; min-height: 100px; resize: vertical; border-radius:8px; padding: 0.75rem 1rem;" placeholder="지하철, 버스 등 교통 안내를 입력하세요">${currentTransit === '대중교통 정보가 등록되지 않았습니다.' ? '' : currentTransit.replace(/<br>/g, '\n')}</textarea>
+        <div id="venueEditTransitQuill" style="background: white; border-radius: 0 0 8px 8px; border: 1px solid var(--border-default); min-height: 150px;"></div>
       </div>
     </div>
   `;
@@ -2267,7 +2376,17 @@ function makeVenueEditor(tab, sidebarContainer) {
   const btnUpdate = sidebarContainer.querySelector('#btnUpdateVenueMap');
   const btnSearch = sidebarContainer.querySelector('#btnSearchAddress');
   const addressInput = sidebarContainer.querySelector('#venueEditAddress');
-  const transitInput = sidebarContainer.querySelector('#venueEditTransit');
+
+  const transitQuillEl = sidebarContainer.querySelector('#venueEditTransitQuill');
+  if (transitQuillEl) {
+    const transitQuill = new Quill('#venueEditTransitQuill', {
+      theme: 'snow',
+      modules: { toolbar: quillToolbarOptions }
+    });
+    const currentHtml = (currentTransit === '대중교통 정보가 등록되지 않았습니다.' || currentTransit === '대중교통 정보가 없습니다.' || !currentTransit) ? '' : currentTransit;
+    transitQuill.root.innerHTML = currentHtml;
+    quillEditors['tab-venue'] = transitQuill;
+  }
 
   if (btnSearch) {
     btnSearch.addEventListener('click', () => {
@@ -2287,14 +2406,18 @@ function makeVenueEditor(tab, sidebarContainer) {
 
   btnUpdate.addEventListener('click', () => {
     const address = addressInput.value.trim();
-    const transit = transitInput.value.trim();
+    let transitHtml = '';
+    if (quillEditors['tab-venue']) {
+      transitHtml = quillEditors['tab-venue'].root.innerHTML;
+      if (transitHtml === '<p><br></p>') transitHtml = '';
+    }
 
     const addressTextEl = inner.querySelector('.venue-address-text');
     const transitContentEl = inner.querySelector('#transitContent');
     const googleMapFrame = inner.querySelector('#googleMap');
 
     if (addressTextEl) addressTextEl.style.display = 'none';
-    if (transitContentEl) transitContentEl.innerHTML = transit.replace(/\n/g, '<br>') || '대중교통 정보가 등록되지 않았습니다.';
+    if (transitContentEl) transitContentEl.innerHTML = transitHtml || '대중교통 정보가 없습니다.';
 
     if (googleMapFrame && address) {
       googleMapFrame.src = `https://maps.google.com/maps?q=${encodeURIComponent(address)}&output=embed`;

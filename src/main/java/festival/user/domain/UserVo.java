@@ -55,6 +55,9 @@ public class UserVo {
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    @Column(name = "withdrawn_at")
+    private LocalDateTime withdrawnAt;
+
     @PrePersist
     protected void onCreate() {
         if (this.createdAt == null) {

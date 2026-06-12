@@ -470,6 +470,9 @@
 
                 <div class="profile-actions">
                   <button class="btn btn-primary btn-full profile-btn-save" id="btn-save-profile">변경사항 저장</button>
+                  <button class="btn btn-full" id="btn-withdraw-init"
+                    style="margin-top: 12px; background: transparent; color: #ff4757; border: 1px solid #ffe3e6;">회원
+                    탈퇴</button>
                 </div>
               </div>
             </div>
@@ -477,6 +480,28 @@
 
         </div>
       </div>
+    </div>
+    <!-- 회원 탈퇴 확인 모달 -->
+    <div class="qr-modal-overlay" id="withdrawConfirmOverlay" role="dialog" aria-modal="true"
+      style="z-index:10000; backdrop-filter: none; background: rgba(0,0,0,0.5);">
+      <div class="qr-modal-card" style="padding:28px 24px; border-radius:16px; width: 320px; text-align:center;">
+        <h3 style="font-size:1.1rem; font-weight:bold; margin-bottom:12px; color:#111;">정말 탈퇴하시겠습니까?</h3>
+        <p style="font-size:0.9rem; color:#666; margin-bottom:24px; line-height:1.5; word-break:keep-all;">
+          탈퇴 시 계정은 30일간 보관 후 영구 삭제되며,<br>해당 기간 동안은 동일 이메일로 가입할 수 없습니다.
+        </p>
+        <div style="display:flex; justify-content:center; gap:12px;">
+          <button class="btn" id="btnCancelWithdraw"
+            style="flex:1; border-radius:8px; font-weight:bold; background:#f3f4f6; color:#4b5563; border:none;">취소</button>
+          <button class="btn" id="btnConfirmWithdraw"
+            style="flex:1; border-radius:8px; font-weight:bold; background:#374151; color:#fff; border:none;">탈퇴하기</button>
+        </div>
+      </div>
+    </div>
+    </div>
+    </div>
+
+    </div>
+    </div>
     </div>
     <!-- 삭제 확인 모달 -->
     <div class="qr-modal-overlay" id="deleteConfirmOverlay" role="dialog" aria-modal="true"

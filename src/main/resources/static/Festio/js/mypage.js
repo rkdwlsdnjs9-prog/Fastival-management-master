@@ -32,8 +32,8 @@ const QR_CIRC = 2 * Math.PI * 11; // ≈ 69.1
    1. 인증 가드 & 로컬스토리지 연동 초기화
    ═══════════════════════════════════════════════════════════ */
 function checkAuth() {
-  const userToken = localStorage.getItem('userToken');
-  if (!userToken) {
+  const isLoggedIn = !!localStorage.getItem('userToken') || localStorage.getItem('isLoggedIn') === 'true';
+  if (!isLoggedIn) {
     alert('로그인이 필요한 서비스입니다.');
     window.location.href = 'login.html';
     return false;
@@ -42,8 +42,13 @@ function checkAuth() {
 }
 
 async function loadUserInfo() {
-  const userToken = localStorage.getItem('userToken');
-  if (!userToken) return;
+  const userToken = localStorage.getItem('userToken') || sessionStorage.getItem('userToken');
+  if (!userToken) {
+    if (localStorage.getItem('isLoggedIn') === 'true' || sessionStorage.getItem('isLoggedIn') === 'true') {
+      fallbackLocalUserInfo();
+    }
+    return;
+  }
 
   try {
     const encodedToken = encodeURI(userToken);
@@ -81,11 +86,11 @@ async function loadUserInfo() {
 }
 
 function fallbackLocalUserInfo() {
-  const userName = localStorage.getItem('userName') || '축제이용자';
-  const userRole = localStorage.getItem('userRole') || 'CLIENT';
-  let userEmail = localStorage.getItem('email') || 'user@festio.kr';
+  const userName = localStorage.getItem('userName') || sessionStorage.getItem('userName') || '축제이용자';
+  const userRole = localStorage.getItem('userRole') || sessionStorage.getItem('userRole') || 'CLIENT';
+  let userEmail = localStorage.getItem('email') || sessionStorage.getItem('email') || 'user@festio.kr';
   if (userEmail.includes('토스')) userEmail = userEmail.replace(/토스/g, 'toss');
-  const userPhone = localStorage.getItem('userPhone') || '';
+  const userPhone = localStorage.getItem('userPhone') || sessionStorage.getItem('userPhone') || '';
 
   _member = {
     name: userName,
@@ -1922,6 +1927,66 @@ function initFaceModal() {
   }
 }
 
+function initWithdraw() {
+  const btnWithdrawInit = document.getElementById('btn-withdraw-init');
+  const overlay = document.getElementById('withdrawConfirmOverlay');
+  const btnCancel = document.getElementById('btnCancelWithdraw');
+  const btnConfirm = document.getElementById('btnConfirmWithdraw');
+
+  if (btnWithdrawInit && overlay) {
+    btnWithdrawInit.addEventListener('click', () => {
+      overlay.style.display = 'flex';
+      overlay.classList.add('active');
+    });
+  }
+
+  if (btnCancel && overlay) {
+    btnCancel.addEventListener('click', () => {
+      overlay.style.display = 'none';
+      overlay.classList.remove('active');
+    });
+  }
+
+  if (btnConfirm && overlay) {
+    btnConfirm.addEventListener('click', async () => {
+      try {
+        const userToken = localStorage.getItem('userToken') || sessionStorage.getItem('userToken');
+        if (!userToken) throw new Error('인증 정보가 없습니다.');
+
+        const encodedToken = encodeURI(userToken);
+        const res = await fetch('/api/auth/me', {
+          method: 'DELETE',
+          headers: {
+            'Authorization': encodedToken
+          }
+        });
+
+        if (res.ok) {
+          if (window.Toast) window.Toast.success('회원 탈퇴가 정상적으로 처리되었습니다.');
+          else alert('회원 탈퇴가 정상적으로 처리되었습니다.');
+
+          localStorage.clear();
+          sessionStorage.clear();
+
+          setTimeout(() => {
+            window.location.href = 'index.html';
+          }, 1500);
+        } else {
+          const errMsg = await res.text();
+          throw new Error(errMsg || '회원 탈퇴 실패');
+        }
+      } catch (e) {
+        console.error(e);
+        if (window.Toast) window.Toast.error(e.message);
+        else alert(e.message);
+      } finally {
+        overlay.style.display = 'none';
+        overlay.classList.remove('active');
+      }
+    });
+  }
+}
+
 /* ═══════════════════════════════════════════════════════════
    10. 초기 로드 리스너 (DOMContentLoaded)
    ═══════════════════════════════════════════════════════════ */
@@ -1945,6 +2010,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   initProfileFeatures();
   initLogout();
   initFaceModal();
+  initWithdraw();
 
   // URL 해시(#tab-wishlist 등)로 특정 탭 자동 활성화
   const hashTab = window.location.hash.replace('#', '');
