@@ -2348,6 +2348,7 @@ function openQrModalView(token, type = 'TICKET') {
 
     document.getElementById('dynamicQrClose').addEventListener('click', () => {
       modal.style.display = 'none';
+      document.body.style.overflow = '';
     });
     document.getElementById('dynamicQrRefresh').addEventListener('click', () => {
       triggerQrRefresh();
