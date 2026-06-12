@@ -789,6 +789,46 @@ const eventApi = {
       return false;
     }
     return true;
+  },
+
+  /** 페이지 빌더 콘텐츠(HTML) 불러오기 */
+  getBuilderContent: async (festivalId) => {
+    if (USE_MOCK) {
+      return localStorage.getItem(`festio_event_${festivalId}_tabs`);
+    }
+    const sb = getSupabase();
+    if (!sb) return null;
+    const { data, error } = await sb.from('festival').select('content_json').eq('id', festivalId).single();
+    if (error || !data || !data.content_json) return null;
+    return data.content_json.html;
+  },
+
+  /** 페이지 빌더 콘텐츠(HTML) 저장하기 */
+  saveBuilderContent: async (festivalId, htmlContent) => {
+    if (USE_MOCK) {
+      localStorage.setItem(`festio_event_${festivalId}_tabs`, htmlContent);
+      return true;
+    }
+    const sb = getSupabase();
+    if (!sb) return false;
+    const { data, error } = await sb.from('festival').update({ content_json: { html: htmlContent } }).eq('id', festivalId).select();
+
+    if (error) {
+      console.error('Failed to save builder content:', error);
+      return false;
+    }
+
+    if (!data || data.length === 0) {
+      console.error('Save failed: 0 rows updated. Check RLS policy.');
+      if (window.showCustomAlert) {
+        window.showCustomAlert('데이터 저장에 실패했습니다.<br><span style="color:#6b7280; font-size:0.9rem; margin-top:0.5rem; display:block;">데이터베이스 접근 권한이 없거나 정책(RLS)에 의해 차단되었습니다.<br>관리자에게 문의하여 권한 설정을 확인해 주세요.</span>', '저장 권한 없음');
+      } else {
+        alert('데이터 저장에 실패했습니다. 관리자에게 문의해 주세요. (RLS 정책 차단)');
+      }
+      return false;
+    }
+
+    return true;
   }
 };
 
@@ -1072,6 +1112,237 @@ const broadcastApi = {
   },
 };
 
+/* ═══════════════════════════════════════════════════════════
+   comment API (실시간 소통 댓글)
+   DB 테이블명: event_comments, comment_likes, comment_reports
+═══════════════════════════════════════════════════════════ */
+const commentApi = {
+  getComments: async (festivalId) => {
+    if (USE_MOCK) return [];
+    const sb = getSupabase();
+    if (!sb) return [];
+    const { data: { user } } = await sb.auth.getUser();
+
+    // 가져올 때 좋아요 개수, 내가 좋아요 했는지 여부, 작성자 정보(app_user) 조인
+    // Supabase 릴레이션에 따라 쿼리가 달라질 수 있음. (간단하게 구현)
+    const { data, error } = await sb
+      .from('event_comments')
+      .select(`
+        *,
+        app_user:user_id ( name, profile_img, gender ),
+        comment_likes ( user_id )
+      `)
+      .eq('festival_id', festivalId)
+      .order('created_at', { ascending: true });
+
+    if (error) {
+      console.error('Failed to get comments:', error);
+      return [];
+    }
+
+    // 데이터 가공 (좋아요 수, 내 좋아요 여부)
+    return data.map(c => {
+      const likes = c.comment_likes || [];
+      return {
+        ...c,
+        author_name: c.app_user?.name || '익명',
+        author_img: c.app_user?.profile_img || 'https://ui-avatars.com/api/?name=U&background=f3f4f6',
+        author_gender: c.app_user?.gender || 'U',
+        like_count: likes.length,
+        is_liked: user ? likes.some(l => l.user_id === user.id) : false
+      };
+    });
+  },
+
+  addComment: async (festivalId, content, parentId = null, mediaUrl = null) => {
+    const sb = getSupabase();
+    const { data: { user } } = await sb.auth.getUser();
+    if (!user) throw new Error('로그인이 필요합니다.');
+
+    const { data, error } = await sb.from('event_comments').insert({
+      festival_id: festivalId,
+      user_id: user.id,
+      parent_id: parentId,
+      content: content,
+      media_url: mediaUrl
+    }).select().single();
+
+    if (error) throw error;
+
+    // 대댓글인 경우 부모 댓글 작성자에게 알림 발송 (자신이 자신에게 단 경우는 제외)
+    if (parentId) {
+      const { data: parentComment } = await sb.from('event_comments').select('user_id').eq('id', parentId).single();
+      if (parentComment && parentComment.user_id !== user.id) {
+        await notificationApi.createNotification({
+          userId: parentComment.user_id,
+          type: 'REPLY',
+          targetId: data.id
+        });
+      }
+    }
+
+    return data;
+  },
+
+  updateComment: async (commentId, content) => {
+    const sb = getSupabase();
+    const { data: { user } } = await sb.auth.getUser();
+    if (!user) throw new Error('로그인이 필요합니다.');
+
+    const { data, error } = await sb.from('event_comments')
+      .update({ content: content })
+      .eq('id', commentId)
+      .eq('user_id', user.id)
+      .select().single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  deleteComment: async (commentId) => {
+    const sb = getSupabase();
+    const { data: { user } } = await sb.auth.getUser();
+    if (!user) throw new Error('로그인이 필요합니다.');
+
+    // 자식 대댓글 확인
+    const { data: children } = await sb.from('event_comments')
+      .select('id')
+      .eq('parent_id', commentId);
+
+    if (children && children.length > 0) {
+      // 대댓글이 있으면 소프트 삭제
+      const { data, error } = await sb.from('event_comments')
+        .update({ is_deleted: true, content: '' })
+        .eq('id', commentId)
+        .eq('user_id', user.id)
+        .select().single();
+      if (error) throw error;
+      return { type: 'soft', data };
+    } else {
+      // 없으면 완전 삭제
+      const { error } = await sb.from('event_comments')
+        .delete()
+        .eq('id', commentId)
+        .eq('user_id', user.id);
+      if (error) throw error;
+      return { type: 'hard' };
+    }
+  },
+
+  uploadCommentMedia: async (file) => {
+    if (USE_MOCK) return null;
+    const sb = getSupabase();
+    if (!sb) return null;
+
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
+    const filePath = `${fileName}`;
+
+    const { data, error } = await sb.storage
+      .from('event_comments_media')
+      .upload(filePath, file);
+
+    if (error) {
+      console.error('File upload error:', error);
+      throw error;
+    }
+
+    const { data: publicUrlData } = sb.storage
+      .from('event_comments_media')
+      .getPublicUrl(filePath);
+
+    return publicUrlData.publicUrl;
+  },
+
+  toggleLike: async (commentId) => {
+    const sb = getSupabase();
+    const { data: { user } } = await sb.auth.getUser();
+    if (!user) throw new Error('로그인이 필요합니다.');
+
+    // 이미 좋아요를 했는지 확인
+    const { data: existing } = await sb.from('comment_likes')
+      .select('*').eq('comment_id', commentId).eq('user_id', user.id).single();
+
+    if (existing) {
+      // 취소
+      await sb.from('comment_likes').delete().eq('comment_id', commentId).eq('user_id', user.id);
+      return { liked: false };
+    } else {
+      // 추가
+      await sb.from('comment_likes').insert({ comment_id: commentId, user_id: user.id });
+
+      // 댓글 작성자에게 좋아요 알림 발송
+      const { data: comment } = await sb.from('event_comments').select('user_id').eq('id', commentId).single();
+      if (comment && comment.user_id !== user.id) {
+        await notificationApi.createNotification({
+          userId: comment.user_id,
+          type: 'LIKE',
+          targetId: commentId
+        });
+      }
+      return { liked: true };
+    }
+  },
+
+  reportComment: async (commentId, reason) => {
+    const sb = getSupabase();
+    const { data: { user } } = await sb.auth.getUser();
+    if (!user) throw new Error('로그인이 필요합니다.');
+
+    const { error } = await sb.from('comment_reports').insert({
+      comment_id: commentId,
+      user_id: user.id,
+      reason: reason
+    });
+
+    if (error) throw error;
+    return true;
+  }
+};
+
+/* ═══════════════════════════════════════════════════════════
+   notification API (알림)
+═══════════════════════════════════════════════════════════ */
+const notificationApi = {
+  getMyNotifications: async () => {
+    if (USE_MOCK) return [];
+    const sb = getSupabase();
+    const { data: { user } } = await sb.auth.getUser();
+    if (!user) return [];
+
+    const { data, error } = await sb.from('user_notifications')
+      .select('*, sender:sender_id(name)')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(20);
+
+    if (error) return [];
+    return data;
+  },
+
+  createNotification: async ({ userId, type, targetId }) => {
+    const sb = getSupabase();
+    const { data: { user } } = await sb.auth.getUser();
+    if (!user) return;
+    await sb.from('user_notifications').insert({
+      user_id: userId,
+      sender_id: user.id,
+      type: type,
+      target_id: targetId
+    });
+  },
+
+  markAsRead: async (notificationId) => {
+    const sb = getSupabase();
+    const { data: { user } } = await sb.auth.getUser();
+    if (!user) return;
+    await sb.from('user_notifications')
+      .update({ is_read: true })
+      .eq('id', notificationId)
+      .eq('user_id', user.id);
+  }
+};
+
 /* ── 전역 노출 ──────────────────────────────────────────────── */
 window.MOCK = MOCK;
 window.memberApi = memberApi;
@@ -1084,5 +1355,7 @@ window.reviewApi = reviewApi;
 window.inquiryApi = inquiryApi;
 window.scanApi = scanApi;
 window.broadcastApi = broadcastApi;
+window.commentApi = commentApi;
+window.notificationApi = notificationApi;
 window.normalizeFestival = normalizeFestival;
 

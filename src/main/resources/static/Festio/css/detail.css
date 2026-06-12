@@ -1,8 +1,13 @@
 /* ============================================================
    detail.css — 데스크톱 2단 레이아웃 + 모바일 단일 스크롤
    ============================================================ */
-@import url('https://fonts.googleapis.com/css2?family=Nanum+Gothic&family=Nanum+Myeongjo&family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@300;400;700&family=Jua&family=Dongle&family=Gowun+Dodum&family=Hahmlet&family=Gamja+Flower&family=Black+Han+Sans&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nanum+Gothic&family=Nanum+Myeongjo&family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@300;400;700&family=Jua&family=Dongle&family=Gowun+Dodum&family=Hahmlet&family=Gamja+Flower&family=Black+Han+Sans&family=Gowun+Batang&family=Do+Hyeon&family=Poor+Story&family=Song+Myung&family=Yeon+Sung&family=Roboto:wght@400;700&family=Open+Sans:wght@400;700&family=Lato:wght@400;700&family=Montserrat:wght@400;700&family=Oswald:wght@400;700&family=Source+Code+Pro:wght@400;700&family=Playfair+Display:wght@400;700&family=Poppins:wght@400;700&family=Merriweather:wght@400;700&display=swap');
 
+/* ── 페이지 전용 배경색 ────────────────────────────────────── */
+html,
+body {
+  background: var(--bg-surface1) !important;
+}
 
 /* ── 데스크톱 2단 레이아웃 ─────────────────────────────────── */
 @media (min-width:1024px) {
@@ -34,8 +39,8 @@
   width: 100%;
   aspect-ratio: 3/4;
   border-radius: var(--radius-lg);
-  overflow: hidden;
-  background: var(--bg-card);
+
+  background: var(--bg-surface1);
   border: 1px solid var(--border-subtle);
   margin-bottom: var(--sp-4);
 }
@@ -442,7 +447,7 @@
   background: var(--bg-surface1);
   border-top: 1px solid var(--border-default);
   position: sticky;
-  bottom: var(--bottom-nav-h);
+  bottom: calc(var(--bottom-nav-h) + env(safe-area-inset-bottom));
   z-index: var(--z-sticky);
 }
 
@@ -495,7 +500,7 @@
   border-radius: 10px;
   padding: 12px 14px;
   margin-bottom: 12px;
-  border: 1px solid var(--border-subtle, rgba(255,255,255,0.08));
+  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
 }
 
 .selected-seats-header {
@@ -537,15 +542,22 @@
   align-items: center;
   justify-content: space-between;
   padding: 6px 8px;
-  background: var(--bg-surface1, rgba(255,255,255,0.04));
+  background: var(--bg-surface1, rgba(255, 255, 255, 0.04));
   border-radius: 6px;
-  border: 1px solid var(--border-subtle, rgba(255,255,255,0.06));
+  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.06));
   animation: fadeInSeat 0.2s ease-out;
 }
 
 @keyframes fadeInSeat {
-  from { opacity: 0; transform: translateY(-4px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .seat-list-label {
@@ -586,8 +598,15 @@
 
 .stats-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: var(--sp-3);
+  min-width: 0;
+}
+
+@media (min-width: 768px) {
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 .stats-chart-card {
@@ -595,6 +614,7 @@
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
   padding: var(--sp-4);
+  min-width: 0;
 }
 
 .stats-chart-title {
@@ -909,22 +929,28 @@
   overflow-y: hidden;
   white-space: nowrap;
   position: relative;
-  -ms-overflow-style: none;
-  scrollbar-width: thin;
+  -ms-overflow-style: auto;
+  scrollbar-width: auto;
+  padding-bottom: 6px;
 }
 
 .detail-tabs-header::-webkit-scrollbar {
-  height: 6px;
+  height: 8px;
   display: block;
 }
 
 .detail-tabs-header::-webkit-scrollbar-track {
-  background: transparent;
+  background: #f3f4f6;
+  border-radius: 4px;
 }
 
 .detail-tabs-header::-webkit-scrollbar-thumb {
-  background: var(--border-default);
-  border-radius: 3px;
+  background: #9ca3af;
+  border-radius: 4px;
+}
+
+.detail-tabs-header::-webkit-scrollbar-thumb:hover {
+  background: #6b7280;
 }
 
 .detail-tab-btn {
@@ -1340,8 +1366,8 @@ body.edit-mode .detail-tabs-section .detail-tab-content.active {
 
 .builder-tabs-wrapper.edit-builder-layout {
   display: grid;
-  grid-template-columns: 360px 1fr !important;
-  gap: 0.5rem !important;
+  grid-template-columns: 450px 1fr !important;
+  gap: 2rem !important;
   max-width: 1500px;
   width: 100%;
   margin: 0 auto;
@@ -1350,9 +1376,9 @@ body.edit-mode .detail-tabs-section .detail-tab-content.active {
 
 .builder-tabs-wrapper.edit-builder-layout .detail-tabs-section {
   width: 100%;
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 0;
+  max-width: 100%;
+  margin: 0;
+  padding: 2rem;
   min-width: 0;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
   background: var(--bg-surface1);
@@ -1372,7 +1398,7 @@ body.edit-mode .detail-tabs-section .detail-tab-content.active {
   background: var(--bg-surface1);
   border: 1px solid var(--border-default);
   border-radius: 12px;
-  overflow: hidden;
+
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
@@ -1389,8 +1415,9 @@ body.edit-mode .detail-tabs-section .detail-tab-content.active {
 
 .builder-tabs-wrapper.edit-builder-layout .builder-accordion-list {
   flex: 1;
-  overflow-y: auto;
+  overflow-y: auto !important;
   padding-right: 0.5rem;
+  padding-bottom: 20px;
 }
 
 .builder-tabs-wrapper.edit-builder-layout .builder-sidebar-footer {
@@ -1475,10 +1502,15 @@ body.edit-mode .detail-tabs-section .detail-tab-content.active {
 
 .builder-accordion-item {
   background: #ffffff;
-  border: 1px solid #e5e7eb;
+  border: 1px solid #c0c4cc;
+  /* 조금 더 진하고 선명한 테두리 */
   border-radius: 16px;
-  overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+  overflow: visible !important;
+
+  height: auto !important;
+  min-height: min-content;
+  box-shadow: none;
+  /* 흐릿하게 렌더링되게 만드는 원인 제거 */
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
@@ -1503,6 +1535,9 @@ body.edit-mode .detail-tabs-section .detail-tab-content.active {
   align-items: center;
   cursor: pointer;
   background: transparent;
+  border-top-left-radius: 15px;
+  /* 모서리 삐져나옴 방지 */
+  border-top-right-radius: 15px;
   user-select: none;
 }
 
@@ -1662,8 +1697,14 @@ body.edit-mode .detail-tabs-section .detail-tab-content.active {
 .builder-accordion-body {
   display: none;
   padding: 1rem;
+  padding-bottom: 1.5rem;
   background: var(--bg-surface1);
-  border-top: 1px solid rgba(0, 0, 0, 0.03);
+  border-top: 1px solid #c0c4cc;
+  /* 헤더-바디 구분선 명확히 */
+  border-bottom-left-radius: 15px;
+  /* 모서리 삐져나옴 방지 */
+  border-bottom-right-radius: 15px;
+  overflow: visible !important;
 }
 
 .builder-accordion-item.active .builder-accordion-body {
@@ -1987,6 +2028,26 @@ body.edit-mode .detail-tabs-section .detail-tab-content.active {
   }
 }
 
+/* 갤러리 렌더링 - 기타 레이아웃 (일관된 이미지 크기 보장) */
+.gallery-masonry,
+.gallery-mosaic,
+.gallery-coverflow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.gallery-masonry img,
+.gallery-mosaic img,
+.gallery-coverflow img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 12px;
+  flex: 1 1 calc(33.333% - 16px);
+  min-width: 200px;
+}
+
 /* ── Quill 에디터 커스텀 폰트 리스트 ── */
 .ql-snow .ql-picker.ql-font {
   width: 120px;
@@ -2125,212 +2186,432 @@ body.edit-mode .detail-tabs-section .detail-tab-content.active {
   font-weight: bold;
 }
 
-
-
-/* 상단 무대 가이드 바 */
-.stage-guide {
-  background: #202240 !important;
-  border: 1px solid rgba(105, 108, 255, 0.4) !important;
-  color: #a3a6e4 !important;
-  text-align: center;
-  font-weight: 700;
-  font-size: 10px;
-  letter-spacing: 3px;
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 22px;
-  box-sizing: border-box;
-  user-select: none;
-}
-
-#userGridSeatArea {
-  position: relative;
-  z-index: 2;
-  display: grid;
-  gap: 8px;
-  margin: auto;
-  box-sizing: border-box;
-}
-
-/* 좌석 아이템 스타일 - 둥근 사각형 및 좌석 번호 노출 */
-.seat-cell {
-  aspect-ratio: 1;
-  width: 32px;
-  height: 32px;
-  border-radius: 4px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  box-sizing: border-box;
-  position: relative;
-}
-
-/* 좌석 내부의 좌석번호 글씨 활성화 */
-.seat-cell span {
-  display: flex !important;
-  font-size: 10px;
-  font-weight: 700;
-  color: #ffffff !important;
-  pointer-events: none;
-}
-
-/* 가격 및 기타 보조 태그는 내부 렌더링 제외 */
-.seat-cell span.seat-price-tag {
+/* ── 뷰 모드 탭 삭제 버튼 숨김 ── */
+.tab-delete-btn {
   display: none !important;
 }
 
-/* 호버 시 확대 효과 */
-.seat-cell:hover:not(.seat-reserved):not(.seat-corridor):not(.seat-stage) {
-  transform: scale(1.4);
-  z-index: 10;
-  box-shadow: 0 0 12px currentColor;
-}
-
-/* 커스텀 툴팁 구현 (data-tooltip 속성 활용) */
-.seat-cell[data-tooltip]:hover::after {
-  content: attr(data-tooltip);
-  position: absolute;
-  bottom: 130%;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(15, 15, 30, 0.95);
-  color: #ffffff;
-  padding: 6px 10px;
-  font-size: 11px;
-  font-weight: 500;
-  border-radius: 6px;
-  white-space: nowrap;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  z-index: 999;
-  pointer-events: none;
-  animation: fadeInTooltip 0.15s ease-out;
-}
-
-/* 툴팁 화살표 */
-.seat-cell[data-tooltip]:hover::before {
-  content: "";
-  position: absolute;
-  bottom: 110%;
-  left: 50%;
-  transform: translateX(-50%);
-  border-width: 5px;
-  border-style: solid;
-  border-color: rgba(15, 15, 30, 0.95) transparent transparent transparent;
-  z-index: 999;
-  pointer-events: none;
-}
-
-@keyframes fadeInTooltip {
-  from { opacity: 0; transform: translate(-50%, 5px); }
-  to { opacity: 1; transform: translate(-50%, 0); }
-}
-
-/* 선택됨 상태 */
-.seat-cell.selected {
-  background: #FF9F43 !important;
-  border: 2px solid #ffffff !important;
-  box-shadow: 0 0 15px #FF9F43 !important;
-  transform: scale(1.2);
-}
-
-/* 예매 완료 상태 - 연한 회색으로 흐릿하게 처리하여 도면 시야 확보 */
-.seat-cell.seat-reserved {
-  background: rgba(133, 146, 163, 0.2) !important;
-  border: 1px solid rgba(133, 146, 163, 0.3) !important;
-  cursor: not-allowed !important;
-  opacity: 0.3;
-}
-
-/* 통로 및 무대 - 투명 처리하여 아래 도면이 완전 노출되게 함 */
-.seat-cell.seat-corridor,
-.seat-cell.seat-stage {
-  background: transparent !important;
-  border: none !important;
-  pointer-events: none;
+/* ── 편집 모드 탭 삭제 버튼 호버 시 노출 ── */
+.edit-mode .detail-tab-btn .tab-delete-btn {
+  position: absolute !important;
+  right: -16px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex !important;
   opacity: 0;
-}
-
-/* 등급별 좌석 파스텔 색상 */
-.seat-cell.seat-vip {
-  background: #FFAB00 !important;
-  border: 1px solid rgba(255, 171, 0, 0.6) !important;
-  color: #FFAB00 !important;
-}
-.seat-cell.seat-r {
-  background: #696cff !important;
-  border: 1px solid rgba(105, 108, 255, 0.6) !important;
-  color: #696cff !important;
-}
-.seat-cell.seat-s {
-  background: #03c3ec !important;
-  border: 1px solid rgba(3, 195, 236, 0.6) !important;
-  color: #03c3ec !important;
-}
-.seat-cell.seat-available {
-  background: #8592a3 !important;
-  border: 1px solid rgba(133, 146, 163, 0.6) !important;
-  color: #8592a3 !important;
-}
-.seat-cell.seat-custom-1 {
-  background: #71dd37 !important;
-  border: 1px solid rgba(113, 221, 55, 0.6) !important;
-  color: #71dd37 !important;
-}
-.seat-cell.seat-custom-2 {
-  background: #ff3e1d !important;
-  border: 1px solid rgba(255, 62, 29, 0.6) !important;
-  color: #ff3e1d !important;
-}
-.seat-cell.seat-custom-3 {
-  background: #825efb !important;
-  border: 1px solid rgba(130, 94, 251, 0.6) !important;
-  color: #825efb !important;
-}
-.seat-cell.seat-custom-4 {
-  background: #e91e63 !important;
-  border: 1px solid rgba(233, 30, 99, 0.6) !important;
-  color: #e91e63 !important;
-}
-.seat-cell.seat-custom-5 {
-  background: #009688 !important;
-  border: 1px solid rgba(0, 150, 136, 0.6) !important;
-  color: #009688 !important;
-}
-
-/* ── 구역 다각형 (Dynamic SVG Polygon) 프리미엄 스타일 ── */
-.zone-polygon {
-  display: none !important;
-  pointer-events: none !important;
-}
-
-/* ── 피그마 템플릿 구역 프리미엄 스타일 ── */
-.figma-template-zone {
+  pointer-events: none;
+  transition: opacity 0.2s ease, color 0.2s ease;
+  background: transparent;
+  color: #9ca3af;
+  border: none;
+  width: 18px;
+  height: 18px;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.figma-template-zone path {
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.figma-template-zone:hover path {
-  fill-opacity: 0.8;
-  stroke: #6a4dff !important;
-  stroke-width: 2.5px !important;
-  filter: drop-shadow(0 0 6px rgba(106, 77, 255, 0.5));
-}
-.figma-template-zone.selected path {
-  fill-opacity: 0.9;
-  stroke: #ff9f43 !important;
-  stroke-width: 3px !important;
-  filter: drop-shadow(0 0 10px rgba(255, 159, 67, 0.7));
-}
-.figma-template-zone.sold-out {
-  opacity: 0.35;
-  cursor: not-allowed !important;
-  pointer-events: none !important;
 }
 
+.edit-mode .detail-tab-btn:hover .tab-delete-btn {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  color: #9ca3af !important;
+}
+
+.edit-mode .detail-tab-btn .tab-delete-btn:hover {
+  color: #4b5563 !important;
+}
+
+/* ── 텍스트 정렬 버튼 활성화 상태 ── */
+.align-toggle-group {
+  padding: 3px !important;
+  gap: 2px;
+}
+
+.btn-align {
+  transition: all 0.2s ease;
+  color: var(--text-muted);
+  border-radius: 4px !important;
+}
+
+.btn-align:hover {
+  background: rgba(0, 0, 0, 0.05) !important;
+}
+
+.btn-align.active {
+  background: rgba(255, 255, 255, 0.85) !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: #3B82F6 !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+.btn-align.active svg {
+  stroke: #3B82F6;
+}
+
+/* ── 기타 UI 버그 픽스 ── */
+.detail-tab-content {
+  margin-top: 1.5rem;
+}
+
+.stats-chart-wrap canvas {
+  max-height: 120px;
+  position: relative;
+  z-index: 0;
+}
+
+.venue-editor-wrap {
+  display: none !important;
+}
+
+.edit-mode .venue-editor-wrap {
+  display: block !important;
+}
+
+
+
+.ql-snow .ql-toolbar,
+.ql-snow .ql-container {
+  overflow: visible !important;
+}
+
+.ql-snow .ql-toolbar {
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+}
+
+/* ── Quill 에디터 커스텀 폰트 및 UI ── */
+.ql-snow .ql-picker-options {
+  z-index: 10000 !important;
+  max-height: 250px !important;
+  overflow-y: auto !important;
+  left: 0 !important;
+  transform: none !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12) !important;
+  border: 1px solid #e5e7eb !important;
+  padding: 8px 0 !important;
+  background: #ffffff !important;
+}
+
+.ql-snow .ql-picker-item {
+  padding: 10px 16px !important;
+  transition: background 0.2s ease, color 0.2s ease !important;
+}
+
+.ql-snow .ql-picker-item:hover {
+  background: #f3f4f6 !important;
+}
+
+.ql-snow .ql-picker-item.ql-selected {
+  color: #4f46e5 !important;
+  font-weight: bold !important;
+  background: rgba(79, 70, 229, 0.05) !important;
+}
+
+.ql-snow .ql-picker.ql-font {
+  width: 130px;
+}
+
+/* 기본값(선택 안 됨)일 때 영어 대신 한국어로 노출 */
+.ql-snow .ql-picker.ql-font .ql-picker-label:not([data-value])::before,
+.ql-snow .ql-picker.ql-font .ql-picker-item:not([data-value])::before {
+  content: '글꼴' !important;
+  font-family: inherit;
+}
+
+.ql-snow .ql-picker.ql-size .ql-picker-label:not([data-value])::before,
+.ql-snow .ql-picker.ql-size .ql-picker-item:not([data-value])::before {
+  content: '크기' !important;
+}
+
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="noto-sans"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="noto-sans"]::before {
+  content: '본고딕 (Noto Sans)';
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="nanum-gothic"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="nanum-gothic"]::before {
+  content: '나눔고딕';
+  font-family: 'Nanum Gothic', sans-serif;
+}
+
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="nanum-myeongjo"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="nanum-myeongjo"]::before {
+  content: '나눔명조';
+  font-family: 'Nanum Myeongjo', serif;
+}
+
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="jua"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="jua"]::before {
+  content: '배민 주아체';
+  font-family: 'Jua', sans-serif;
+}
+
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="dongle"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="dongle"]::before {
+  content: '동글체';
+  font-family: 'Dongle', sans-serif;
+}
+
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="gowun-dodum"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="gowun-dodum"]::before {
+  content: '고운돋움';
+  font-family: 'Gowun Dodum', sans-serif;
+}
+
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="hahmlet"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="hahmlet"]::before {
+  content: '함초롬체';
+  font-family: 'Hahmlet', serif;
+}
+
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="gamja-flower"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="gamja-flower"]::before {
+  content: '감자꽃마을';
+  font-family: 'Gamja Flower', cursive;
+}
+
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="black-han-sans"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="black-han-sans"]::before {
+  content: '검은고딕';
+  font-family: 'Black Han Sans', sans-serif;
+}
+
+.ql-font-noto-sans {
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+.ql-font-nanum-gothic {
+  font-family: 'Nanum Gothic', sans-serif;
+}
+
+.ql-font-nanum-myeongjo {
+  font-family: 'Nanum Myeongjo', serif;
+}
+
+.ql-font-jua {
+  font-family: 'Jua', sans-serif;
+}
+
+.ql-font-dongle {
+  font-family: 'Dongle', sans-serif;
+}
+
+.ql-font-gowun-dodum {
+  font-family: 'Gowun Dodum', sans-serif;
+}
+
+.ql-font-hahmlet {
+  font-family: 'Hahmlet', serif;
+}
+
+.ql-font-gamja-flower {
+  font-family: 'Gamja Flower', cursive;
+}
+
+.ql-font-black-han-sans {
+  font-family: 'Black Han Sans', sans-serif;
+}
+
+/* 사이즈 옵션 한글화 */
+.ql-snow .ql-picker.ql-size .ql-picker-label[data-value="small"]::before,
+.ql-snow .ql-picker.ql-size .ql-picker-item[data-value="small"]::before {
+  content: '작게' !important;
+}
+
+.ql-snow .ql-picker.ql-size .ql-picker-label[data-value="large"]::before,
+.ql-snow .ql-picker.ql-size .ql-picker-item[data-value="large"]::before {
+  content: '크게' !important;
+}
+
+.ql-snow .ql-picker.ql-size .ql-picker-label[data-value="huge"]::before,
+.ql-snow .ql-picker.ql-size .ql-picker-item[data-value="huge"]::before {
+  content: '아주 크게' !important;
+}
+
+/* 신규 추가 폰트 (한글) */
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="gowun-batang"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="gowun-batang"]::before {
+  content: '고운바탕';
+  font-family: 'Gowun Batang', serif;
+}
+
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="do-hyeon"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="do-hyeon"]::before {
+  content: '도현체';
+  font-family: 'Do Hyeon', sans-serif;
+}
+
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="poor-story"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="poor-story"]::before {
+  content: '푸어 스토리';
+  font-family: 'Poor Story', cursive;
+}
+
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="song-myung"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="song-myung"]::before {
+  content: '송명체';
+  font-family: 'Song Myung', serif;
+}
+
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="yeon-sung"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="yeon-sung"]::before {
+  content: '연성체';
+  font-family: 'Yeon Sung', cursive;
+}
+
+/* 신규 추가 폰트 (영문) */
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="roboto"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="roboto"]::before {
+  content: 'Roboto';
+  font-family: 'Roboto', sans-serif;
+}
+
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="open-sans"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="open-sans"]::before {
+  content: 'Open Sans';
+  font-family: 'Open Sans', sans-serif;
+}
+
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="lato"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="lato"]::before {
+  content: 'Lato';
+  font-family: 'Lato', sans-serif;
+}
+
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="montserrat"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="montserrat"]::before {
+  content: 'Montserrat';
+  font-family: 'Montserrat', sans-serif;
+}
+
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="oswald"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="oswald"]::before {
+  content: 'Oswald';
+  font-family: 'Oswald', sans-serif;
+}
+
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="source-code-pro"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="source-code-pro"]::before {
+  content: 'Source Code Pro';
+  font-family: 'Source Code Pro', monospace;
+}
+
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="playfair-display"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="playfair-display"]::before {
+  content: 'Playfair Display';
+  font-family: 'Playfair Display', serif;
+}
+
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="poppins"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="poppins"]::before {
+  content: 'Poppins';
+  font-family: 'Poppins', sans-serif;
+}
+
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="merriweather"]::before,
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="merriweather"]::before {
+  content: 'Merriweather';
+  font-family: 'Merriweather', serif;
+}
+
+/* 폰트 클래스 (한글) */
+.ql-font-gowun-batang {
+  font-family: 'Gowun Batang', serif;
+}
+
+.ql-font-do-hyeon {
+  font-family: 'Do Hyeon', sans-serif;
+}
+
+.ql-font-poor-story {
+  font-family: 'Poor Story', cursive;
+}
+
+.ql-font-song-myung {
+  font-family: 'Song Myung', serif;
+}
+
+.ql-font-yeon-sung {
+  font-family: 'Yeon Sung', cursive;
+}
+
+/* 폰트 클래스 (영문) */
+.ql-font-roboto {
+  font-family: 'Roboto', sans-serif;
+}
+
+.ql-font-open-sans {
+  font-family: 'Open Sans', sans-serif;
+}
+
+.ql-font-lato {
+  font-family: 'Lato', sans-serif;
+}
+
+.ql-font-montserrat {
+  font-family: 'Montserrat', sans-serif;
+}
+
+.ql-font-oswald {
+  font-family: 'Oswald', sans-serif;
+}
+
+.ql-font-source-code-pro {
+  font-family: 'Source Code Pro', monospace;
+}
+
+.ql-font-playfair-display {
+  font-family: 'Playfair Display', serif;
+}
+
+.ql-font-poppins {
+  font-family: 'Poppins', sans-serif;
+}
+
+.ql-font-merriweather {
+  font-family: 'Merriweather', serif;
+}
+
+.venue-address-text {
+  display: none !important;
+}
+
+.ql-picker-options {
+  position: fixed !important;
+  top: auto !important;
+  bottom: auto !important;
+}
+
+.builder-accordion-item,
+.builder-accordion-body {
+  overflow: visible !important;
+  position: static !important;
+}
+
+.ql-snow .ql-toolbar {
+  position: relative !important;
+  z-index: 1000 !important;
+  overflow: visible !important;
+}
+
+.ql-snow .ql-container {
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+.ql-snow .ql-picker-options {
+  position: absolute !important;
+}
+
+.ql-snow .ql-picker-options {
+  z-index: 10000 !important;
+}
+
+.builder-accordion-item,
+.builder-accordion-body,
+.text-block {
+  overflow: visible !important;
+}
