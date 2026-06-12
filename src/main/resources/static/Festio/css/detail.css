@@ -904,18 +904,27 @@
   gap: 1.5rem;
   border-bottom: 1px solid var(--border-subtle);
   border-right: none;
-  margin-bottom: 2rem;
+  margin-bottom: 0;
   overflow-x: auto;
+  overflow-y: hidden;
+  white-space: nowrap;
   position: relative;
   -ms-overflow-style: none;
-  /* IE and Edge */
-  scrollbar-width: none;
-  /* Firefox */
+  scrollbar-width: thin;
 }
 
 .detail-tabs-header::-webkit-scrollbar {
-  display: none;
-  /* Chrome, Safari, Opera*/
+  height: 6px;
+  display: block;
+}
+
+.detail-tabs-header::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.detail-tabs-header::-webkit-scrollbar-thumb {
+  background: var(--border-default);
+  border-radius: 3px;
 }
 
 .detail-tab-btn {
@@ -948,8 +957,19 @@
 }
 
 .detail-tab-btn.active {
-  color: var(--text-main);
+  color: var(--primary-main, #6A4DFF);
   font-weight: 700;
+}
+
+.detail-tab-btn.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--primary-main, #6A4DFF);
+  border-radius: 3px 3px 0 0;
 }
 
 .detail-tab-btn.active::after {
@@ -1237,12 +1257,13 @@
 }
 
 /* 편집 모드 (Edit Mode) - 단일 탭 */
-.detail-tabs-section.edit-mode .detail-tab-content {
+body.edit-mode .detail-tabs-section .detail-tab-content {
   display: none;
 }
 
-.detail-tabs-section.edit-mode .detail-tab-content.active {
+body.edit-mode .detail-tabs-section .detail-tab-content.active {
   display: block;
+  padding: 2rem;
 }
 
 /* 탭 타이틀 (보기 모드일 때 스크롤 구분을 위한 제목) */
@@ -1319,20 +1340,24 @@
 
 .builder-tabs-wrapper.edit-builder-layout {
   display: grid;
-  grid-template-columns: minmax(320px, 480px) 1fr;
-  gap: 1.5rem;
-  max-width: 1200px;
+  grid-template-columns: 360px 1fr !important;
+  gap: 0.5rem !important;
+  max-width: 1500px;
   width: 100%;
-  margin: 2rem auto;
-  padding: 0 var(--sp-6);
-  min-height: calc(100vh - 100px);
+  margin: 0 auto;
+  align-items: start;
 }
 
 .builder-tabs-wrapper.edit-builder-layout .detail-tabs-section {
   width: 100%;
-  max-width: 100%;
-  margin: 0;
+  max-width: 800px;
+  margin: 0 auto;
   padding: 0;
+  min-width: 0;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  background: var(--bg-surface1);
+  border-radius: 16px;
+  overflow: hidden;
 }
 
 .builder-tabs-wrapper.edit-builder-layout .builder-sidebar {
@@ -1358,7 +1383,8 @@
 
 .builder-tabs-wrapper.edit-builder-layout .builder-sidebar-header {
   background: var(--bg-main);
-  padding-bottom: 0.5rem;
+  padding: 1.2rem;
+  border-bottom: none;
 }
 
 .builder-tabs-wrapper.edit-builder-layout .builder-accordion-list {
@@ -1448,29 +1474,35 @@
 }
 
 .builder-accordion-item {
-  background: var(--bg-surface1);
-  border: 1px solid var(--border-default);
-  border-radius: 12px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
-  transition: all 0.2s;
+  transition: all 0.3s ease;
+  margin-bottom: 6px;
+}
+
+.builder-accordion-item:hover {
+  border-color: #d1d5db;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
 }
 
 .builder-accordion-item.active {
-  border-color: var(--color-primary);
-  box-shadow: 0 4px 12px rgba(106, 77, 255, 0.15);
+  border-color: #6A4DFF;
+  box-shadow: 0 4px 16px rgba(106, 77, 255, 0.12);
 }
 
 .builder-accordion-header {
-  padding: 1rem;
+  padding: 1rem 1.2rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
   cursor: pointer;
-  background: var(--bg-surface2);
+  background: transparent;
   user-select: none;
 }
 
@@ -1492,7 +1524,7 @@
   justify-content: space-between;
   padding: 1rem;
   background: transparent;
-  border-bottom: 1px solid var(--border-default);
+  border-bottom: none;
   cursor: pointer;
   transition: background 0.2s ease;
 }
@@ -1500,10 +1532,15 @@
 .builder-accordion-title {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  font-weight: 600;
+  gap: 0.6rem;
+  font-weight: 700;
   color: var(--text-primary);
   flex: 1;
+}
+
+.accordion-name:focus {
+  outline: none;
+  border-bottom: 1px solid #3B82F6;
 }
 
 /* 우측 탭 메뉴 내 버튼들을 위해 margin/padding 약간 조정 */
@@ -1603,10 +1640,17 @@
 }
 
 .builder-accordion-title {
-  font-weight: 600;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.6rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  flex: 1;
+}
+
+.accordion-name:focus {
+  outline: none;
+  border-bottom: 1px solid #3B82F6;
 }
 
 .builder-accordion-title .drag-handle {
@@ -1619,7 +1663,7 @@
   display: none;
   padding: 1rem;
   background: var(--bg-surface1);
-  border-top: 1px solid var(--border-default);
+  border-top: 1px solid rgba(0, 0, 0, 0.03);
 }
 
 .builder-accordion-item.active .builder-accordion-body {
@@ -2081,25 +2125,7 @@
   font-weight: bold;
 }
 
-/* ============================================================
-   사용자 좌석 선택 모달 & 개별 좌석 그리드 레이아웃
-   ============================================================ */
-#userGridWrapper {
-  position: relative;
-  background-color: #0f0f1e;
-  border-radius: 8px;
-  overflow: auto;
-}
 
-#userGridBgOverlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 1;
-}
 
 /* 상단 무대 가이드 바 */
 .stage-guide {
@@ -2304,3 +2330,4 @@
   cursor: not-allowed;
   filter: none;
 }
+

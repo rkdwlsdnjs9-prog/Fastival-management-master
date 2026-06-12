@@ -15,23 +15,9 @@ const initialDB = {
   seats: {},
   goods: [],
   food: [],
-  tickets: [
-    { id: "T-1001", seat: "A-5", status: "VALID", type: "ADULT", used: false, holder: "김태희" },
-    { id: "T-1002", seat: "A-6", status: "VALID", type: "CHILD", used: false, holder: "박보검" },
-    { id: "T-1003", seat: "B-12", status: "VALID", type: "ADULT", used: false, holder: "이지은" },
-    { id: "T-1004", seat: "B-15", status: "VALID", type: "INFANT", used: false, holder: "최우식" },
-    { id: "T-1005", seat: "C-3", status: "VALID", type: "ADULT", used: true, holder: "송강호" }, // 이미 입장완료 티켓 (중복 오류용)
-    { id: "T-1006", seat: "C-10", status: "VALID", type: "CHILD", used: true, holder: "한소희" }   // 이미 입장완료 티켓
-  ],
-  orders: [
-    { id: "ORD-0001", type: "FOOD", items: [{ name: "시그니처 아메리카노", quantity: 2 }], price: 9000, status: "RECEIVED", customer: "현장 주문 #1", timestamp: new Date(Date.now() - 3600000).toLocaleTimeString() },
-    { id: "ORD-0002", type: "FOOD", items: [{ name: "얼그레이 버블 밀크티", quantity: 1 }], price: 6000, status: "COOKING", customer: "모바일 주문 #2", timestamp: new Date(Date.now() - 1800000).toLocaleTimeString() },
-    { id: "ORD-0003", type: "GOODS", items: [{ name: "공식 일러스트 슬로건 타올", quantity: 1 }], price: 18000, status: "ORDERED", customer: "예약 수령 #3", timestamp: new Date(Date.now() - 600000).toLocaleTimeString() },
-    { id: "ORD-0004", type: "GOODS", items: [{ name: "캐릭터 리미티드 에디션 키링", quantity: 2 }], price: 17000, status: "PICKED_UP", customer: "현장 구매 #4", timestamp: new Date(Date.now() - 120000).toLocaleTimeString() }
-  ],
-  notifications: [
-    { id: 1, type: "SYSTEM", message: "실시간 스태프 관제 시스템이 초기화되었습니다.", timestamp: new Date().toLocaleTimeString() }
-  ],
+  tickets: [],
+  orders: [],
+  notifications: [],
   options: {
     rates: [
       { id: "r1", name: "성인 (Adult)", multiplier: 1.0 },
@@ -77,6 +63,7 @@ export const DB = localDB ? JSON.parse(localDB) : initialDB;
 DB.staffs = initialDB.staffs;
 
 // Cleanup deprecated food fields
+if (!DB.food) DB.food = [];
 DB.food.forEach(f => {
   delete f.currentStock;
   delete f.preAllocated;
@@ -144,40 +131,3 @@ export function addNotification(type, message) {
   }
 }
 
-// WebSockets Background Simulation
-let simInterval = null;
-export function toggleWebsocketSimulation(enable) {
-  DB.websocketSimulation = enable;
-  saveDB();
-  if (enable) {
-    simInterval = setInterval(() => {
-      // Pick a random seat and toggle it
-      const seatIds = Object.keys(DB.seats);
-      const randomSeatId = seatIds[Math.floor(Math.random() * seatIds.length)];
-      const currentSeat = DB.seats[randomSeatId];
-      
-      // Simulate booking or releasing (only for seats not already occupied/entered)
-      if (currentSeat.status === "AVAILABLE") {
-        currentSeat.status = "RESERVED";
-        currentSeat.holder = "가상 예약고객 (실시간)";
-        publish("seat-change", { seatId: randomSeatId, status: "RESERVED", seat: currentSeat });
-      } else if (currentSeat.status === "RESERVED" && currentSeat.holder === "가상 예약고객 (실시간)") {
-        currentSeat.status = "AVAILABLE";
-        currentSeat.holder = null;
-        publish("seat-change", { seatId: randomSeatId, status: "AVAILABLE", seat: currentSeat });
-      }
-    }, 4000); // Trigger every 4 seconds
-    addNotification("SYSTEM", "실시간 웹소켓(WebSockets) 시뮬레이션 모드가 켜졌습니다.");
-  } else {
-    if (simInterval) {
-      clearInterval(simInterval);
-      simInterval = null;
-    }
-    addNotification("SYSTEM", "실시간 웹소켓(WebSockets) 시뮬레이션 모드가 꺼졌습니다.");
-  }
-}
-
-// Restart simulation on reload if saved as true
-if (DB.websocketSimulation) {
-  toggleWebsocketSimulation(true);
-}

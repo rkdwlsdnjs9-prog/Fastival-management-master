@@ -309,10 +309,29 @@ function renderReservationList() {
   MOCK_TICKETS.forEach(t => {
     const statusClass = t.itemStatus === '예매완료' ? 'status-완료' : 'status-입장';
     htmlContent += `
-      <div class="mp-card">
+      <div class="mp-card" style="overflow: visible;">
         <div class="mp-card-header">
           <p class="mp-card-title">${t.eventName}</p>
-          <span class="mp-badge ${statusClass}">${t.itemStatus}</span>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span class="mp-badge ${statusClass}">${t.itemStatus}</span>
+            <div class="custom-ticket-dropdown mypage-more-dropdown" tabindex="0" onclick="this.classList.toggle('open')" onblur="setTimeout(()=>this.classList.remove('open'), 200)" style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 50%;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 20px; height: 20px; color: var(--text-muted);"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
+              <div class="custom-dropdown-options" style="right: -8px; left: auto; top: calc(100% + 4px); min-width: 150px; z-index: 100; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border-radius: 8px; border: 1px solid var(--border-default);">
+                <div class="custom-dropdown-option" onclick="event.stopPropagation(); window.location.href='#'" style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem; padding: 10px 16px;">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 01-8 0" /></svg>
+                  굿즈 상품
+                </div>
+                <div class="custom-dropdown-option" onclick="event.stopPropagation(); window.location.href='#'" style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem; padding: 10px 16px;">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                  입점 점포
+                </div>
+                <div class="custom-dropdown-option" onclick="event.stopPropagation(); window.location.href='#'" style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem; padding: 10px 16px; color: #ff4757;">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                  취소/환불
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
         <div class="mp-card-meta">
           <div>예매 번호: <strong class="mp-color-primary">${t.reservationId}</strong></div>

@@ -242,8 +242,9 @@ function renderWhatsHot() {
     const priceText = price === 0 ? '무료' : price.toLocaleString() + '원';
     const viewsText = (ev.viewCount !== undefined ? ev.viewCount : (ev.views || 2100)).toLocaleString();
 
-    const isNewHtml = ev.isNew ? '<span class="ob-new">신규</span>' : '';
-    const ddayHtml = ev.dday ? `<span class="ob-dday">${ev.dday}</span>` : '';
+    const ddayStr = ev.dday || calcDday(ev.startDate || ev.eventDate, ev.endDate || ev.eventEndDate) || '';
+    const isNewHtml = (ev.isNew && ddayStr !== '종료') ? '<span class="ob-new">신규</span>' : '';
+    const ddayHtml = ddayStr ? `<span class="ob-dday">${ddayStr}</span>` : '';
     const formattedDate = ev.startDate ? formatDate(ev.startDate) : (ev.eventDate ? formatDate(ev.eventDate) : '-');
 
     return `
@@ -744,18 +745,19 @@ document.addEventListener('DOMContentLoaded', async () => {
   let isPartnerFormOpen = false;
 
   if (partnerSection && floatingPopup) {
-    floatingPopup.classList.add('show'); // 초기 상태 노출
+    floatingPopup.classList.remove('show'); // 초기 상태 숨김
 
     // 1. 스크롤 300px 이상 내렸을 때 팝업 노출 및 크기 축소 로직
     window.addEventListener('scroll', () => {
       const scrollY = window.scrollY;
 
-      // 제휴폼이 열려있지 않으면 항상 노출하되, 300px 이상일 때 축소(scrolled)
+      // 제휴폼이 열려있지 않으면 스크롤 내렸을 때만 노출
       if (!isPartnerFormOpen) {
-        floatingPopup.classList.add('show');
         if (scrollY > 300) {
+          floatingPopup.classList.add('show');
           floatingPopup.classList.add('scrolled');
         } else {
+          floatingPopup.classList.remove('show');
           floatingPopup.classList.remove('scrolled');
         }
       } else {
