@@ -126,13 +126,12 @@ public class UserController {
     @DeleteMapping("/me")
     public ResponseEntity<?> withdrawUser(@RequestHeader(value = "Authorization", required = false) String token) {
         try {
-            Long userId = null;
+            String userId = null;
             if (token == null) {
                 return ResponseEntity.status(401).body("로그인이 필요합니다.");
             }
             if (token.startsWith("festio-jwt-token-")) {
-                String userIdStr = token.substring("festio-jwt-token-".length());
-                userId = Long.parseLong(userIdStr);
+                userId = token.substring("festio-jwt-token-".length());
             } else if (token.equals("festio-admin-jwt-token-7777")) {
                 UserVo admin = userService.findByEmail("admin@gmail.com");
                 if (admin != null) {
