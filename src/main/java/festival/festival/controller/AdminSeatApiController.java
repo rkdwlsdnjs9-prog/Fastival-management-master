@@ -159,6 +159,25 @@ public class AdminSeatApiController {
     }
 
     /**
+     * 구역 활성화 상태 토글 (허용/미허용)
+     * PUT /api/admin/zones/{zoneId}/toggle-status
+     */
+    @PutMapping("/zones/{zoneId}/toggle-status")
+    public ResponseEntity<FestivalZone> toggleZoneStatus(@PathVariable("zoneId") Long zoneId) {
+        FestivalZone zone = festivalZoneRepository.findById(zoneId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 구역 ID입니다: " + zoneId));
+        
+        if ("DISABLED".equalsIgnoreCase(zone.getStatus())) {
+            zone.setStatus("NORMAL");
+        } else {
+            zone.setStatus("DISABLED");
+        }
+        
+        FestivalZone updated = festivalZoneRepository.save(zone);
+        return ResponseEntity.ok(updated);
+    }
+
+    /**
      * 7. 특정 좌석의 상세 예매 정보 조회 (관제 대시보드 용)
      * GET /api/admin/seats/{seatId}/reservation
      */

@@ -326,8 +326,6 @@ document.addEventListener('DOMContentLoaded', () => {
       try {
         const requestData = { email, password, name, phone };
 
-        // 실제 연동 시 아래 주석 해제 및 사용
-        /*
         const response = await fetch('/api/auth/register', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -341,13 +339,6 @@ document.addEventListener('DOMContentLoaded', () => {
           const errMsg = await response.text();
           showError(errMsg || '회원가입 처리에 실패했습니다.');
         }
-        */
-
-        // 프론트엔드 UI/UX 확인용 가상 응답 처리
-        showSuccess('회원가입이 완료되었습니다! 로그인 후 이용해주세요.');
-        setTimeout(() => {
-          window.location.href = 'login.html';
-        }, 1200);
 
       } catch (error) {
         console.error('회원가입 에러:', error);

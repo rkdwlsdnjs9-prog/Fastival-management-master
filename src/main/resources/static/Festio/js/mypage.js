@@ -32,7 +32,12 @@ const QR_CIRC = 2 * Math.PI * 11; // ≈ 69.1
 /* 실제 DB 결제 티켓 조회 API 연동 */
 async function fetchTickets() {
   try {
-    const response = await fetch('/api/order/tickets/qr');
+    const token = localStorage.getItem('userToken') || sessionStorage.getItem('userToken') || '';
+    const response = await fetch('/api/order/tickets/qr', {
+      headers: {
+        'Authorization': 'Bearer ' + token
+      }
+    });
     if (response.ok) {
       _dbTickets = await response.json();
       console.log('실제 DB 티켓 조회 완료:', _dbTickets);
@@ -42,11 +47,52 @@ async function fetchTickets() {
   }
 }
 
+/* 실제 DB 푸드트럭 주문 조회 API 연동 */
+async function fetchFoodOrders() {
+  try {
+    const token = localStorage.getItem('userToken') || sessionStorage.getItem('userToken') || '';
+    const response = await fetch('/api/order/fnb', {
+      headers: {
+        'Authorization': 'Bearer ' + token
+      }
+    });
+    if (response.ok) {
+      const fnbOrders = await response.json();
+      MOCK_FOOD_ORDERS = fnbOrders.map(f => {
+        const productName = f.items && f.items.length > 0 ? f.items[0].name : '푸드 상품';
+        const quantity = f.items && f.items.length > 0 ? f.items[0].quantity : 1;
+        
+        let statusText = '주문 완료';
+        if (f.status === 'RECEIVED') statusText = '주문 접수';
+        else if (f.status === 'PREPARING') statusText = '조리 중';
+        else if (f.status === 'READY') statusText = '조리 완료 (픽업 대기)';
+        else if (f.status === 'PICKED_UP') statusText = '수령 완료';
+        
+        return {
+          orderItemId: f.id,
+          storeName: '춘향이네 야시장',
+          productName: productName,
+          quantity: quantity,
+          selectedOptions: '기본 옵션',
+          pickupTimeSlot: f.timestamp ? f.timestamp.split('.')[0] : '실시간 업데이트',
+          totalPrice: f.price,
+          itemStatus: f.status || 'RECEIVED',
+          statusText: statusText,
+          qrToken: f.id
+        };
+      });
+      console.log('실제 DB 푸드트럭 주문 조회 완료:', MOCK_FOOD_ORDERS);
+    }
+  } catch (error) {
+    console.error('DB 푸드트럭 주문 로드 실패:', error);
+  }
+}
+
 /* ═══════════════════════════════════════════════════════════
    1. 인증 가드 & 로컬스토리지 연동 초기화
    ═══════════════════════════════════════════════════════════ */
 function checkAuth() {
-  const userToken = localStorage.getItem('userToken');
+  const userToken = localStorage.getItem('userToken') || sessionStorage.getItem('userToken');
   if (!userToken) {
     alert('로그인이 필요한 서비스입니다.');
     window.location.href = 'login.html';
@@ -56,7 +102,7 @@ function checkAuth() {
 }
 
 async function loadUserInfo() {
-  const userToken = localStorage.getItem('userToken');
+  const userToken = localStorage.getItem('userToken') || sessionStorage.getItem('userToken');
   if (!userToken) return;
 
   try {
@@ -180,59 +226,9 @@ function renderProfile() {
    3. DB 명세 준수 - 가상 예매(reservation) / 푸드트럭 주문(order_item) 바인딩
    ═══════════════════════════════════════════════════════════ */
 // MOCK 데이터 정의
-const MOCK_TICKETS = [
-  {
-    reservationId: 'RES-20260529-873',
-    eventName: '2026 워터밤 서울',
-    eventDate: '2026.07.01 (금)',
-    zoneName: '스탠딩 A구역',
-    quantity: 2,
-    totalPrice: 176000,
-    discountAmount: 10000,
-    paymentStatus: 'PAID', // PAID, PENDING, CANCELLED
-    itemStatus: '예매완료',
-    qrToken: 'X9Y8Z7W6V5U4'
-  },
-  {
-    reservationId: 'RES-20260530-109',
-    eventName: '2026 락 페스티벌',
-    eventDate: '2026.08.15 (토)',
-    zoneName: '지정석 R석',
-    quantity: 1,
-    totalPrice: 99000,
-    discountAmount: 0,
-    paymentStatus: 'PAID',
-    itemStatus: '입장완료',
-    qrToken: 'TA1B2C3D4E56'
-  }
-];
+const MOCK_TICKETS = [];
 
-const MOCK_FOOD_ORDERS = [
-  {
-    orderItemId: 'ORD-20260529-045',
-    storeName: '춘향이네 야시장 (Food Truck #3)',
-    productName: '오코노미야끼 & 야끼소바 세트',
-    quantity: 2,
-    selectedOptions: '치즈 토핑 추가, 아주 매운맛',
-    pickupTimeSlot: '13:00 - 13:30 (픽업 예정)',
-    totalPrice: 24000,
-    itemStatus: 'PREPARING', // ORDERED, PREPARING, READY, PICKED_UP
-    statusText: '조리 중 (대기번호 14번)',
-    qrToken: 'FA1B2C3D4E56'
-  },
-  {
-    orderItemId: 'ORD-20260529-077',
-    storeName: '맥스 킹 수제버거 (Booth #7)',
-    productName: '클래식 치즈버거 & 감자튀김 세트',
-    quantity: 1,
-    selectedOptions: '콜라 제로 변경',
-    pickupTimeSlot: '14:40 - 15:00 (수령 완료)',
-    totalPrice: 15000,
-    itemStatus: 'PICKED_UP',
-    statusText: '수령 완료',
-    qrToken: 'FF6E5D4C3B21'
-  }
-];
+let MOCK_FOOD_ORDERS = [];
 
 // 통계 렌더링
 function renderStats() {
@@ -1778,7 +1774,7 @@ function initProfileEditSave() {
         return;
       }
 
-      const userToken = localStorage.getItem('userToken');
+      const userToken = localStorage.getItem('userToken') || sessionStorage.getItem('userToken');
       try {
         const response = await fetch('/api/auth/update', {
           method: 'POST',
@@ -1990,6 +1986,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   await loadUserInfo();
   await fetchTickets(); // DB 실제 티켓 로드 추가!
+  await fetchFoodOrders(); // DB 실제 푸드트럭 주문 로드 추가!
   renderProfile();
 
   renderStats();

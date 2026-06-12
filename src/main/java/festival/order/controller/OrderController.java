@@ -18,14 +18,41 @@ public class OrderController {
     private JdbcTemplate jdbcTemplate;
 
     @GetMapping("/fnb")
-    public List<Map<String, Object>> getFnbOrders() {
-        String sql = "SELECT oi.id as item_id, p.name as product_name, oi.quantity, p.price, oi.item_status, oi.updated_at " +
-                     "FROM order_item oi " +
-                     "JOIN product p ON oi.product_id = p.id " +
-                     "WHERE oi.product_type = 'FOOD' " +
-                     "ORDER BY oi.updated_at DESC";
+    public List<Map<String, Object>> getFnbOrders(@RequestHeader(value = "Authorization", required = false) String authHeader) {
+        String userId = null;
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String token = authHeader.substring(7);
+            if (token.startsWith("festio-jwt-token-")) {
+                userId = token.substring("festio-jwt-token-".length());
+            } else if (token.equals("festio-admin-jwt-token-7777")) {
+                try {
+                    userId = jdbcTemplate.queryForObject(
+                        "SELECT id FROM app_user WHERE email = 'admin@gmail.com'", String.class);
+                } catch (Exception e) {
+                    // 무시
+                }
+            }
+        }
 
-        List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql);
+        String sql;
+        List<Map<String, Object>> rows;
+        if (userId != null) {
+            sql = "SELECT oi.id as item_id, p.name as product_name, oi.quantity, p.price, oi.item_status, oi.updated_at " +
+                  "FROM order_item oi " +
+                  "JOIN product p ON oi.product_id = p.id " +
+                  "JOIN orders o ON oi.order_id = o.id " +
+                  "WHERE oi.product_type = 'FOOD' AND o.user_id = ? " +
+                  "ORDER BY oi.updated_at DESC";
+            rows = jdbcTemplate.queryForList(sql, userId);
+        } else {
+            sql = "SELECT oi.id as item_id, p.name as product_name, oi.quantity, p.price, oi.item_status, oi.updated_at " +
+                  "FROM order_item oi " +
+                  "JOIN product p ON oi.product_id = p.id " +
+                  "JOIN orders o ON oi.order_id = o.id " +
+                  "WHERE oi.product_type = 'FOOD' AND o.user_id IS NULL " +
+                  "ORDER BY oi.updated_at DESC";
+            rows = jdbcTemplate.queryForList(sql);
+        }
         
         List<Map<String, Object>> result = new ArrayList<>();
         for (Map<String, Object> row : rows) {
@@ -275,7 +302,6 @@ public class OrderController {
 
     @PostMapping("/ticket")
     public Map<String, Object> createTicketOrder(@RequestBody Map<String, Object> payload) {
-<<<<<<< Updated upstream
         int totalPrice = ((Number) payload.get("totalPrice")).intValue();
         List<String> seats = (List<String>) payload.get("seats");      // 텍스트 레이블 (표시용)
         List<Object> seatIdsRaw = (List<Object>) payload.get("seatIds"); // DB PK 배열 (예약 처리용)
@@ -285,40 +311,13 @@ public class OrderController {
         if (seatIdsRaw != null) {
             for (Object idObj : seatIdsRaw) {
                 try { seatIds.add(((Number) idObj).longValue()); } catch (Exception e) { /* 무시 */ }
-=======
-        int totalPrice = (Integer) payload.get("totalPrice");
-        List<String> seats = (List<String>) payload.get("seats");
-        String seatIdsStr = String.join(", ", seats);
-        
-        // QR 텍스트 데이터 및 고유 난수 생성
-        String ticketNum = generateRandomTicketNumber();
-        
-        // PostgreSQL의 RETURNING id 기능을 사용하여 확실하게 INSERT 후 ID 조회 및 기본값 셋팅
-        String insertSql = "INSERT INTO orders (user_id, festival_id, total_price, payment_status, created_at, seat_ids, is_entered, ticket_type, ticket_number) " +
-                           "VALUES (NULL, 1, ?, 'PAID', NOW(), ?, false, 'ONSITE', ?) RETURNING id";
-        
-        Long orderId = jdbcTemplate.queryForObject(insertSql, Long.class, totalPrice, seatIdsStr, ticketNum);
-        
-        // 보안 요구사항: TOTP 전용 비밀키 생성 후 DB에 저장
-        String secret = generateHexSecret();
-        String qrPayload = "SECRET:" + secret;
-        
-        // 정확한 orderId를 기반으로 무작위 생성된 qr_code를 즉시 업데이트
-        jdbcTemplate.update("UPDATE orders SET qr_code = ? WHERE id = ?", qrPayload, orderId);
-        
-        for (String seat : seats) {
-            String zone = seat.split("-")[0];
-            int number = Integer.parseInt(seat.split("-")[1]);
-            
-            try {
-                jdbcTemplate.update(
-                    "UPDATE seat_map SET is_reserved = true WHERE seat_row LIKE ? AND seat_number = ?", 
-                    "%" + zone + "%", number);
-            } catch (Exception e) {
-                e.printStackTrace();
->>>>>>> Stashed changes
             }
         }
+
+        
+
+        
+
 
         // seat_ids 컬럼에는 PK 목록 저장 (조회 및 환불 처리에 활용)
         String seatIdsStr = seatIds.isEmpty()
@@ -334,11 +333,31 @@ public class OrderController {
         // QR 텍스트 데이터 및 고유 난수 생성
         String ticketNum = generateRandomTicketNumber();
 
+        // userToken에서 userId 파싱 (정합성 추가)
+        String userToken = (String) payload.get("userToken");
+        Long userId = null;
+        if (userToken != null) {
+            if (userToken.startsWith("festio-jwt-token-")) {
+                try {
+                    userId = Long.parseLong(userToken.substring("festio-jwt-token-".length()));
+                } catch (Exception e) {
+                    // 무시
+                }
+            } else if (userToken.equals("festio-admin-jwt-token-7777")) {
+                try {
+                    userId = jdbcTemplate.queryForObject(
+                        "SELECT id FROM app_user WHERE email = 'admin@gmail.com'", Long.class);
+                } catch (Exception e) {
+                    // 무시
+                }
+            }
+        }
+
         // INSERT 후 생성된 orderId 반환
         String insertSql = "INSERT INTO orders (user_id, festival_id, total_price, payment_status, created_at, seat_ids, is_entered, ticket_type, ticket_number) " +
-                           "VALUES (NULL, ?, ?, 'PAID', NOW(), ?, false, 'ONSITE', ?) RETURNING id";
+                           "VALUES (?, ?, ?, 'PAID', NOW(), ?, false, 'ONSITE', ?) RETURNING id";
 
-        Long orderId = jdbcTemplate.queryForObject(insertSql, Long.class, festivalId, totalPrice, seatIdsStr, ticketNum);
+        Long orderId = jdbcTemplate.queryForObject(insertSql, Long.class, userId, festivalId, totalPrice, seatIdsStr, ticketNum);
 
         // 보안: TOTP 전용 비밀키 생성 후 저장
         String secret = generateHexSecret();
@@ -385,13 +404,44 @@ public class OrderController {
     }
 
     @GetMapping("/tickets/qr")
-    public List<Map<String, Object>> getQrTickets() {
-        String sql = "SELECT o.id as order_id, o.qr_code, o.is_entered, o.seat_ids, o.ticket_number, o.created_at, o.total_price, e.event_name, e.event_date " +
-                     "FROM orders o " +
-                     "LEFT JOIN event e ON o.festival_id = e.event_no " +
-                     "WHERE o.qr_code IS NOT NULL " +
-                     "ORDER BY o.id DESC";
-        List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql);
+    public List<Map<String, Object>> getQrTickets(@RequestHeader(value = "Authorization", required = false) String authHeader) {
+        Long userId = null;
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String token = authHeader.substring(7);
+            if (token.startsWith("festio-jwt-token-")) {
+                try {
+                    userId = Long.parseLong(token.substring("festio-jwt-token-".length()));
+                } catch (Exception e) {
+                    // 무시
+                }
+            } else if (token.equals("festio-admin-jwt-token-7777")) {
+                try {
+                    userId = jdbcTemplate.queryForObject(
+                        "SELECT id FROM app_user WHERE email = 'admin@gmail.com'", Long.class);
+                } catch (Exception e) {
+                    // 무시
+                }
+            }
+        }
+
+        String sql;
+        List<Map<String, Object>> rows;
+        if (userId != null) {
+            sql = "SELECT o.id as order_id, o.qr_code, o.is_entered, o.seat_ids, o.ticket_number, o.created_at, o.total_price, f.name as event_name, f.start_date as event_date " +
+                  "FROM orders o " +
+                  "LEFT JOIN festival f ON o.festival_id = f.id " +
+                  "WHERE o.qr_code IS NOT NULL AND o.user_id = ? " +
+                  "ORDER BY o.id DESC";
+            rows = jdbcTemplate.queryForList(sql, userId);
+        } else {
+            sql = "SELECT o.id as order_id, o.qr_code, o.is_entered, o.seat_ids, o.ticket_number, o.created_at, o.total_price, f.name as event_name, f.start_date as event_date " +
+                  "FROM orders o " +
+                  "LEFT JOIN festival f ON o.festival_id = f.id " +
+                  "WHERE o.qr_code IS NOT NULL AND o.user_id IS NULL " +
+                  "ORDER BY o.id DESC";
+            rows = jdbcTemplate.queryForList(sql);
+        }
+
         List<Map<String, Object>> result = new ArrayList<>();
         
         for (Map<String, Object> row : rows) {

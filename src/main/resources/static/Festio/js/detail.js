@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Festival O2O Platform — detail.js
  * ─────────────────────────────────────────────────────────────
  * 상세/예매 화면:
@@ -89,7 +89,8 @@ function renderEventDetail(detail) {
     }
   }
 
-  // 좌석 배치도 동기화 (구역 선택 영역)
+  // 좌석 배치도 동기화 (구역 선택 영역 배경 이미지 제거)
+  /*
   const mapUrl = detail.mapImageUrl || detail.map_image_url;
   if (mapUrl) {
     const bgOverlay = document.getElementById('venueBgOverlay');
@@ -97,6 +98,22 @@ function renderEventDetail(detail) {
       bgOverlay.style.backgroundImage = `url('${mapUrl}')`;
     }
   }
+  */
+}
+
+function getFigmaTemplateSelector(zoneName) {
+  if (!zoneName) return null;
+  const name = zoneName.toLowerCase().replace(/\s+/g, '');
+  if (name.includes('vip')) return 'vip';
+  if (name.includes('f1')) return 'f1';
+  if (name.includes('f2')) return 'f2';
+  if (name.includes('f3')) return 'f3';
+  if (name.includes('스탠딩')) return 'standing';
+  if (name.includes('a존(좌)') || name.includes('a존좌') || name.includes('aleft')) return 'a-left';
+  if (name.includes('a존(우)') || name.includes('a존우') || name.includes('aright')) return 'a-right';
+  if (name.includes('f4(좌)') || name.includes('f4좌') || name.includes('f4left')) return 'f4-left';
+  if (name.includes('f4(우)') || name.includes('f4우') || name.includes('f4right')) return 'f4-right';
+  return null;
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -110,14 +127,88 @@ function initVenueMap(zones) {
 
   if (!svg || !zones || !Array.isArray(zones)) return;
 
-  // 1. 도면 배경 이미지 로드 (구역 중 mapBgUrl 이 지정된 첫 번째 것을 대표로 사용)
+  // 1. 도면 배경 이미지 로드 제거
+  /*
   const zoneWithBg = zones.find(z => z.mapBgUrl);
   if (zoneWithBg && bgOverlay) {
     bgOverlay.style.backgroundImage = `url('${zoneWithBg.mapBgUrl}')`;
   }
+  */
 
   // 2. SVG 구역 다각형 그리기
-  svg.innerHTML = ''; // 기존 정적 렌더링 클리어
+  svg.innerHTML = `
+    <!-- Figma static background drawings -->
+    <g id="figmaBackground" opacity="1">
+      <!-- Stage -->
+      <g>
+        <path d="M 100 50 L 700 50 L 680 120 L 120 120 Z" fill="#FFE5E5" stroke="#9ca3af" stroke-width="1.5" />
+        <text x="400" y="95" text-anchor="middle" fill="#374151" font-size="24" font-weight="bold">Stage</text>
+      </g>
+      
+      <!-- VIP존 -->
+      <g class="figma-template-zone" data-template="vip">
+        <path d="M 250 150 L 550 150 L 540 230 L 260 230 Z" fill="#FFD4E5" stroke="#9ca3af" stroke-width="1.5" />
+        <text x="400" y="195" text-anchor="middle" fill="#374151" font-size="16" font-weight="600">VIP존</text>
+        <text x="400" y="215" text-anchor="middle" fill="#6b7280" font-size="12">100석</text>
+      </g>
+      
+      <!-- F1 -->
+      <g class="figma-template-zone" data-template="f1">
+        <path d="M 180 250 L 340 250 L 340 340 L 180 340 Z" fill="#E5F3FF" stroke="#9ca3af" stroke-width="1.5" />
+        <text x="260" y="295" text-anchor="middle" fill="#374151" font-size="16" font-weight="600">F1</text>
+        <text x="260" y="315" text-anchor="middle" fill="#6b7280" font-size="12">80석</text>
+      </g>
+      
+      <!-- F2 -->
+      <g class="figma-template-zone" data-template="f2">
+        <path d="M 360 250 L 440 250 L 440 340 L 360 340 Z" fill="#E5F9FF" stroke="#9ca3af" stroke-width="1.5" />
+        <text x="400" y="295" text-anchor="middle" fill="#374151" font-size="16" font-weight="600">F2</text>
+        <text x="400" y="315" text-anchor="middle" fill="#6b7280" font-size="12">50석</text>
+      </g>
+      
+      <!-- F3 -->
+      <g class="figma-template-zone" data-template="f3">
+        <path d="M 460 250 L 620 250 L 620 340 L 460 340 Z" fill="#E5F3FF" stroke="#9ca3af" stroke-width="1.5" />
+        <text x="540" y="295" text-anchor="middle" fill="#374151" font-size="16" font-weight="600">F3</text>
+        <text x="540" y="315" text-anchor="middle" fill="#6b7280" font-size="12">80석</text>
+      </g>
+      
+      <!-- 스탠딩존 -->
+      <g class="figma-template-zone" data-template="standing">
+        <path d="M 220 360 L 580 360 L 580 500 L 220 500 Z" fill="#FFF9E5" stroke="#9ca3af" stroke-width="1.5" />
+        <text x="400" y="435" text-anchor="middle" fill="#374151" font-size="16" font-weight="600">스탠딩존</text>
+        <text x="400" y="455" text-anchor="middle" fill="#6b7280" font-size="12">200명</text>
+      </g>
+      
+      <!-- A존 (좌) -->
+      <g class="figma-template-zone" data-template="a-left">
+        <path d="M 100 250 L 160 250 L 160 500 L 100 500 Z" fill="#F0E5FF" stroke="#9ca3af" stroke-width="1.5" />
+        <text x="130" y="380" text-anchor="middle" fill="#374151" font-size="16" font-weight="600">A존 (좌)</text>
+        <text x="130" y="400" text-anchor="middle" fill="#6b7280" font-size="12">60석</text>
+      </g>
+      
+      <!-- A존 (우) -->
+      <g class="figma-template-zone" data-template="a-right">
+        <path d="M 640 250 L 700 250 L 700 500 L 640 500 Z" fill="#F0E5FF" stroke="#9ca3af" stroke-width="1.5" />
+        <text x="670" y="380" text-anchor="middle" fill="#374151" font-size="16" font-weight="600">A존 (우)</text>
+        <text x="670" y="400" text-anchor="middle" fill="#6b7280" font-size="12">60석</text>
+      </g>
+      
+      <!-- F4 (좌) -->
+      <g class="figma-template-zone" data-template="f4-left">
+        <path d="M 100 520 L 300 520 L 300 610 L 100 610 Z" fill="#E5FFE5" stroke="#9ca3af" stroke-width="1.5" />
+        <text x="200" y="570" text-anchor="middle" fill="#374151" font-size="16" font-weight="600">F4 (좌)</text>
+        <text x="200" y="590" text-anchor="middle" fill="#6b7280" font-size="12">100석</text>
+      </g>
+      
+      <!-- F4 (우) -->
+      <g class="figma-template-zone" data-template="f4-right">
+        <path d="M 500 520 L 700 520 L 700 610 L 500 610 Z" fill="#E5FFE5" stroke="#9ca3af" stroke-width="1.5" />
+        <text x="600" y="570" text-anchor="middle" fill="#374151" font-size="16" font-weight="600">F4 (우)</text>
+        <text x="600" y="590" text-anchor="middle" fill="#6b7280" font-size="12">100석</text>
+      </g>
+    </g>
+  `; // 기존 정적 렌더링 클리어
 
   zones.forEach(zone => {
     if (!zone.svgPoints) return;
@@ -141,6 +232,29 @@ function initVenueMap(zones) {
     }
 
     svg.appendChild(polygon);
+
+    // 피그마 템플릿 구역 찾기 및 클릭/상태 매핑
+    const templateKey = getFigmaTemplateSelector(zone.zoneName);
+    if (templateKey) {
+      const templateEl = svg.querySelector(`.figma-template-zone[data-template="${templateKey}"]`);
+      if (templateEl) {
+        templateEl.setAttribute('data-zone-no', zone.zoneNo);
+        
+        // 마우스 오버 시 표시할 툴팁 텍스트 설정
+        const templateTitle = templateEl.querySelector('title') || document.createElementNS('http://www.w3.org/2000/svg', 'title');
+        templateTitle.textContent = `${zone.zoneName} (잔여: ${zone.remainingCapacity}석 / 총: ${zone.totalCapacity}석)`;
+        if (!templateEl.querySelector('title')) {
+          templateEl.appendChild(templateTitle);
+        }
+
+        if (zone.remainingCapacity === 0) {
+          templateEl.classList.add('sold-out');
+          templateEl.setAttribute('aria-disabled', 'true');
+        } else {
+          templateEl.addEventListener('click', () => selectZone(zone.zoneNo, zone, templateEl));
+        }
+      }
+    }
   });
 
   // 3. 범례 목록 동적 생성
@@ -170,8 +284,11 @@ function initVenueMap(zones) {
 
       if (!isSoldOut) {
         legendItem.addEventListener('click', () => {
-          const polyEl = svg.querySelector(`[data-zone-no="${zone.zoneNo}"]`);
-          if (polyEl) selectZone(zone.zoneNo, zone, polyEl);
+          let targetEl = svg.querySelector(`.figma-template-zone[data-zone-no="${zone.zoneNo}"]`);
+          if (!targetEl) {
+            targetEl = svg.querySelector(`.zone-polygon[data-zone-no="${zone.zoneNo}"]`);
+          }
+          if (targetEl) selectZone(zone.zoneNo, zone, targetEl);
         });
       }
 
@@ -186,6 +303,7 @@ function selectZone(zoneNo, zone, svgEl) {
 
   // SVG 선택 강조
   $$('.zone-polygon').forEach(el => el.classList.remove('selected'));
+  $$('.figma-template-zone').forEach(el => el.classList.remove('selected'));
   if (svgEl) svgEl.classList.add('selected');
 
   // 범례 선택 강조
@@ -202,6 +320,11 @@ function selectZone(zoneNo, zone, svgEl) {
   updateQtyDisplay();
   updateCtaBar(zone);
   openSeatSelectionModal(zoneNo, zone);
+}
+
+function updateQtyDisplay() {
+  const el = $('.qty-value');
+  if (el) el.textContent = _quantity;
 }
 
 function updateZoneInfoPanel(zone) {
@@ -801,7 +924,8 @@ async function initiateTossPayment() {
     seatIds: seatIds,       // DB PK 배열 - 구역별 정확한 좌석 예약용
     eventNo: getEventNo(),
     eventName: _eventDetail?.eventName || '',
-    zoneName: zone?.zoneName || ''
+    zoneName: zone?.zoneName || '',
+    userToken: localStorage.getItem('userToken') || sessionStorage.getItem('userToken') || ''
   };
 
   Modal.close('modal-payment');
@@ -842,21 +966,71 @@ async function initiateTossPayment() {
     return;
   }
 
-  // 2. Toss Payments 결제 요청
-  try {
-    const tossPayments = TossPayments(TOSS_CLIENT_KEY);
-
-    const methodMap = {
-      card: '카드',
-      virtual: '가상계좌',
-    };
+  // 2. Portone V1 카드 결제 요청
+  if (_selectedPayMethod === 'card') {
+    if (!window.IMP) {
+      Toast.error('포트원 결제 모듈을 불러오는 중입니다. 잠시 후 다시 시도해 주세요.');
+      return;
+    }
+    const { IMP } = window;
+    IMP.init("imp81384776"); // 사용자의 가맹점 식별코드
 
     const seatDisplay = _selectedSeats.map(s => {
       const rowClean = (s.seatRow || '').replace(/열$/, '');
       return `${rowClean}열 ${s.seatNumber}번`;
     }).join(', ');
 
-    await tossPayments.requestPayment(methodMap[_selectedPayMethod] || '카드', {
+    IMP.request_pay({
+      pg: "html5_inicis.INIpayTest", // 이니시스 테스트 상점 ID (INIpayTest)
+      pay_method: "card",
+      merchant_uid: _orderUid,
+      name: `${_eventDetail?.eventName || '티켓'} - ${seatDisplay}`,
+      amount: netAmount,
+      buyer_email: user?.email || "",
+      buyer_name: customerName,
+      buyer_tel: user?.phone || "010-0000-0000"
+    }, async function (rsp) {
+      if (rsp.success) {
+        Toast.success('결제가 완료되었습니다! 티켓을 발급 중입니다...', 4000);
+        // 주문 확인 및 승인
+        try {
+          await orderApi.confirmPayment(_orderNo, {
+            pgProvider: 'portone',
+            pgTid: rsp.imp_uid,
+            orderUid: rsp.merchant_uid,
+          });
+        } catch (confirmErr) {
+          console.error(confirmErr);
+        }
+        Modal.closeAll();
+        showBookingSuccess();
+      } else {
+        Toast.error(`결제 실패: ${rsp.error_msg}`);
+        // 결제 실패 혹은 취소 시 데이터베이스 주문 취소 및 좌석 반환 처리
+        try {
+          await fetch(`/api/order/tickets/${_orderNo}/status`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: 'REFUNDED' })
+          });
+        } catch (cancelErr) {
+          console.error('[Order Cancel Error]', cancelErr);
+        }
+      }
+    });
+    return;
+  }
+
+  // 3. Toss Payments 결제 요청 (가상계좌)
+  try {
+    const tossPayments = TossPayments(TOSS_CLIENT_KEY);
+
+    const seatDisplay = _selectedSeats.map(s => {
+      const rowClean = (s.seatRow || '').replace(/열$/, '');
+      return `${rowClean}열 ${s.seatNumber}번`;
+    }).join(', ');
+
+    await tossPayments.requestPayment('가상계좌', {
       amount: netAmount,
       orderId: _orderUid,
       orderName: `${_eventDetail?.eventName || '티켓'} - ${seatDisplay}`,
@@ -924,6 +1098,18 @@ function enterPaymentModal() {
   const zone = _eventDetail?.zones.find(z => z.zoneNo === _selectedZoneNo);
   if (!zone) return;
 
+  // 기본 결제 수단으로 카드(Portone) 선택 및 버튼 텍스트 설정
+  _selectedPayMethod = 'card';
+  $$('.pay-method-btn').forEach(o => o.classList.remove('selected'));
+  const cardBtn = $('.pay-method-btn[data-method="card"]');
+  if (cardBtn) cardBtn.classList.add('selected');
+  
+  const payBtnText = $('#btn-pay-text');
+  if (payBtnText) payBtnText.textContent = 'Portone으로 결제';
+
+  const festioArea = $('#festiopay-area');
+  if (festioArea) festioArea.classList.add('hidden');
+
   updatePaymentSummary(zone);
   Modal.open('modal-payment');
 }
@@ -965,8 +1151,8 @@ function initBookingBtn() {
       if (zone) openSeatSelectionModal(_selectedZoneNo, zone);
       return;
     }
-    Modal.open('modal-queue');
-    startQueueSimulation();
+    // 테스트를 위해 대기열을 건너뛰고 바로 결제창 진입
+    enterPaymentModal();
   });
 
   on($('#btn-cancel-queue'), 'click', () => {
@@ -1013,6 +1199,14 @@ function initPaymentMethodSelect() {
     $$('.pay-method-btn').forEach(o => o.classList.remove('selected'));
     option.classList.add('selected');
     _selectedPayMethod = option.dataset.method || 'card';
+
+    // 결제 버튼 텍스트 변경
+    const payBtnText = $('#btn-pay-text');
+    if (payBtnText) {
+      if (_selectedPayMethod === 'card') payBtnText.textContent = 'Portone으로 결제';
+      else if (_selectedPayMethod === 'virtual') payBtnText.textContent = 'Toss로 결제 (가상계좌)';
+      else if (_selectedPayMethod === 'festiopay') payBtnText.textContent = 'FESTIO Pay로 결제';
+    }
 
     const festioArea = $('#festiopay-area');
     if (festioArea) {
@@ -1138,12 +1332,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     return;
   }
 
-  // 사용자 편집 데이터 불러오기 (localStorage)
-  const savedTabs = localStorage.getItem(`festio_event_${eventNo}_tabs`);
-  if (savedTabs) {
-    const tabsSection = document.getElementById('detailTabsSection');
-    if (tabsSection) {
-      tabsSection.innerHTML = savedTabs;
+  // 사용자 편집 데이터 불러오기 (우선순위: DB > localStorage)
+  const tabsSection = document.getElementById('detailTabsSection');
+  if (tabsSection) {
+    if (detail.descriptionHtml) {
+      tabsSection.innerHTML = detail.descriptionHtml;
+    } else {
+      const savedTabs = localStorage.getItem(`festio_event_${eventNo}_tabs`);
+      if (savedTabs) {
+        tabsSection.innerHTML = savedTabs;
+      }
     }
   }
 
@@ -1477,13 +1675,8 @@ function addAccordionItem(listWrap, title, id, index, tabElement) {
 
   item.querySelector('.btn-delete-section').addEventListener('click', (e) => {
     e.stopPropagation();
-    const modal = document.getElementById('deleteConfirmModal');
-    const btnConfirm = document.getElementById('btnDeleteConfirm');
-    const btnCancel = document.getElementById('btnDeleteCancel');
 
-    modal.querySelector('p').textContent = '이 섹션을 삭제하시겠습니까?';
-
-    const handleConfirm = () => {
+    if (confirm('이 섹션을 삭제하시겠습니까?')) {
       const targetId = item.dataset.targetId;
       const targetTab = document.getElementById(targetId);
       if (targetTab) targetTab.remove();
@@ -1493,19 +1686,42 @@ function addAccordionItem(listWrap, title, id, index, tabElement) {
       if (tabBtn) tabBtn.remove();
 
       item.remove();
-      syncTabsOrder(listWrap, document.getElementById('detailTabsSection'));
-      closeModal();
-    };
-
-    const closeModal = () => {
-      modal.style.display = 'none';
-      btnConfirm.removeEventListener('click', handleConfirm);
-      btnCancel.removeEventListener('click', closeModal);
-    };
-
-    btnConfirm.addEventListener('click', handleConfirm);
-    btnCancel.addEventListener('click', closeModal);
-    modal.style.display = 'flex';
+      
+      const listWrap = document.getElementById('builderAccordionList');
+      const tabsSection = document.getElementById('detailTabsSection');
+      if (listWrap && tabsSection) {
+        syncTabsOrder(listWrap, tabsSection);
+        
+        // 즉시 DB 저장 연동
+        const wasEditMode = isEditMode;
+        if (wasEditMode) {
+          destroyMainAreaEditors(tabsSection);
+        }
+        
+        const htmlContent = tabsSection.innerHTML;
+        const eventNo = getEventNo();
+        
+        eventApi.saveDescriptionHtml(eventNo, htmlContent)
+          .then(result => {
+            if (result) {
+              localStorage.setItem(`festio_event_${eventNo}_tabs`, htmlContent);
+              Toast.success('✅ 섹션이 삭제되고 DB에 성공적으로 반영되었습니다.');
+            } else {
+              localStorage.setItem(`festio_event_${eventNo}_tabs`, htmlContent);
+              Toast.warn('⚠️ DB 저장 실패로 브라우저에 임시 반영되었습니다.');
+            }
+          })
+          .catch(err => {
+            localStorage.setItem(`festio_event_${eventNo}_tabs`, htmlContent);
+            console.error('saveDescriptionHtml error during delete:', err);
+          })
+          .finally(() => {
+            if (wasEditMode) {
+              initMainAreaEditors(tabsSection);
+            }
+          });
+      }
+    }
   });
 
   const fileInput = item.querySelector('.gallery-upload-input');
@@ -1781,19 +1997,23 @@ function makeBlockEditor(tab, sidebarContainer) {
   const addActions = document.createElement('div');
   addActions.className = 'block-add-actions';
   addActions.style.display = 'flex';
-  addActions.style.gap = '12px';
-  addActions.style.padding = '24px 0';
+  addActions.style.flexWrap = 'wrap';
+  addActions.style.gap = '8px';
+  addActions.style.padding = '16px 0';
   addActions.style.justifyContent = 'center';
   addActions.innerHTML = `
-    <button class="btn btn-add-text-block" style="background:#fff; border:1px solid #e5e7eb; padding:10px 20px; border-radius:30px; font-weight:600; font-size:0.9rem; color:#4b5563; box-shadow:0 2px 4px rgba(0,0,0,0.02); cursor:pointer; transition:all 0.2s;">+ 텍스트 블록 추가</button>
-    <button class="btn btn-add-gallery-block" style="background:#fff; border:1px solid #e5e7eb; padding:10px 20px; border-radius:30px; font-weight:600; font-size:0.9rem; color:#4b5563; box-shadow:0 2px 4px rgba(0,0,0,0.02); cursor:pointer; transition:all 0.2s;">+ 갤러리 영역 추가</button>
+    <button class="btn btn-add-text-block" style="background:#fff; border:1px solid #e5e7eb; padding:8px 16px; border-radius:30px; font-weight:600; font-size:0.85rem; color:#4b5563; box-shadow:0 2px 4px rgba(0,0,0,0.02); cursor:pointer; transition:all 0.2s;">+ 텍스트 블록</button>
+    <button class="btn btn-add-gallery-block" style="background:#fff; border:1px solid #e5e7eb; padding:8px 16px; border-radius:30px; font-weight:600; font-size:0.85rem; color:#4b5563; box-shadow:0 2px 4px rgba(0,0,0,0.02); cursor:pointer; transition:all 0.2s;">+ 갤러리</button>
+    <button class="btn btn-add-map-block" style="background:#fff; border:1px solid #e5e7eb; padding:8px 16px; border-radius:30px; font-weight:600; font-size:0.85rem; color:#4b5563; box-shadow:0 2px 4px rgba(0,0,0,0.02); cursor:pointer; transition:all 0.2s;">+ 지도 영역</button>
+    <button class="btn btn-add-list-block" style="background:#fff; border:1px solid #e5e7eb; padding:8px 16px; border-radius:30px; font-weight:600; font-size:0.85rem; color:#4b5563; box-shadow:0 2px 4px rgba(0,0,0,0.02); cursor:pointer; transition:all 0.2s;">+ 타임라인/리스트</button>
+    <button class="btn btn-add-notice-block" style="background:#fff; border:1px solid #e5e7eb; padding:8px 16px; border-radius:30px; font-weight:600; font-size:0.85rem; color:#4b5563; box-shadow:0 2px 4px rgba(0,0,0,0.02); cursor:pointer; transition:all 0.2s;">+ 공지 배너</button>
   `;
   wrap.appendChild(addActions);
   sidebarContainer.appendChild(wrap);
 
-  const addTextBlock = (content = '') => {
+  const createBlockWrapper = (typeLabel, iconSvg, blockClass) => {
     const block = document.createElement('div');
-    block.className = 'editor-block text-block';
+    block.className = `editor-block ${blockClass}`;
     block.style.position = 'relative';
     block.style.border = '1px solid #e5e7eb';
     block.style.borderRadius = '12px';
@@ -1817,7 +2037,7 @@ function makeBlockEditor(tab, sidebarContainer) {
 
     controls.innerHTML = `
       <div style="font-size:0.75rem; font-weight:700; color:#6b7280; display:flex; align-items:center; gap:4px;">
-         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/></svg> 텍스트 블록
+         ${iconSvg} ${typeLabel}
       </div>
       <div style="display:flex; gap:4px;">
         <button class="btn-block-up" style="cursor:pointer; background:#fff; border:1px solid #d1d5db; border-radius:4px; width:24px; height:24px; display:flex; align-items:center; justify-content:center; color:#4b5563; transition:background 0.2s;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m18 15-6-6-6 6"/></svg></button>
@@ -1826,6 +2046,29 @@ function makeBlockEditor(tab, sidebarContainer) {
       </div>
     `;
     block.appendChild(controls);
+    return block;
+  };
+
+  const bindBlockControls = (block) => {
+    block.querySelector('.btn-block-up').addEventListener('click', () => {
+      const prev = block.previousElementSibling;
+      if (prev) blocksContainer.insertBefore(block, prev);
+      syncLivePreview(tab, blocksContainer);
+    });
+    block.querySelector('.btn-block-down').addEventListener('click', () => {
+      const next = block.nextElementSibling;
+      if (next) blocksContainer.insertBefore(next, block);
+      syncLivePreview(tab, blocksContainer);
+    });
+    block.querySelector('.btn-block-del').addEventListener('click', () => {
+      block.remove();
+      syncLivePreview(tab, blocksContainer);
+    });
+  };
+
+  const addTextBlock = (content = '') => {
+    const icon = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/></svg>`;
+    const block = createBlockWrapper('텍스트 블록', icon, 'text-block');
 
     const quillWrap = document.createElement('div');
     quillWrap.className = 'quill-main-editor';
@@ -1834,6 +2077,7 @@ function makeBlockEditor(tab, sidebarContainer) {
     block.appendChild(quillWrap);
 
     blocksContainer.appendChild(block);
+    bindBlockControls(block);
 
     if (typeof Quill !== 'undefined') {
       const quill = new Quill(quillWrap, {
@@ -1847,45 +2091,12 @@ function makeBlockEditor(tab, sidebarContainer) {
       });
     }
 
-    bindBlockControls(block);
     syncLivePreview(tab, blocksContainer);
   };
 
-  const addGalleryBlock = () => {
-    const block = document.createElement('div');
-    block.className = 'editor-block gallery-block';
-    block.style.position = 'relative';
-    block.style.border = '1px solid #e5e7eb';
-    block.style.borderRadius = '12px';
-    block.style.padding = '40px 0 0 0';
-    block.style.background = '#fff';
-    block.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.05)';
-    block.style.overflow = 'hidden';
-
-    const controls = document.createElement('div');
-    controls.style.position = 'absolute';
-    controls.style.top = '0';
-    controls.style.left = '0';
-    controls.style.right = '0';
-    controls.style.height = '40px';
-    controls.style.background = '#f9fafb';
-    controls.style.borderBottom = '1px solid #e5e7eb';
-    controls.style.display = 'flex';
-    controls.style.alignItems = 'center';
-    controls.style.justifyContent = 'space-between';
-    controls.style.padding = '0 12px';
-
-    controls.innerHTML = `
-      <div style="font-size:0.75rem; font-weight:700; color:#6b7280; display:flex; align-items:center; gap:4px;">
-         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg> 갤러리 영역
-      </div>
-      <div style="display:flex; gap:4px;">
-        <button class="btn-block-up" style="cursor:pointer; background:#fff; border:1px solid #d1d5db; border-radius:4px; width:24px; height:24px; display:flex; align-items:center; justify-content:center; color:#4b5563; transition:background 0.2s;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m18 15-6-6-6 6"/></svg></button>
-        <button class="btn-block-down" style="cursor:pointer; background:#fff; border:1px solid #d1d5db; border-radius:4px; width:24px; height:24px; display:flex; align-items:center; justify-content:center; color:#4b5563; transition:background 0.2s;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg></button>
-        <button class="btn-block-del" style="cursor:pointer; background:#fef2f2; border:1px solid #fecaca; border-radius:4px; width:24px; height:24px; display:flex; align-items:center; justify-content:center; color:#ef4444; transition:background 0.2s; margin-left:4px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
-      </div>
-    `;
-    block.appendChild(controls);
+  const addGalleryBlock = (savedGalleryData = null) => {
+    const icon = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>`;
+    const block = createBlockWrapper('갤러리 영역', icon, 'gallery-block');
 
     const uploadWrap = document.createElement('div');
     uploadWrap.style.padding = '1.5rem';
@@ -1910,7 +2121,6 @@ function makeBlockEditor(tab, sidebarContainer) {
       <div class="gallery-preview-container" style="display:none;"></div>
     `;
     block.appendChild(uploadWrap);
-
     blocksContainer.appendChild(block);
     bindBlockControls(block);
 
@@ -1918,9 +2128,12 @@ function makeBlockEditor(tab, sidebarContainer) {
     const previewGrid = block.querySelector('.uploaded-image-grid');
     const layoutSelect = block.querySelector('.gallery-layout-select');
 
-    layoutSelect.addEventListener('change', () => {
+    const triggerUpdate = () => {
       updateGalleryPreview(tab.id);
-    });
+      syncLivePreview(tab, blocksContainer);
+    };
+
+    layoutSelect.addEventListener('change', triggerUpdate);
 
     fileInput.addEventListener('change', (e) => {
       const files = Array.from(e.target.files);
@@ -1951,56 +2164,383 @@ function makeBlockEditor(tab, sidebarContainer) {
 
           imgWrap.querySelector('.btn-remove-img').addEventListener('click', () => {
             imgWrap.remove();
-            updateGalleryPreview(tab.id);
+            triggerUpdate();
           });
 
           previewGrid.appendChild(imgWrap);
-          updateGalleryPreview(tab.id);
+          triggerUpdate();
         };
         reader.readAsDataURL(file);
       });
       fileInput.value = '';
     });
 
-    syncLivePreview(tab, blocksContainer);
+    if (savedGalleryData) {
+      if (savedGalleryData.layout) layoutSelect.value = savedGalleryData.layout;
+      if (savedGalleryData.images) {
+        savedGalleryData.images.forEach(src => {
+          const imgWrap = document.createElement('div');
+          imgWrap.className = 'uploaded-image-item';
+          imgWrap.style.position = 'relative';
+          imgWrap.style.aspectRatio = '1';
+          imgWrap.style.borderRadius = '8px';
+          imgWrap.style.overflow = 'hidden';
+          imgWrap.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+          imgWrap.innerHTML = `
+            <img src="${src}" style="width:100%; height:100%; object-fit:cover;">
+            <button class="btn-remove-img" style="position:absolute; top:4px; right:4px; background:rgba(0,0,0,0.5); color:#fff; border:none; border-radius:50%; width:20px; height:20px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:12px;">✕</button>
+          `;
+          imgWrap.querySelector('.btn-remove-img').addEventListener('click', () => {
+            imgWrap.remove();
+            triggerUpdate();
+          });
+          previewGrid.appendChild(imgWrap);
+        });
+      }
+    }
+
+    triggerUpdate();
   };
 
-  function bindBlockControls(block) {
-    block.querySelector('.btn-block-up').addEventListener('click', () => {
-      const prev = block.previousElementSibling;
-      if (prev) blocksContainer.insertBefore(block, prev);
+  const addMapBlock = (savedMapData = null) => {
+    const icon = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>`;
+    const block = createBlockWrapper('지도 영역', icon, 'map-block');
+
+    const address = savedMapData?.address || '';
+    const mapIframe = savedMapData?.iframe || '';
+    const desc = savedMapData?.desc || '';
+
+    const contentWrap = document.createElement('div');
+    contentWrap.style.padding = '1.5rem';
+    contentWrap.innerHTML = `
+      <div style="margin-bottom:1rem;">
+        <label style="display:block; font-size:0.8rem; font-weight:700; color:#374151; margin-bottom:4px;">장소명 / 주소</label>
+        <input type="text" class="form-control map-address-input" style="width:100%; border-radius:8px; border:1px solid #d1d5db; padding:8px; font-size:0.85rem;" placeholder="예: 서울 송파구 올림픽로 25" value="${address}">
+      </div>
+      <div style="margin-bottom:1rem;">
+        <label style="display:block; font-size:0.8rem; font-weight:700; color:#374151; margin-bottom:4px;">지도 HTML (공유 iframe 소스)</label>
+        <textarea class="form-control map-iframe-input" style="width:100%; border-radius:8px; border:1px solid #d1d5db; padding:8px; height:80px; font-family:monospace; font-size:0.8rem;" placeholder="<iframe src='...' ...></iframe>">${mapIframe}</textarea>
+      </div>
+      <div style="margin-bottom:1rem;">
+        <label style="display:block; font-size:0.8rem; font-weight:700; color:#374151; margin-bottom:4px;">위치 부가 설명</label>
+        <input type="text" class="form-control map-desc-input" style="width:100%; border-radius:8px; border:1px solid #d1d5db; padding:8px; font-size:0.85rem;" placeholder="예: 올림픽공원 평화의광장 정문 앞" value="${desc}">
+      </div>
+      <div class="gallery-preview-container" style="display:none;"></div>
+    `;
+    block.appendChild(contentWrap);
+    blocksContainer.appendChild(block);
+    bindBlockControls(block);
+
+    const triggerUpdate = () => {
+      updateMapPreview(block);
       syncLivePreview(tab, blocksContainer);
+    };
+
+    contentWrap.querySelectorAll('input, textarea').forEach(input => {
+      input.addEventListener('input', triggerUpdate);
     });
-    block.querySelector('.btn-block-down').addEventListener('click', () => {
-      const next = block.nextElementSibling;
-      if (next) blocksContainer.insertBefore(next, block);
+
+    triggerUpdate();
+  };
+
+  const updateMapPreview = (block) => {
+    const address = block.querySelector('.map-address-input').value;
+    const iframe = block.querySelector('.map-iframe-input').value;
+    const desc = block.querySelector('.map-desc-input').value;
+    const preview = block.querySelector('.gallery-preview-container');
+
+    let html = `
+      <div class="view-map-block" style="background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:1.25rem; margin-bottom:1.5rem; box-shadow:0 4px 6px -1px rgba(0, 0, 0, 0.05);">
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
+          <div style="width:32px; height:32px; background:#eff6ff; color:#3b82f6; border-radius:50%; display:flex; align-items:center; justify-content:center;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+          </div>
+          <div>
+            <h4 style="margin:0; font-size:0.95rem; font-weight:700; color:#1f2937;">${address || '장소 위치 안내'}</h4>
+            ${desc ? `<p style="margin:2px 0 0; font-size:0.8rem; color:#6b7280;">${desc}</p>` : ''}
+          </div>
+        </div>
+        ${iframe ? `
+          <div class="map-iframe-container" style="border-radius:8px; overflow:hidden; border:1px solid #f3f4f6; aspect-ratio:16/9; max-height:280px; width:100%;">
+            ${iframe}
+          </div>
+        ` : `
+          <div style="height:120px; background:#f3f4f6; border-radius:8px; display:flex; align-items:center; justify-content:center; color:#9ca3af; font-size:0.85rem;">
+            지도가 등록되지 않았습니다.
+          </div>
+        `}
+      </div>
+    `;
+    preview.innerHTML = html;
+  };
+
+  const addListBlock = (savedListData = null) => {
+    const icon = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>`;
+    const block = createBlockWrapper('타임라인 / 리스트', icon, 'list-block');
+
+    const contentWrap = document.createElement('div');
+    contentWrap.style.padding = '1.5rem';
+    contentWrap.innerHTML = `
+      <div style="margin-bottom:1rem;">
+        <label style="display:block; font-size:0.8rem; font-weight:700; color:#374151; margin-bottom:4px;">리스트 스타일</label>
+        <select class="form-control list-style-select" style="width:100%; border-radius:8px; border:1px solid #d1d5db; padding:8px;">
+          <option value="timeline">Timeline (타임라인/시간표)</option>
+          <option value="bullet">Bullet (요약 정리형)</option>
+          <option value="card">Card (카드 나열형)</option>
+        </select>
+      </div>
+      <div style="margin-bottom:1rem; font-weight:700; color:var(--text-main); font-size:0.9rem;">리스트 항목</div>
+      <div class="list-items-container" style="display:flex; flex-direction:column; gap:8px; margin-bottom:1rem;"></div>
+      <button class="btn btn-add-row-item" style="width:100%; background:#eff6ff; border:1px dashed #bfdbfe; padding:8px; border-radius:8px; color:#1d4ed8; font-weight:600; font-size:0.8rem; cursor:pointer;">+ 항목 추가</button>
+      <div class="gallery-preview-container" style="display:none;"></div>
+    `;
+    block.appendChild(contentWrap);
+    blocksContainer.appendChild(block);
+    bindBlockControls(block);
+
+    const itemsContainer = contentWrap.querySelector('.list-items-container');
+    const styleSelect = contentWrap.querySelector('.list-style-select');
+
+    const triggerUpdate = () => {
+      updateListPreview(block);
       syncLivePreview(tab, blocksContainer);
-    });
-    block.querySelector('.btn-block-del').addEventListener('click', () => {
-      block.remove();
+    };
+
+    const addRow = (title = '', desc = '') => {
+      const row = document.createElement('div');
+      row.className = 'list-row-item';
+      row.style.display = 'flex';
+      row.style.gap = '6px';
+      row.style.alignItems = 'center';
+      row.innerHTML = `
+        <input type="text" class="form-control row-title" style="flex:1; border-radius:6px; border:1px solid #d1d5db; padding:6px; font-size:0.8rem;" placeholder="시간/대분류" value="${title}">
+        <input type="text" class="form-control row-desc" style="flex:2; border-radius:6px; border:1px solid #d1d5db; padding:6px; font-size:0.8rem;" placeholder="내용" value="${desc}">
+        <button class="btn-remove-row" style="background:#fef2f2; border:1px solid #fecaca; border-radius:6px; width:28px; height:28px; display:flex; align-items:center; justify-content:center; color:#ef4444; cursor:pointer;">✕</button>
+      `;
+
+      row.querySelector('.btn-remove-row').addEventListener('click', () => {
+        row.remove();
+        triggerUpdate();
+      });
+
+      row.querySelectorAll('input').forEach(input => {
+        input.addEventListener('input', triggerUpdate);
+      });
+
+      itemsContainer.appendChild(row);
+      triggerUpdate();
+    };
+
+    contentWrap.querySelector('.btn-add-row-item').addEventListener('click', () => addRow());
+    styleSelect.addEventListener('change', triggerUpdate);
+
+    if (savedListData && savedListData.items) {
+      styleSelect.value = savedListData.style || 'timeline';
+      savedListData.items.forEach(item => addRow(item.title, item.desc));
+    } else {
+      addRow('14:00', '페스티벌 게이트 오픈');
+      addRow('16:00', '1부 스페셜 콘서트');
+    }
+  };
+
+  const updateListPreview = (block) => {
+    const style = block.querySelector('.list-style-select').value;
+    const rows = block.querySelectorAll('.list-row-item');
+    const preview = block.querySelector('.gallery-preview-container');
+
+    let html = '';
+    if (rows.length === 0) {
+      preview.innerHTML = `<div style="padding:1rem; text-align:center; color:#9ca3af; font-size:0.8rem;">등록된 항목이 없습니다.</div>`;
+      return;
+    }
+
+    if (style === 'timeline') {
+      html = `<div class="view-timeline" style="padding:1rem; border-left:2px solid #e5e7eb; margin:0.5rem 0 1.5rem 1rem; display:flex; flex-direction:column; gap:1.25rem;">`;
+      rows.forEach(row => {
+        const title = row.querySelector('.row-title').value;
+        const desc = row.querySelector('.row-desc').value;
+        html += `
+          <div class="timeline-item" style="position:relative; padding-left:1rem;">
+            <div class="timeline-dot" style="position:absolute; left:-21px; top:4px; width:10px; height:10px; border-radius:50%; background:#3b82f6; border:2px solid #fff; box-shadow:0 0 0 2px #eff6ff;"></div>
+            <strong style="display:block; font-size:0.85rem; color:#2563eb; margin-bottom:2px;">${title || '대기'}</strong>
+            <span style="font-size:0.9rem; color:#4b5563;">${desc || '미입력'}</span>
+          </div>
+        `;
+      });
+      html += `</div>`;
+    } else if (style === 'bullet') {
+      html = `<ul class="view-bullet-list" style="margin:0.5rem 0 1.5rem 1rem; padding-left:1.25rem; display:flex; flex-direction:column; gap:8px;">`;
+      rows.forEach(row => {
+        const title = row.querySelector('.row-title').value;
+        const desc = row.querySelector('.row-desc').value;
+        html += `
+          <li style="color:#4b5563; font-size:0.9rem; line-height:1.4;">
+            <strong style="color:#1f2937;">${title ? title + ' : ' : ''}</strong>${desc || '미입력'}
+          </li>
+        `;
+      });
+      html += `</ul>`;
+    } else if (style === 'card') {
+      html = `<div class="view-card-list" style="display:grid; grid-template-columns:1fr; gap:10px; margin-bottom:1.5rem;">`;
+      rows.forEach(row => {
+        const title = row.querySelector('.row-title').value;
+        const desc = row.querySelector('.row-desc').value;
+        html += `
+          <div style="background:#f9fafb; border:1px solid #f3f4f6; border-radius:8px; padding:12px 16px; display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:0.85rem; font-weight:700; color:#3b82f6; background:#eff6ff; padding:2px 8px; border-radius:4px;">${title || '시간'}</span>
+            <span style="font-size:0.9rem; font-weight:500; color:#374151; flex:1; text-align:right; margin-left:1rem;">${desc || '내용'}</span>
+          </div>
+        `;
+      });
+      html += `</div>`;
+    }
+
+    preview.innerHTML = html;
+  };
+
+  const addNoticeBlock = (savedNoticeData = null) => {
+    const icon = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`;
+    const block = createBlockWrapper('공지 배너', icon, 'notice-block');
+
+    const content = savedNoticeData?.content || '';
+    const type = savedNoticeData?.type || 'warning';
+
+    const contentWrap = document.createElement('div');
+    contentWrap.style.padding = '1.5rem';
+    contentWrap.innerHTML = `
+      <div style="margin-bottom:1rem;">
+        <label style="display:block; font-size:0.8rem; font-weight:700; color:#374151; margin-bottom:4px;">배너 테마</label>
+        <select class="form-control notice-type-select" style="width:100%; border-radius:8px; border:1px solid #d1d5db; padding:8px;">
+          <option value="warning">⚠️ 경고 (주황색)</option>
+          <option value="info">ℹ️ 정보 (파란색)</option>
+          <option value="success">✅ 확인 (초록색)</option>
+        </select>
+      </div>
+      <div style="margin-bottom:1rem;">
+        <label style="display:block; font-size:0.8rem; font-weight:700; color:#374151; margin-bottom:4px;">공지 문구</label>
+        <textarea class="form-control notice-text-input" style="width:100%; border-radius:8px; border:1px solid #d1d5db; padding:8px; height:80px; font-size:0.85rem;" placeholder="예: 우천 시에도 정상 진행됩니다.">${content}</textarea>
+      </div>
+      <div class="gallery-preview-container" style="display:none;"></div>
+    `;
+    block.appendChild(contentWrap);
+    blocksContainer.appendChild(block);
+    bindBlockControls(block);
+
+    const typeSelect = contentWrap.querySelector('.notice-type-select');
+    const textInput = contentWrap.querySelector('.notice-text-input');
+
+    if (savedNoticeData) {
+      typeSelect.value = type;
+    }
+
+    const triggerUpdate = () => {
+      updateNoticePreview(block);
       syncLivePreview(tab, blocksContainer);
-    });
-  }
+    };
+
+    typeSelect.addEventListener('change', triggerUpdate);
+    textInput.addEventListener('input', triggerUpdate);
+
+    triggerUpdate();
+  };
+
+  const updateNoticePreview = (block) => {
+    const type = block.querySelector('.notice-type-select').value;
+    const text = block.querySelector('.notice-text-input').value || '공지 내용을 입력하세요.';
+    const preview = block.querySelector('.gallery-preview-container');
+
+    const styles = {
+      warning: { bg: '#fffbeb', border: '#fef3c7', text: '#b45309', icon: '⚠️' },
+      info: { bg: '#eff6ff', border: '#dbeafe', text: '#1d4ed8', icon: 'ℹ️' },
+      success: { bg: '#f0fdf4', border: '#dcfce7', text: '#15803d', icon: '✅' }
+    };
+
+    const currentStyle = styles[type] || styles.warning;
+
+    let html = `
+      <div class="view-notice-block" style="background:${currentStyle.bg}; border:1px solid ${currentStyle.border}; border-radius:8px; padding:12px 16px; display:flex; gap:10px; align-items:flex-start; margin-bottom:1.5rem;">
+        <span style="font-size:1.1rem; line-height:1.2;">${currentStyle.icon}</span>
+        <span style="font-size:0.875rem; color:${currentStyle.text}; font-weight:600; line-height:1.4; white-space:pre-wrap;">${text}</span>
+      </div>
+    `;
+    preview.innerHTML = html;
+  };
 
   addActions.querySelector('.btn-add-text-block').addEventListener('click', () => addTextBlock('<p><br></p>'));
   addActions.querySelector('.btn-add-gallery-block').addEventListener('click', () => addGalleryBlock());
+  addActions.querySelector('.btn-add-map-block').addEventListener('click', () => addMapBlock());
+  addActions.querySelector('.btn-add-list-block').addEventListener('click', () => addListBlock());
+  addActions.querySelector('.btn-add-notice-block').addEventListener('click', () => addNoticeBlock());
 
   if (html.trim() && !html.includes('등록된 상세 설명 이미지가 제공되지 않았습니다.') && !html.includes('등록된 공지사항이 없습니다.')) {
-    if (html.includes('view-text-block') || html.includes('gallery-grid') || html.includes('gallery-carousel') || html.includes('gallery-slider')) {
-      const temp = document.createElement('div');
-      temp.innerHTML = html;
-      const children = Array.from(temp.children);
-      if (children.length > 0) {
-        children.forEach(child => {
-          if (child.classList.contains('view-text-block')) {
-            addTextBlock(child.innerHTML);
-          } else {
-            addTextBlock(child.outerHTML);
+    const temp = document.createElement('div');
+    temp.innerHTML = html;
+    const children = Array.from(temp.children);
+    if (children.length > 0) {
+      children.forEach(child => {
+        if (child.classList.contains('view-text-block')) {
+          addTextBlock(child.innerHTML);
+        } else if (child.classList.contains('view-map-block')) {
+          const address = child.querySelector('h4') ? child.querySelector('h4').textContent.trim() : '';
+          const pEl = child.querySelector('p');
+          const desc = pEl ? pEl.textContent.trim() : '';
+          const iframeContainer = child.querySelector('.map-iframe-container');
+          const iframe = iframeContainer ? iframeContainer.innerHTML.trim() : '';
+          addMapBlock({ address, iframe, desc });
+        } else if (child.classList.contains('view-timeline') || child.classList.contains('view-bullet-list') || child.classList.contains('view-card-list')) {
+          let style = 'timeline';
+          const items = [];
+          if (child.classList.contains('view-timeline')) {
+            style = 'timeline';
+            child.querySelectorAll('.timeline-item').forEach(item => {
+              const strong = item.querySelector('strong');
+              const span = item.querySelector('span');
+              items.push({
+                title: strong ? strong.textContent.trim() : '',
+                desc: span ? span.textContent.trim() : ''
+              });
+            });
+          } else if (child.classList.contains('view-bullet-list')) {
+            style = 'bullet';
+            child.querySelectorAll('li').forEach(item => {
+              const strong = item.querySelector('strong');
+              const title = strong ? strong.textContent.replace(/\s*:\s*$/, '').trim() : '';
+              let desc = item.textContent;
+              if (strong) desc = desc.replace(strong.textContent, '');
+              items.push({ title, desc: desc.trim() });
+            });
+          } else if (child.classList.contains('view-card-list')) {
+            style = 'card';
+            Array.from(child.children).forEach(item => {
+              const titleSpan = item.querySelector('span:first-child');
+              const descSpan = item.querySelector('span:last-child');
+              items.push({
+                title: titleSpan ? titleSpan.textContent.trim() : '',
+                desc: descSpan ? descSpan.textContent.trim() : ''
+              });
+            });
           }
-        });
-      } else {
-        addTextBlock(html);
-      }
+          addListBlock({ style, items });
+        } else if (child.classList.contains('view-notice-block')) {
+          const contentSpan = child.querySelector('span:last-child');
+          const content = contentSpan ? contentSpan.textContent.trim() : '';
+          let type = 'warning';
+          const bg = child.style.backgroundColor;
+          if (bg.includes('rgb(239, 246, 255)') || bg.includes('#eff6ff')) type = 'info';
+          else if (bg.includes('rgb(240, 253, 244)') || bg.includes('#f0fdf4')) type = 'success';
+          addNoticeBlock({ content, type });
+        } else if (child.classList.contains('gallery-grid') || child.classList.contains('gallery-masonry') || child.classList.contains('gallery-mosaic') || child.classList.contains('gallery-slider') || child.classList.contains('gallery-coverflow')) {
+          let layout = 'grid';
+          if (child.classList.contains('gallery-masonry')) layout = 'masonry';
+          else if (child.classList.contains('gallery-mosaic')) layout = 'mosaic';
+          else if (child.classList.contains('gallery-slider')) layout = 'carousel';
+          else if (child.classList.contains('gallery-coverflow')) layout = 'coverflow';
+          const images = Array.from(child.querySelectorAll('img')).map(img => img.src);
+          addGalleryBlock({ layout, images });
+        } else {
+          addTextBlock(child.outerHTML);
+        }
+      });
     } else {
       addTextBlock(html);
     }
@@ -2010,23 +2550,24 @@ function makeBlockEditor(tab, sidebarContainer) {
 
   syncLivePreview(tab, blocksContainer);
 }
+
 window.updateGalleryPreviewOrig = window.updateGalleryPreview;
 window.updateGalleryPreview = function (targetId) {
   const accordionItem = document.querySelector(`.builder-accordion-item[data-target-id="${targetId}"]`);
-  const targetTab = document.getElementById(targetId);
-  if (!accordionItem || !targetTab) return;
+  if (!accordionItem) return;
 
-  const inner = targetTab.querySelector('.gallery-preview-container') || targetTab.querySelector('.tab-content-inner');
+  const block = accordionItem.querySelector('.gallery-block');
+  if (!block) return;
+
+  const inner = block.querySelector('.gallery-preview-container');
   if (!inner) return;
 
-  const layout = accordionItem.querySelector('.gallery-layout-select')?.value || 'grid';
-  const imgElements = accordionItem.querySelectorAll('.uploaded-image-grid img');
+  const layout = block.querySelector('.gallery-layout-select')?.value || 'grid';
+  const imgElements = block.querySelectorAll('.uploaded-image-grid img');
   const images = Array.from(imgElements).map(img => img.src);
 
   if (images.length === 0) {
-    if (inner.classList.contains('gallery-preview-container')) {
-      inner.innerHTML = '<div style="padding:2rem; border:1px dashed #d1d5db; border-radius:12px; background:#f9fafb; color:#9ca3af; font-size:0.85rem;">등록된 이미지가 없습니다.</div>';
-    }
+    inner.innerHTML = '<div style="padding:2rem; border:1px dashed #d1d5db; border-radius:12px; background:#f9fafb; color:#9ca3af; font-size:0.85rem; text-align:center;">등록된 이미지가 없습니다.</div>';
     return;
   }
 
@@ -2050,16 +2591,6 @@ window.updateGalleryPreview = function (targetId) {
   } else if (layout === 'slider' || layout === 'carousel') {
     html = '<div class="gallery-slider">';
     images.forEach(src => { html += `<div class="gallery-slider-item"><img src="${src}" alt="갤러리 이미지"></div>`; });
-    html += '</div>';
-  } else if (layout === 'polaroid') {
-    html = '<div style="display:flex; flex-wrap:wrap; gap:1.5rem; justify-content:center;">';
-    images.forEach(src => {
-      html += `
-        <div style="background:#fff; padding:12px 12px 36px; box-shadow:0 10px 25px rgba(0,0,0,0.1); border-radius:4px; width:220px; transform:rotate(${Math.floor(Math.random() * 10 - 5)}deg); transition:transform 0.3s; cursor:pointer;" onmouseover="this.style.transform='scale(1.05) rotate(0deg)'" onmouseout="this.style.transform='rotate(${Math.floor(Math.random() * 10 - 5)}deg)'">
-          <img src="${src}" style="width:100%; aspect-ratio:1; object-fit:cover; border:1px solid #f3f4f6;">
-        </div>
-      `;
-    });
     html += '</div>';
   }
 
@@ -2136,7 +2667,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const btnSave = document.getElementById('btnSaveAllEdits');
   if (btnSave) {
-    btnSave.addEventListener('click', () => {
+    btnSave.addEventListener('click', async () => {
       const tabsSection = document.getElementById('detailTabsSection');
       if (!tabsSection) return;
 
@@ -2146,9 +2677,31 @@ document.addEventListener('DOMContentLoaded', () => {
         destroyMainAreaEditors(tabsSection);
       }
 
-      // 저장
-      localStorage.setItem(`festio_event_${getEventNo()}_tabs`, tabsSection.innerHTML);
-      Toast.success('이벤트 상세 내용이 저장되었습니다.');
+      const htmlContent = tabsSection.innerHTML;
+      const eventNo = getEventNo();
+
+      // 1. DB에 저장 시도 (서버 → Supabase 폴백 순으로 api.js가 처리)
+      btnSave.disabled = true;
+      btnSave.textContent = '저장 중...';
+      try {
+        const result = await eventApi.saveDescriptionHtml(eventNo, htmlContent);
+        if (result) {
+          // 2. localStorage에도 백업 저장 (오프라인 대비)
+          localStorage.setItem(`festio_event_${eventNo}_tabs`, htmlContent);
+          Toast.success('✅ 이벤트 상세 내용이 DB에 저장되었습니다.');
+        } else {
+          // DB 저장 실패 → localStorage에만 저장
+          localStorage.setItem(`festio_event_${eventNo}_tabs`, htmlContent);
+          Toast.warn('⚠️ DB 저장에 실패하여 브라우저에 임시 저장되었습니다.');
+        }
+      } catch (err) {
+        localStorage.setItem(`festio_event_${eventNo}_tabs`, htmlContent);
+        Toast.warn('⚠️ DB 저장에 실패하여 브라우저에 임시 저장되었습니다.');
+        console.error('saveDescriptionHtml error:', err);
+      } finally {
+        btnSave.disabled = false;
+        btnSave.textContent = '저장';
+      }
 
       // 편집 모드였다면 에디터 다시 활성화
       if (wasEditMode) {

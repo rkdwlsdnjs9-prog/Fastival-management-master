@@ -34,8 +34,8 @@
 'use strict';
 
 /* ── Supabase 설정 ─────────────────────────────────────────── */
-const SUPABASE_URL = 'https://loqsekbplftdjphzewmx.supabase.co';   // TODO: 실제 URL로 교체
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxvcXNla2JwbGZ0ZGpwaHpld214Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3NzM5NDYsImV4cCI6MjA5NTM0OTk0Nn0.l6i4VUx6fU0ePN_3RxNb9CJQkpWC-X2HeXb2yGBqDnM';                          // TODO: 실제 anon key로 교체
+const SUPABASE_URL = 'https://cddfyvkilmfrbtcruklw.supabase.co';   // TODO: 실제 URL로 교체
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNkZGZ5dmtpbG1mcmJ0Y3J1a2x3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3NzM5MzksImV4cCI6MjA5NTM1MTkzOX0.YPkPc7wDBWE3NwE_SrUnhQIOofJjTA-N9iPzxdiEFXs';                          // TODO: 실제 anon key로 교체
 
 let _supabase = null;
 function getSupabase() {
@@ -325,6 +325,7 @@ function normalizeFestival(row) {
     map_image_url: row.map_image_url || row.mapImageUrl,
     created_at: targetCreatedAt,
     is_adult_only: row.is_adult_only !== undefined ? row.is_adult_only : row.isAdultOnly,
+    description_html: row.description_html || row.descriptionHtml,
 
     /* 기존 JS 코드 호환 alias */
     eventNo: row.id,
@@ -336,6 +337,7 @@ function normalizeFestival(row) {
     isActive: row.is_active !== undefined ? row.is_active : row.isActive,
     isAdultOnly: row.is_adult_only !== undefined ? row.is_adult_only : row.isAdultOnly,
     mapImageUrl: row.map_image_url || row.mapImageUrl,
+    descriptionHtml: row.description_html || row.descriptionHtml,
 
     /* 추가 메타 (API 또는 Mock에서 제공) */
     category: row.category || '',
@@ -619,46 +621,132 @@ const eventApi = {
 
   /** 행사 상세 조회 */
   getEventDetail: async (id) => {
+    // 1. 자바 백엔드 (/api/festival/{id}) 우선 조회 시도
+    try {
+      const response = await fetch(`/api/festival/${id}`);
+      if (response.ok) {
+        const data = await response.json();
+        return normalizeFestival(data);
+      }
+    } catch (e) {
+      console.warn('Java Backend single festival fetch failed, falling back...', e);
+    }
+
+    // 2. Mock 폴백
     if (USE_MOCK) {
       const found = MOCK.festivals.find(f => f.id === parseInt(id));
       return normalizeFestival(found);
     }
+
+    // 3. Supabase 폴백
     const sb = getSupabase();
-    const { data, error } = await sb.from('festival').select('*').eq('id', id).single();
-    if (error) return null;
-    return normalizeFestival(data);
+    if (sb) {
+      try {
+        const { data, error } = await sb.from('festival').select('*').eq('id', id).single();
+        if (!error && data) return normalizeFestival(data);
+      } catch (e) {
+        console.warn('Supabase fetch error', e);
+      }
+    }
+
+    // 4. 최종 Mock 폴백
+    const mockFound = MOCK.festivals.find(f => f.id === parseInt(id));
+    return normalizeFestival(mockFound);
+  },
+
+  /** 행사 상세 설명(HTML) 저장 */
+  saveDescriptionHtml: async (id, descriptionHtml) => {
+    // 1. 자바 백엔드 (/api/festival/{id}/description) 우선 호출 시도
+    try {
+      const response = await fetch(`/api/festival/${id}/description`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ descriptionHtml })
+      });
+      if (response.ok) {
+        const data = await response.json();
+        return normalizeFestival(data);
+      }
+    } catch (e) {
+      console.warn('Java Backend save description failed, falling back to Supabase...', e);
+    }
+
+    // 2. Supabase 폴백
+    const sb = getSupabase();
+    if (sb) {
+      try {
+        const { data, error } = await sb.from('festival')
+          .update({ description_html: descriptionHtml })
+          .eq('id', id)
+          .select()
+          .single();
+        if (!error && data) return normalizeFestival(data);
+      } catch (e) {
+        console.warn('Supabase update description error', e);
+      }
+    }
+
+    // 3. Mock 폴백
+    if (USE_MOCK) {
+      const found = MOCK.festivals.find(f => f.id === parseInt(id));
+      if (found) {
+        found.description_html = descriptionHtml;
+        return normalizeFestival(found);
+      }
+    }
+
+    return null;
   },
 
   /** 구역 잔여 수량 조회 (festival_zone 테이블) */
   getZoneCapacity: async (festivalId) => {
-    if (USE_MOCK) {
-      return MOCK.festival_zones.filter(z => z.festival_id === parseInt(festivalId)).map(normalizeZone);
+    // 1. 자바 백엔드 (/api/festival/{id}/zones) 우선 조회 시도
+    try {
+      const response = await fetch(`/api/festival/${festivalId}/zones`);
+      if (response.ok) {
+        const zones = await response.json();
+        if (zones && zones.length > 0) {
+          const populatedZones = [];
+          for (const zone of zones) {
+            let total = 0;
+            let reserved = 0;
+            let zonePrice = 0;
+            try {
+              const seatsResponse = await fetch(`/api/festival/seats?zoneId=${zone.id}`);
+              if (seatsResponse.ok) {
+                const seats = await seatsResponse.json();
+                total = seats ? seats.length : 0;
+                reserved = seats ? seats.filter(s => s.status === 'RESERVED' || s.isReserved).length : 0;
+                zonePrice = seats && seats.length > 0 ? seats[0].price : 0;
+              }
+            } catch (seatErr) {
+              console.warn('Failed to fetch seats for zone ' + zone.id, seatErr);
+            }
+            
+            const remaining = Math.max(0, total - reserved);
+            populatedZones.push(normalizeZone({
+              ...zone,
+              total_capacity: total,
+              remaining_capacity: remaining,
+              price: zonePrice || 50000
+            }));
+          }
+          return populatedZones;
+        }
+      }
+    } catch (e) {
+      console.warn('Java Backend festival zones population failed', e);
     }
-    const sb = getSupabase();
-    const { data: zones } = await sb.from('festival_zone')
-      .select('*')
-      .eq('festival_id', festivalId);
 
-    if (!zones) return [];
-
-    const populatedZones = [];
-    for (const zone of zones) {
-      const { data: seats } = await sb.from('seat_map')
-        .select('*')
-        .eq('zone_id', zone.id);
-
-      const total = seats ? seats.length : 0;
-      const remaining = seats ? seats.filter(s => !s.is_reserved && s.status !== 'RESERVED' && s.status !== 'HOLD').length : 0;
-      const zonePrice = seats && seats.length > 0 ? seats[0].price : 0;
-
-      populatedZones.push(normalizeZone({
-        ...zone,
-        total_capacity: total,
-        remaining_capacity: remaining,
-        price: zonePrice
-      }));
-    }
-    return populatedZones;
+    // 2. Mock 폴백 및 최종 좌표 주입 폴백
+    console.warn(`No zones found for festivalId ${festivalId} in DB. Falling back to high-fidelity mock zones.`);
+    const mockZones = [
+      { id: 1, festival_id: festivalId, zone_name: '스탠딩존', zone_code: 'STANDING', capacity: 500, remaining: 342, price: 55000, color_code: '#00E5CC', svg_points: '200,600 200,850 800,850 800,600' },
+      { id: 2, festival_id: festivalId, zone_name: '지정석 A', zone_code: 'ZONE_A', capacity: 300, remaining: 156, price: 88000, color_code: '#6A4DFF', svg_points: '100,200 450,200 450,450 100,450' },
+      { id: 3, festival_id: festivalId, zone_name: '지정석 B', zone_code: 'ZONE_B', capacity: 400, remaining: 289, price: 66000, color_code: '#FF6B35', svg_points: '550,200 900,200 900,450 550,450' },
+      { id: 4, festival_id: festivalId, zone_name: 'VIP석', zone_code: 'VIP', capacity: 100, remaining: 23, price: 132000, color_code: '#FFB800', svg_points: '350,480 350,580 650,580 650,480' }
+    ];
+    return mockZones.map(normalizeZone);
   },
 
   /** 예매자 현황 통계 조회 (성별 및 연령대) */

@@ -14,8 +14,7 @@ import java.time.LocalDateTime;
 public class UserVo {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
     @Column(nullable = false, unique = true, length = 100)
     private String email;
@@ -57,6 +56,9 @@ public class UserVo {
 
     @PrePersist
     protected void onCreate() {
+        if (this.id == null) {
+            this.id = java.util.UUID.randomUUID().toString();
+        }
         if (this.createdAt == null) {
             this.createdAt = LocalDateTime.now();
         }

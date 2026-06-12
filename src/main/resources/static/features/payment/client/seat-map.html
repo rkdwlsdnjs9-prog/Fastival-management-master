@@ -335,6 +335,16 @@
       stroke: #71dd37;
     }
 
+    .zone-polygon.zone-disabled {
+      fill: rgba(133, 146, 163, 0.25);
+      stroke: #8592a3;
+      stroke-dasharray: 4;
+    }
+
+    .zone-polygon.zone-disabled:hover {
+      fill: rgba(133, 146, 163, 0.45);
+    }
+
     /* 드로잉 활성화 시 임시 폴리곤 및 점 스타일 */
     .draw-point {
       fill: #ff3e1d;
@@ -520,6 +530,14 @@
                           <i class="bx bx-trash me-1"></i>삭제
                         </button>
                       </div>
+                      
+                      <!-- 사용자 노출 상태 제어 (허용 / 미허용) -->
+                      <div class="d-flex align-items-center justify-content-between p-2 mt-3 bg-light rounded border" id="zoneStatusWrapper" style="display: none !important;">
+                        <span class="fs-7 fw-bold text-secondary"><i class="bx bx-show me-1"></i>사용자 예매 오픈:</span>
+                        <button class="btn btn-xs btn-success fw-bold" type="button" id="btnToggleZoneStatus">
+                          <i class="bx bx-check me-1"></i>허용 (예매 가능)
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -631,16 +649,88 @@
                       style="position: relative; overflow: hidden; width: 100%; max-width: 650px; aspect-ratio: 1 / 1; margin: 0 auto; border-radius: 8px; border: 1px solid #d9dee3; display: flex; align-items: center; justify-content: center;">
                       
                       <!-- 1층: 배경 이미지 오버레이 (전체 페스티벌 도면) -->
-                      <div class="grid-bg-overlay" id="gridBgOverlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-size: contain; background-repeat: no-repeat; background-position: center center; opacity: 0.8; z-index: 1; pointer-events: none;"></div>
+                      <div class="grid-bg-overlay" id="gridBgOverlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-size: contain; background-repeat: no-repeat; background-position: center center; opacity: 1; z-index: 1; pointer-events: none;"></div>
 
                       <!-- 2층: 구역 다각형을 그리고 감지할 SVG 레이어 -->
-                      <svg id="zoneSvgLayer" viewBox="0 0 1000 1000"
+                      <svg id="zoneSvgLayer" viewBox="0 0 800 660"
                         style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; pointer-events: auto;">
-                        <!-- JS dynamic SVG polygons -->
+                        <!-- Figma static background drawings -->
+                        <g id="figmaBackground" opacity="1">
+                          <!-- Stage -->
+                          <g>
+                            <path d="M 100 50 L 700 50 L 680 120 L 120 120 Z" fill="#FFE5E5" stroke="#9ca3af" stroke-width="1.5" />
+                            <text x="400" y="95" text-anchor="middle" fill="#374151" font-size="24" font-weight="bold">Stage</text>
+                          </g>
+                          
+                          <!-- VIP존 -->
+                          <g class="figma-template-zone" data-template="vip" style="cursor: pointer;">
+                            <path d="M 250 150 L 550 150 L 540 230 L 260 230 Z" fill="#FFD4E5" stroke="#9ca3af" stroke-width="1.5" />
+                            <text x="400" y="195" text-anchor="middle" fill="#374151" font-size="16" font-weight="600">VIP존</text>
+                            <text x="400" y="215" text-anchor="middle" fill="#6b7280" font-size="12">100석</text>
+                          </g>
+                          
+                          <!-- F1 -->
+                          <g class="figma-template-zone" data-template="f1" style="cursor: pointer;">
+                            <path d="M 180 250 L 340 250 L 340 340 L 180 340 Z" fill="#E5F3FF" stroke="#9ca3af" stroke-width="1.5" />
+                            <text x="260" y="295" text-anchor="middle" fill="#374151" font-size="16" font-weight="600">F1</text>
+                            <text x="260" y="315" text-anchor="middle" fill="#6b7280" font-size="12">80석</text>
+                          </g>
+                          
+                          <!-- F2 -->
+                          <g class="figma-template-zone" data-template="f2" style="cursor: pointer;">
+                            <path d="M 360 250 L 440 250 L 440 340 L 360 340 Z" fill="#E5F9FF" stroke="#9ca3af" stroke-width="1.5" />
+                            <text x="400" y="295" text-anchor="middle" fill="#374151" font-size="16" font-weight="600">F2</text>
+                            <text x="400" y="315" text-anchor="middle" fill="#6b7280" font-size="12">50석</text>
+                          </g>
+                          
+                          <!-- F3 -->
+                          <g class="figma-template-zone" data-template="f3" style="cursor: pointer;">
+                            <path d="M 460 250 L 620 250 L 620 340 L 460 340 Z" fill="#E5F3FF" stroke="#9ca3af" stroke-width="1.5" />
+                            <text x="540" y="295" text-anchor="middle" fill="#374151" font-size="16" font-weight="600">F3</text>
+                            <text x="540" y="315" text-anchor="middle" fill="#6b7280" font-size="12">80석</text>
+                          </g>
+                          
+                          <!-- 스탠딩존 -->
+                          <g class="figma-template-zone" data-template="standing" style="cursor: pointer;">
+                            <path d="M 220 360 L 580 360 L 580 500 L 220 500 Z" fill="#FFF9E5" stroke="#9ca3af" stroke-width="1.5" />
+                            <text x="400" y="435" text-anchor="middle" fill="#374151" font-size="16" font-weight="600">스탠딩존</text>
+                            <text x="400" y="455" text-anchor="middle" fill="#6b7280" font-size="12">200명</text>
+                          </g>
+                          
+                          <!-- A존 (좌) -->
+                          <g class="figma-template-zone" data-template="a-left" style="cursor: pointer;">
+                            <path d="M 100 250 L 160 250 L 160 500 L 100 500 Z" fill="#F0E5FF" stroke="#9ca3af" stroke-width="1.5" />
+                            <text x="130" y="380" text-anchor="middle" fill="#374151" font-size="16" font-weight="600">A존 (좌)</text>
+                            <text x="130" y="400" text-anchor="middle" fill="#6b7280" font-size="12">60석</text>
+                          </g>
+                          
+                          <!-- A존 (우) -->
+                          <g class="figma-template-zone" data-template="a-right" style="cursor: pointer;">
+                            <path d="M 640 250 L 700 250 L 700 500 L 640 500 Z" fill="#F0E5FF" stroke="#9ca3af" stroke-width="1.5" />
+                            <text x="670" y="380" text-anchor="middle" fill="#374151" font-size="16" font-weight="600">A존 (우)</text>
+                            <text x="670" y="400" text-anchor="middle" fill="#6b7280" font-size="12">60석</text>
+                          </g>
+                          
+                          <!-- F4 (좌) -->
+                          <g class="figma-template-zone" data-template="f4-left" style="cursor: pointer;">
+                            <path d="M 100 520 L 300 520 L 300 610 L 100 610 Z" fill="#E5FFE5" stroke="#9ca3af" stroke-width="1.5" />
+                            <text x="200" y="570" text-anchor="middle" fill="#374151" font-size="16" font-weight="600">F4 (좌)</text>
+                            <text x="200" y="590" text-anchor="middle" fill="#6b7280" font-size="12">100석</text>
+                          </g>
+                          
+                          <!-- F4 (우) -->
+                          <g class="figma-template-zone" data-template="f4-right" style="cursor: pointer;">
+                            <path d="M 500 520 L 700 520 L 700 610 L 500 610 Z" fill="#E5FFE5" stroke="#9ca3af" stroke-width="1.5" />
+                            <text x="600" y="570" text-anchor="middle" fill="#374151" font-size="16" font-weight="600">F4 (우)</text>
+                            <text x="600" y="590" text-anchor="middle" fill="#6b7280" font-size="12">100석</text>
+                          </g>
+                        </g>
+                        <!-- Dynamic SVG polygons drawn over it -->
+                        <g id="dynamicZonesLayer"></g>
                       </svg>
 
-                      <!-- 안내 문구 -->
-                      <div class="empty-state" id="emptyState" style="position: absolute; z-index: 4; pointer-events: none;">
+                      <!-- 안내 문구 (숨김) -->
+                      <div class="empty-state" id="emptyState" style="position: absolute; z-index: 4; pointer-events: none; display: none;">
                         <i class="bx bx-select-multiple"></i>
                         <span id="emptyStateText">구역 다각형을 클릭하면 해당 구역의 좌석 배치도 편집창(모달)이 열립니다.</span>
                       </div>
@@ -777,6 +867,8 @@
       const zoneSelect = document.getElementById('zoneSelect');
       const btnCreateZone = document.getElementById('btnCreateZone');
       const btnDeleteZone = document.getElementById('btnDeleteZone');
+      const zoneStatusWrapper = document.getElementById('zoneStatusWrapper');
+      const btnToggleZoneStatus = document.getElementById('btnToggleZoneStatus');
       const rowCountInput = document.getElementById('rowCountInput');
       const colCountInput = document.getElementById('colCountInput');
       const defaultGradeSelect = document.getElementById('defaultGradeSelect');
@@ -1016,10 +1108,10 @@
       zoneSvgLayer.addEventListener('click', (e) => {
         if (!isDrawingMode) return;
 
-        // SVG 영역 내 0~1000 뷰박스 기준 상대 비율 좌표 산출
+        // SVG 영역 내 0~800, 0~660 뷰박스 기준 상대 비율 좌표 산출
         const rect = zoneSvgLayer.getBoundingClientRect();
-        const x = Math.round(((e.clientX - rect.left) / rect.width) * 1000);
-        const y = Math.round(((e.clientY - rect.top) / rect.height) * 1000);
+        const x = Math.round(((e.clientX - rect.left) / rect.width) * 800);
+        const y = Math.round(((e.clientY - rect.top) / rect.height) * 660);
 
         // 유효 좌표 등록
         drawPoints.push([x, y]);
@@ -1114,13 +1206,13 @@
       // SVG 영역 내 다각형 드래그 및 꼭짓점 앵커 드래그 실시간 매핑
       zoneSvgLayer.addEventListener('mousemove', (e) => {
         const rect = zoneSvgLayer.getBoundingClientRect();
-        const curX = Math.round(((e.clientX - rect.left) / rect.width) * 1000);
-        const curY = Math.round(((e.clientY - rect.top) / rect.height) * 1000);
+        const curX = Math.round(((e.clientX - rect.left) / rect.width) * 800);
+        const curY = Math.round(((e.clientY - rect.top) / rect.height) * 660);
 
         // A. 앵커 리사이즈 핸들링
         if (isDraggingAnchor && draggedPolygon && activeAnchorIdx !== -1) {
-          const clampedX = Math.max(0, Math.min(1000, curX));
-          const clampedY = Math.max(0, Math.min(1000, curY));
+          const clampedX = Math.max(0, Math.min(800, curX));
+          const clampedY = Math.max(0, Math.min(660, curY));
 
           originalPointsArray[activeAnchorIdx] = [clampedX, clampedY];
 
@@ -1149,8 +1241,8 @@
           if (dragHasMoved) {
             // 다각형 꼭짓점 이동
             const newPoints = originalPointsArray.map(p => {
-              const nx = Math.max(0, Math.min(1000, p[0] + dx)); // SVG 뷰박스 범위 내로 고정 제한
-              const ny = Math.max(0, Math.min(1000, p[1] + dy));
+              const nx = Math.max(0, Math.min(800, p[0] + dx)); // SVG 뷰박스 범위 내로 고정 제한
+              const ny = Math.max(0, Math.min(660, p[1] + dy));
               return [nx, ny];
             });
             const pointsStr = newPoints.map(p => p.join(',')).join(' ');
@@ -1614,7 +1706,12 @@
             zoneSelect.innerHTML += '<option value="">등록된 구역이 없습니다.</option>';
             zoneSelect.disabled = true;
             btnCreateZone.disabled = false;
-            zoneSvgLayer.innerHTML = ''; // 다각형 레이어 초기화
+            const dynamicLayer = document.getElementById('dynamicZonesLayer');
+            if (dynamicLayer) {
+              dynamicLayer.innerHTML = '';
+            } else {
+              zoneSvgLayer.innerHTML = '';
+            }
             return;
           }
 
@@ -1633,6 +1730,7 @@
           // 만약 구역을 새로 생성하여 자동 선택시켰을 경우, 좌석 목록도 즉시 리로드 처리
           if (selectZoneId) {
             btnGenerate.disabled = false;
+            updateZoneStatusUI(selectZoneId);
 
             // 대상 구역 레이블 업데이트
             const selectedZone = zones.find(z => z.id == selectZoneId);
@@ -1651,7 +1749,12 @@
 
       // SVG 다각형 구역 렌더링 및 줌인 바인딩
       function drawZonesOnSvg(zones) {
-        zoneSvgLayer.innerHTML = ''; // 기존 다각형 삭제
+        const dynamicLayer = document.getElementById('dynamicZonesLayer');
+        if (dynamicLayer) {
+          dynamicLayer.innerHTML = ''; // 기존 다각형 삭제
+        } else {
+          zoneSvgLayer.innerHTML = '';
+        }
 
         if (!zones || zones.length === 0) return;
 
@@ -1660,10 +1763,14 @@
 
           const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
           polygon.setAttribute('points', zone.svgPoints);
-          polygon.setAttribute('class', 'zone-polygon');
+          if (zone.status === 'DISABLED') {
+            polygon.setAttribute('class', 'zone-polygon zone-disabled');
+          } else {
+            polygon.setAttribute('class', 'zone-polygon');
+          }
           polygon.setAttribute('data-zone-id', zone.id);
 
-          // 구역 명칭 툴팁 타이틀 부여
+          // 구역 명칭 툴팁 타이팁 부여
           const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
           title.textContent = `${zone.zoneName} (정원: ${zone.safetyLimit}명)`;
           polygon.appendChild(title);
@@ -1687,8 +1794,8 @@
             dragHasMoved = false;
 
             const rect = zoneSvgLayer.getBoundingClientRect();
-            dragStartX = Math.round(((e.clientX - rect.left) / rect.width) * 1000);
-            dragStartY = Math.round(((e.clientY - rect.top) / rect.height) * 1000);
+            dragStartX = Math.round(((e.clientX - rect.left) / rect.width) * 800);
+            dragStartY = Math.round(((e.clientY - rect.top) / rect.height) * 660);
 
             const pointsAttr = polygon.getAttribute('points');
             originalPointsArray = pointsAttr.trim().split(/\s+/).map(pair => {
@@ -1710,7 +1817,11 @@
             openSeatEditor(zone.id, zone.zoneName);
           });
 
-          zoneSvgLayer.appendChild(polygon);
+          if (dynamicLayer) {
+            dynamicLayer.appendChild(polygon);
+          } else {
+            zoneSvgLayer.appendChild(polygon);
+          }
         });
       }
 
@@ -1788,6 +1899,7 @@
 
         // 구역 선택박스 값 동기화
         zoneSelect.value = zoneId;
+        updateZoneStatusUI(zoneId);
 
         // 좌석 로드 및 렌더링
         await loadSeats(zoneId);
@@ -1805,6 +1917,21 @@
           title: '새로운 구역 추가',
           html:
             '<div class="mb-3 text-start">' +
+            '  <label class="form-label fw-bold" style="color: #566a7f;">Figma 기본 템플릿 선택</label>' +
+            '  <select id="swal-template-select" class="form-select">' +
+            '    <option value="custom" selected>직접 입력 (기본값)</option>' +
+            '    <option value="vip" data-name="VIP존" data-limit="100" data-points="250,150 550,150 540,230 260,230">VIP존 (100석)</option>' +
+            '    <option value="f1" data-name="F1" data-limit="80" data-points="180,250 340,250 340,340 180,340">F1 (80석)</option>' +
+            '    <option value="f2" data-name="F2" data-limit="50" data-points="360,250 440,250 440,340 360,340">F2 (50석)</option>' +
+            '    <option value="f3" data-name="F3" data-limit="80" data-points="460,250 620,250 620,340 460,340">F3 (80석)</option>' +
+            '    <option value="standing" data-name="스탠딩존" data-limit="200" data-points="220,360 580,360 580,500 220,500">스탠딩존 (200명)</option>' +
+            '    <option value="a-left" data-name="A존 (좌)" data-limit="60" data-points="100,250 160,250 160,500 100,500">A존 (좌) (60석)</option>' +
+            '    <option value="a-right" data-name="A존 (우)" data-limit="60" data-points="640,250 700,250 700,500 640,500">A존 (우) (60석)</option>' +
+            '    <option value="f4-left" data-name="F4 (좌)" data-limit="100" data-points="100,520 300,520 300,610 100,610">F4 (좌) (100석)</option>' +
+            '    <option value="f4-right" data-name="F4 (우)" data-limit="100" data-points="500,520 700,520 700,610 500,610">F4 (우) (100석)</option>' +
+            '  </select>' +
+            '</div>' +
+            '<div class="mb-3 text-start">' +
             '  <label class="form-label fw-bold" style="color: #566a7f;">구역명 (Zone Name)</label>' +
             '  <input id="swal-zone-name" class="form-control" placeholder="예: A구역, 스탠딩 레드존">' +
             '</div>' +
@@ -1818,14 +1945,42 @@
           cancelButtonText: '취소',
           confirmButtonColor: '#696cff',
           cancelButtonColor: '#8592a3',
+          didOpen: () => {
+            const select = document.getElementById('swal-template-select');
+            const nameInput = document.getElementById('swal-zone-name');
+            const limitInput = document.getElementById('swal-safety-limit');
+            
+            select.addEventListener('change', () => {
+              const selectedOption = select.options[select.selectedIndex];
+              if (selectedOption.value === 'custom') {
+                nameInput.value = '';
+                nameInput.disabled = false;
+                limitInput.value = '500';
+              } else {
+                nameInput.value = selectedOption.getAttribute('data-name');
+                nameInput.disabled = true;
+                limitInput.value = selectedOption.getAttribute('data-limit');
+              }
+            });
+          },
           preConfirm: () => {
+            const select = document.getElementById('swal-template-select');
+            const selectedOption = select.options[select.selectedIndex];
             const zoneName = document.getElementById('swal-zone-name').value.trim();
             const safetyLimit = document.getElementById('swal-safety-limit').value;
             if (!zoneName) {
               Swal.showValidationMessage('구역명을 입력해주세요.');
               return false;
             }
-            return { zoneName, safetyLimit: parseInt(safetyLimit) || 500 };
+            let points = tempSvgPoints;
+            if (selectedOption.value !== 'custom') {
+              points = selectedOption.getAttribute('data-points');
+            }
+            return { 
+              zoneName, 
+              safetyLimit: parseInt(safetyLimit) || 500,
+              svgPoints: points
+            };
           }
         });
 
@@ -1838,7 +1993,7 @@
               festivalId: parseInt(festivalId),
               zoneName: formValues.zoneName,
               safetyLimit: formValues.safetyLimit,
-              svgPoints: tempSvgPoints || '0,0 200,0 200,200 0,200'
+              svgPoints: formValues.svgPoints || tempSvgPoints || '0,0 200,0 200,200 0,200'
             };
 
             const res = await fetch('/api/admin/zones', {
@@ -1940,6 +2095,7 @@
       // 3. 특정 구역 선택 시 모달 오픈 연동
       zoneSelect.addEventListener('change', async (e) => {
         const zoneId = e.target.value;
+        updateZoneStatusUI(zoneId);
 
         if (zoneId) {
           sessionStorage.setItem('selectedZoneId', zoneId);
@@ -1975,6 +2131,82 @@
         btnGenerate.disabled = false;
         openSeatEditor(zoneId, selectedOptionText);
       });
+
+      // 구역 활성화 상태 제어 UI 업데이트
+      function updateZoneStatusUI(zoneId) {
+        if (!zoneId) {
+          if (zoneStatusWrapper) zoneStatusWrapper.style.setProperty('display', 'none', 'important');
+          return;
+        }
+        const zone = currentZones.find(z => z.id == zoneId);
+        if (!zone) {
+          if (zoneStatusWrapper) zoneStatusWrapper.style.setProperty('display', 'none', 'important');
+          return;
+        }
+
+        if (zoneStatusWrapper) zoneStatusWrapper.style.setProperty('display', 'flex', 'important');
+        
+        if (zone.status === 'DISABLED') {
+          btnToggleZoneStatus.className = 'btn btn-xs btn-danger fw-bold';
+          btnToggleZoneStatus.innerHTML = '<i class="bx bx-x me-1"></i>미허용 (숨김 중)';
+        } else {
+          btnToggleZoneStatus.className = 'btn btn-xs btn-success fw-bold';
+          btnToggleZoneStatus.innerHTML = '<i class="bx bx-check me-1"></i>허용 (예매 가능)';
+        }
+      }
+
+      // 구역 활성화 상태 토글 API 연동
+      if (btnToggleZoneStatus) {
+        btnToggleZoneStatus.addEventListener('click', async () => {
+          const zoneId = zoneSelect.value;
+          if (!zoneId) return;
+
+          try {
+            const res = await fetch(`/api/admin/zones/${zoneId}/toggle-status`, {
+              method: 'PUT',
+              headers: {
+                'Authorization': getAuthHeader()
+              }
+            });
+
+            if (!res.ok) {
+              const errData = await res.json();
+              throw new Error(errData.message || '상태 변경 중 오류가 발생했습니다.');
+            }
+
+            const updatedZone = await res.json();
+            
+            // 업데이트된 구역 데이터를 currentZones 배열에 반영
+            const idx = currentZones.findIndex(z => z.id == zoneId);
+            if (idx !== -1) {
+              currentZones[idx] = updatedZone;
+            }
+
+            // UI 업데이트
+            updateZoneStatusUI(zoneId);
+            
+            // SVG 구역 다시 그리기 (비활성화 스타일 반영)
+            drawZonesOnSvg(currentZones);
+
+            // 다각형의 하이라이트/엑티브 스타일 유지
+            const activePolygon = document.querySelector(`.zone-polygon[data-zone-id="${zoneId}"]`);
+            if (activePolygon) {
+              activePolygon.classList.add('active');
+            }
+
+            Swal.fire({
+              title: '성공',
+              text: `구역 노출 상태가 ${updatedZone.status === 'DISABLED' ? '미허용(숨김)' : '허용(노출)'}으로 변경되었습니다.`,
+              icon: 'success',
+              timer: 1500,
+              showConfirmButton: false
+            });
+
+          } catch (err) {
+            Swal.fire('에러', err.message, 'error');
+          }
+        });
+      }
 
       // 좌석 목록 로드 API 호출
       async function loadSeats(zoneId) {
@@ -2464,6 +2696,9 @@
         if (btnDeleteZone) {
           btnDeleteZone.disabled = true;
         }
+        if (zoneStatusWrapper) {
+          zoneStatusWrapper.style.setProperty('display', 'none', 'important');
+        }
         updateDashboardStats([]); // 대시보드 통계 비활성화
         showEmptyState('페스티벌과 구역을 선택하거나 좌석 판을 생성해주세요.');
       }
@@ -2515,6 +2750,55 @@
           }
         }
       }
+      // Figma 템플릿 구역 클릭 이벤트 연동
+      document.querySelectorAll('.figma-template-zone').forEach(el => {
+        el.addEventListener('click', (e) => {
+          if (isDrawingMode) return;
+          e.stopPropagation();
+
+          const template = el.getAttribute('data-template');
+          const zoneNameMap = {
+            'vip': 'VIP존',
+            'f1': 'F1',
+            'f2': 'F2',
+            'f3': 'F3',
+            'standing': '스탠딩존',
+            'a-left': 'A존 (좌)',
+            'a-right': 'A존 (우)',
+            'f4-left': 'F4 (좌)',
+            'f4-right': 'F4 (우)'
+          };
+          const targetZoneName = zoneNameMap[template];
+          if (!targetZoneName) return;
+
+          // 이미 생성된 구역이 있는지 검색
+          const existingZone = currentZones.find(z => z.zoneName === targetZoneName);
+          if (existingZone) {
+            // 이미 존재하면 해당 구역 편집(모달) 오픈
+            openSeatEditor(existingZone.id, existingZone.zoneName);
+          } else {
+            // 존재하지 않으면 신규 추가 모달 오픈
+            const festivalId = festivalSelect.value;
+            if (!festivalId) {
+              Swal.fire('알림', '페스티벌을 먼저 선택해 주세요.', 'warning');
+              return;
+            }
+
+            // 구역 추가 버튼을 클릭해 새 창 띄우고, select 드롭다운에서 해당 템플릿을 선택하도록 모사
+            btnCreateZone.click();
+
+            // SweetAlert2 창이 뜬 직후 dropdown 값을 템플릿으로 변경하고 change 이벤트 발송
+            setTimeout(() => {
+              const swalSelect = document.getElementById('swal-template-select');
+              if (swalSelect) {
+                swalSelect.value = template;
+                swalSelect.dispatchEvent(new Event('change'));
+              }
+            }, 100);
+          }
+        });
+      });
+
       initAndRestore();
     });
   </script>

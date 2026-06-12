@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="css/detail.css?v=1.0.3">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script src="https://js.tosspayments.com/v1/payment"></script>
+  <script src="https://cdn.iamport.kr/v1/iamport.js"></script>
   <script type="text/javascript"
     src="//dapi.kakao.com/v2/maps/sdk.js?appkey=e7c84bb07c1b52a51f8a846f4eb27bc8&libraries=services"></script>
 
@@ -131,12 +132,12 @@
         <!-- SVG 구역 선택 -->
         <div class="venue-section">
           <h2 class="venue-section-title">구역 선택</h2>
-          <div class="venue-map-wrap" style="position: relative; width: 100%; aspect-ratio: 1000/1000; overflow: hidden; background: #FAF9F6; display: flex; align-items: center; justify-content: center; border-radius: 12px; border: 1px solid var(--border-default);">
+          <div class="venue-map-wrap" style="position: relative; width: 100%; aspect-ratio: 800/660; overflow: hidden; background: #FAF9F6; display: flex; align-items: center; justify-content: center; border-radius: 12px; border: 1px solid var(--border-default);">
             <!-- 배경 이미지 오버레이 (전체 페스티벌 도면) -->
             <div class="venue-bg-overlay" id="venueBgOverlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-size: contain; background-repeat: no-repeat; background-position: center center; opacity: 0.95; z-index: 1; pointer-events: none;"></div>
             
             <!-- 구역 다각형을 그리고 감지할 SVG 레이어 -->
-            <svg class="venue-svg" id="venueSvgLayer" viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="공연장 좌석 배치도" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; pointer-events: auto;">
+            <svg class="venue-svg" id="venueSvgLayer" viewBox="0 0 800 660" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="공연장 좌석 배치도" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; pointer-events: auto;">
               <!-- JS dynamic SVG polygons -->
             </svg>
           </div>
@@ -440,7 +441,7 @@
               <rect x="1" y="4" width="22" height="16" rx="2" />
               <line x1="1" y1="10" x2="23" y2="10" />
             </svg>
-            <span class="pay-method-name">카드 (Toss)</span>
+            <span class="pay-method-name">카드 (Portone)</span>
           </button>
           <button class="pay-method-btn" data-method="virtual">
             <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -477,7 +478,7 @@
             <rect x="1" y="4" width="22" height="16" rx="2" />
             <line x1="1" y1="10" x2="23" y2="10" />
           </svg>
-          Toss로 결제
+          <span id="btn-pay-text">결제하기</span>
         </button>
       </div>
     </div>

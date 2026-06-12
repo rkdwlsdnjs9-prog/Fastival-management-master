@@ -2304,30 +2304,33 @@ body.edit-mode .detail-tabs-section .detail-tab-content.active {
 
 /* ── 구역 다각형 (Dynamic SVG Polygon) 프리미엄 스타일 ── */
 .zone-polygon {
-  fill: transparent;
-  stroke: transparent;
-  stroke-width: 0;
+  display: none !important;
+  pointer-events: none !important;
+}
+
+/* ── 피그마 템플릿 구역 프리미엄 스타일 ── */
+.figma-template-zone {
   cursor: pointer;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  filter: none;
 }
-.zone-polygon:hover {
-  fill: rgba(106, 77, 255, 0.18);
-  stroke: rgba(106, 77, 255, 0.7);
-  stroke-width: 2;
+.figma-template-zone path {
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.figma-template-zone:hover path {
+  fill-opacity: 0.8;
+  stroke: #6a4dff !important;
+  stroke-width: 2.5px !important;
   filter: drop-shadow(0 0 6px rgba(106, 77, 255, 0.5));
 }
-.zone-polygon.selected {
-  fill: rgba(255, 159, 67, 0.18);
-  stroke: rgba(255, 159, 67, 1);
-  stroke-width: 2.5;
+.figma-template-zone.selected path {
+  fill-opacity: 0.9;
+  stroke: #ff9f43 !important;
+  stroke-width: 3px !important;
   filter: drop-shadow(0 0 10px rgba(255, 159, 67, 0.7));
 }
-.zone-polygon.sold-out {
-  fill: rgba(15, 15, 30, 0.45) !important;
-  stroke: transparent !important;
-  stroke-width: 0;
-  cursor: not-allowed;
-  filter: none;
+.figma-template-zone.sold-out {
+  opacity: 0.35;
+  cursor: not-allowed !important;
+  pointer-events: none !important;
 }
 
