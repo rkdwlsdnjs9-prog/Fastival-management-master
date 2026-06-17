@@ -36,7 +36,7 @@ public class AdminMemberController {
      */
     @PatchMapping("/{id}/status")
     public ResponseEntity<UserVo> updateStatus(
-            @PathVariable("id") Long id,
+            @PathVariable("id") String id,
             @RequestParam("status") String status) {
         try {
             UserVo updated = userService.updateStatus(id, status);
@@ -52,7 +52,7 @@ public class AdminMemberController {
      */
     @PatchMapping("/{id}/role")
     public ResponseEntity<UserVo> updateRole(
-            @PathVariable("id") Long id,
+            @PathVariable("id") String id,
             @RequestParam("role") String role) {
         try {
             UserVo updated = userService.updateRole(id, role);

@@ -41,7 +41,7 @@ public class UserService {
         return user;
     }
 
-    public UserVo findById(Long id) {
+    public UserVo findById(String id) {
         return userRepository.findById(id).orElse(null);
     }
 
@@ -50,7 +50,7 @@ public class UserService {
     }
 
     @Transactional
-    public UserVo updateProfile(Long id, String name, String phone) {
+    public UserVo updateProfile(String id, String name, String phone) {
         UserVo user = userRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
         user.setName(name);
@@ -63,7 +63,7 @@ public class UserService {
     }
 
     @Transactional
-    public UserVo updateStatus(Long id, String status) {
+    public UserVo updateStatus(String id, String status) {
         UserVo user = userRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
         user.setStatus(status);
@@ -71,7 +71,7 @@ public class UserService {
     }
 
     @Transactional
-    public UserVo updateRole(Long id, String role) {
+    public UserVo updateRole(String id, String role) {
         UserVo user = userRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
         user.setRole(role);

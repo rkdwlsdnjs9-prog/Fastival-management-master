@@ -26,14 +26,13 @@ public class StaffApiController {
         }
 
         try {
-            Long userId = null;
+            String userId = null;
             if (token.startsWith("Bearer ")) {
                 token = token.substring(7);
             }
 
             if (token.startsWith("festio-jwt-token-")) {
-                String userIdStr = token.substring("festio-jwt-token-".length());
-                userId = Long.parseLong(userIdStr);
+                userId = token.substring("festio-jwt-token-".length());
             } else if (token.equals("festio-admin-jwt-token-7777")) {
                 // 어드민 테스트용 우회: 첫 번째 등록된 상점 부여
                 return getFirstStoreIdFallback();

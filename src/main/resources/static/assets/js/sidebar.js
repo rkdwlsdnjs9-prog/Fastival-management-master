@@ -303,3 +303,13 @@ function fallbackScroll(layoutMenu) {
         }
     }
 }
+
+// 모바일 환경에서 햄버거 메뉴 및 닫기 버튼(오버레이 포함)이 무조건 동작하도록 이벤트 강제 바인딩
+document.addEventListener('click', function(e) {
+    const toggleBtn = e.target.closest('.layout-menu-toggle');
+    if (toggleBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        document.documentElement.classList.toggle('layout-menu-expanded');
+    }
+}, true);

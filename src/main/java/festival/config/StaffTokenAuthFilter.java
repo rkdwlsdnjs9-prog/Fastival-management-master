@@ -62,8 +62,7 @@ public class StaffTokenAuthFilter extends OncePerRequestFilter {
 
                 } else if (token.startsWith("festio-jwt-token-")) {
                     // 일반 유저 토큰 → DB에서 실제 Role 조회
-                    String userIdStr = token.substring("festio-jwt-token-".length());
-                    Long userId = Long.parseLong(userIdStr);
+                    String userId = token.substring("festio-jwt-token-".length());
 
                     String sql = "SELECT role FROM app_user WHERE id = ?";
                     List<String> roles = jdbcTemplate.query(sql,

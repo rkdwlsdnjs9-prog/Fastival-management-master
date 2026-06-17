@@ -33,7 +33,7 @@ public class Fastival1Application {
 					return null;
 				});
 				jdbcTemplate.query("SELECT id, email, role, store_id FROM app_user WHERE role LIKE '%STAFF%' OR email = 'admin@gmail.com'", (rs, rowNum) -> {
-					System.out.println("[Debug User] ID: " + rs.getLong("id") + ", Email: " + rs.getString("email") + ", Role: " + rs.getString("role") + ", StoreID: " + rs.getLong("store_id"));
+					System.out.println("[Debug User] ID: " + rs.getString("id") + ", Email: " + rs.getString("email") + ", Role: " + rs.getString("role") + ", StoreID: " + rs.getLong("store_id"));
 					return null;
 				});
 				System.out.println("=========================================");

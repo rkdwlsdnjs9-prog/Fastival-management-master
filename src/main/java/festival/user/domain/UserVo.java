@@ -14,8 +14,8 @@ import java.time.LocalDateTime;
 public class UserVo {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String id;
 
     @Column(nullable = false, unique = true, length = 100)
     private String email;
