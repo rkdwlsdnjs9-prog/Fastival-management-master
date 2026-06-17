@@ -1,0 +1,8 @@
+<svg viewBox="0 0 800 660" xmlns="http://www.w3.org/2000/svg">
+  <!-- VIP Zone -->
+  <polygon id="VIP_Zone_Imported" points="260,160 540,160 530,220 270,220" fill="#FFD4E5" stroke="#9ca3af" />
+  <!-- F1 Zone -->
+  <rect id="F1_Zone_Imported" x="190" y="260" width="140" height="80" fill="#E5F3FF" stroke="#9ca3af" />
+  <!-- F2 Zone -->
+  <rect id="F2_Zone_Imported" x="370" y="260" width="70" height="80" fill="#E5F9FF" stroke="#9ca3af" />
+</svg>
